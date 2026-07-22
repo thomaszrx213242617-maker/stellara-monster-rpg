@@ -50,6 +50,9 @@ func _ready() -> void:
 	col.position = Vector3(0, 0.9, 0)
 	add_child(col)
 	base_speed = move_speed
+	# setup() 在 add_child 之前调用, 彼时 mesh 尚未创建, 故颜色延迟到入树后补应用
+	if type != "":
+		_apply_color()
 
 func setup(creature_id_: String, level_: int, is_player_: bool, current_hp_: int = -1) -> void:
 	creature_id = creature_id_
