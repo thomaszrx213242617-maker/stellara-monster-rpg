@@ -22,6 +22,7 @@
 - 走入**草丛**有概率遭遇野生灵兽 → 进入实时战斗
 - 走到**宝可梦中心**按 `E`：全队治疗 + 自动存档
 - 走近 **NPC** 按 `E`：播放对话
+- 走到**道馆**按 `E`：挑战馆主（Z-A 战斗，胜利获得徽章）
 - 按 `B`：随机遭遇一只野生灵兽（快速进入战斗）
 
 **实时战斗 (BattleArena)**
@@ -74,6 +75,10 @@ python harness/harness.py report      # 完成度报告
 | godot_datatable_plugin | 数据表 | MIT |
 
 > 详阅 `docs/REQUIREMENTS.md`（设计）与 `docs/STANDARDS.md`（规范）。
+
+## 构建与分发
+
+Windows 单机版导出步骤见 `docs/BUILD.md`：安装官方导出模板 → `Project → Export` → 添加 Windows Desktop → 导出 `build/星澜地区.exe`。本项目无 GDExtension，导出即用，无需额外原生库。
 
 ## 版权
 

@@ -17,6 +17,7 @@ var inventory: Dictionary = {} # item_id -> count
 var badges: Array = []         # 已获得徽章 id
 var badges_total: int = 8
 var pending_wild: Dictionary = {}  # 待进入的野怪战斗配置 {id, level}; 空则默认
+var pending_trainer: Dictionary = {}  # 训练家/道馆战配置 {enemy_id, enemy_level, trainer_name, badge_id}
 var caught_count: int = 0      # 图鉴: 收服总数
 
 func _ready() -> void:

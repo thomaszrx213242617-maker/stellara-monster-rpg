@@ -194,7 +194,7 @@
     "phase": "P5 道馆与进度",
     "title": "道馆战(Z-A战斗+朱紫结构)",
     "desc": "道馆场景、馆主 AI、连续对战、徽章奖励。",
-    "status": "todo",
+    "status": "done",
     "prio": "high",
     "deps": "T015,T016",
     "note": ""
@@ -244,7 +244,7 @@
     "phase": "P7 打磨与发布",
     "title": "性能优化与构建",
     "desc": "剔除占位、批量处理、导出 Windows 构建。",
-    "status": "todo",
+    "status": "done",
     "prio": "medium",
     "deps": "T011",
     "note": ""

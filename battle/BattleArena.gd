@@ -17,6 +17,8 @@ var player_cooldown: float = 0.0
 var attack_range: float = 3.2
 var battle_over: bool = false
 var enemy_is_wild: bool = true
+var _trainer_name: String = ""
+var _badge_id: String = ""
 
 var hud_layer: CanvasLayer
 var player_hp_bar: ProgressBar
@@ -127,10 +129,17 @@ func start_battle() -> void:
 	var enemy_id: String = "aqualeap"
 	var enemy_level: int = 5
 	enemy_is_wild = true
-	if not GameState.pending_wild.is_empty():
+	if not GameState.pending_trainer.is_empty():
+		enemy_id = GameState.pending_trainer.get("enemy_id", "aqualeap")
+		enemy_level = int(GameState.pending_trainer.get("enemy_level", 5))
+		enemy_is_wild = false
+		_trainer_name = GameState.pending_trainer.get("trainer_name", "训练家")
+		_badge_id = GameState.pending_trainer.get("badge_id", "")
+		GameState.pending_trainer = {}
+	elif not GameState.pending_wild.is_empty():
 		enemy_id = GameState.pending_wild.get("id", "aqualeap")
 		enemy_level = int(GameState.pending_wild.get("level", 5))
-	GameState.pending_wild = {}
+		GameState.pending_wild = {}
 
 	enemy_combatant = CombatantScript.new()
 	enemy_combatant.position = Vector3(6, 1, 0)
@@ -241,6 +250,7 @@ func _player_attack() -> void:
 
 func _try_capture() -> void:
 	if not enemy_is_wild:
+		_pop("无法收服" + _trainer_name + "的灵兽!")
 		return
 	if not GameState.can_collect():
 		_pop("夜晚黯潮汹涌，无法收服灵兽!")
@@ -275,6 +285,9 @@ func _on_enemy_defeated() -> void:
 	var exp: int = GameState.wild_exp(enemy_combatant.level)
 	var res: Dictionary = GameState.grant_exp(pdata, exp)
 	var msg: String = "胜利! 获得 " + str(exp) + " 经验"
+	if not enemy_is_wild and _badge_id != "":
+		GameState.grant_badge(_badge_id)
+		msg += "\n获得徽章: " + _badge_id
 	if res["levels"] > 0:
 		msg += "\n升级! Lv" + str(pdata["level"])
 	if res["evolved"]:
@@ -286,9 +299,10 @@ func _end_battle(win: bool, msg: String = "") -> void:
 	if battle_over:
 		return
 	battle_over = true
-	# 回写玩家灵兽血量
+	# 回写玩家灵兽血量并持久化
 	if player_combatant and not GameState.team.is_empty():
 		GameState.team[0]["hp"] = int(clamp(player_combatant.hp, 0, player_combatant.max_hp))
+	SaveManager.save_game()
 	result_label.text = msg if msg != "" else ("胜利!" if win else "失败")
 	await get_tree().create_timer(1.8).timeout
 	get_tree().change_scene_to_file("res://world/World.tscn")

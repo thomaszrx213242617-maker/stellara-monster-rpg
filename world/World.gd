@@ -19,6 +19,8 @@ var _npc
 var _encounter_cd: float = 0.0
 var _in_center: bool = false
 var _center_label: Label
+var _in_gym: bool = false
+var _gym_label: Label
 
 func _ready() -> void:
 	build_world()
@@ -30,7 +32,7 @@ func _build_ui() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
 	var hint := Label.new()
-	hint.text = "WASD 移动 | 右键转视角 | 空格跳跃 | 进草丛遇野怪 | 宝可梦中心按 E 治疗存档 | 按 B 随机遭遇"
+	hint.text = "WASD移动 | 右键转视角 | 空格跳 | 草丛遇野怪 | 中心/道馆按E | B随机遭遇 | 夜晚禁收服"
 	hint.position = Vector2(12, 12)
 	layer.add_child(hint)
 	var t := Label.new()
@@ -48,6 +50,11 @@ func _build_ui() -> void:
 	_center_label.position = Vector2(12, 330)
 	_center_label.text = ""
 	layer.add_child(_center_label)
+
+	_gym_label = Label.new()
+	_gym_label.position = Vector2(12, 354)
+	_gym_label.text = ""
+	layer.add_child(_gym_label)
 
 	_dialogue = DialogueBox.new()
 	_dialogue.name = "DialogueBox"
@@ -118,6 +125,13 @@ func build_world() -> void:
 	center.body_exited.connect(_on_center_exit)
 	add_child(center)
 
+	# 道馆 (按 E 挑战馆主, 胜利获得徽章)
+	var gym := GymZone.new()
+	gym.position = Vector3(22, 0, -18)
+	gym.body_entered.connect(_on_gym_enter)
+	gym.body_exited.connect(_on_gym_exit)
+	add_child(gym)
+
 	# NPC
 	var npc := Npc.new()
 	npc.name = "Npc"
@@ -155,6 +169,14 @@ func _on_center_exit(b: Node) -> void:
 	if b == _player:
 		_in_center = false
 
+func _on_gym_enter(b: Node) -> void:
+	if b == _player:
+		_in_gym = true
+
+func _on_gym_exit(b: Node) -> void:
+	if b == _player:
+		_in_gym = false
+
 func _process(delta: float) -> void:
 	if _encounter_cd > 0.0:
 		_encounter_cd = max(0.0, _encounter_cd - delta)
@@ -182,6 +204,18 @@ func _process(delta: float) -> void:
 
 	if _center_label:
 		_center_label.text = "宝可梦中心(按 E 治疗)" if _in_center else ""
+
+	if _in_gym and Input.is_action_just_pressed("interact"):
+		GameState.pending_trainer = {
+			"enemy_id": "lumiadeer",
+			"enemy_level": 12,
+			"trainer_name": "馆主·岩心",
+			"badge_id": "badge_stone"
+		}
+		get_tree().change_scene_to_file("res://battle/BattleArena.tscn")
+
+	if _gym_label:
+		_gym_label.text = "道馆·岩心 (按 E 挑战)" if _in_gym else ""
 
 	# 昼夜光照反馈
 	if _env:
