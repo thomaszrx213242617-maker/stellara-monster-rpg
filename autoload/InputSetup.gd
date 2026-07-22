@@ -11,9 +11,10 @@ func _ready() -> void:
     _ensure("move_right", [KEY_D, KEY_RIGHT])
     _ensure("dodge", [KEY_SHIFT])
     _ensure("attack", [KEY_SPACE])
-    _ensure("interact", [KEY_E])
-    _ensure("start_battle", [KEY_B])
-    _ensure("capture", [KEY_C])
+	_ensure("interact", [KEY_E])
+	_ensure("start_battle", [KEY_B])
+	_ensure("capture", [KEY_C])
+	_ensure("switch_move", [KEY_Q])
 
 func _ensure(action_name: String, keys: Array) -> void:
     if InputMap.has_action(action_name):

@@ -7,10 +7,12 @@ class_name DataBus
 const TYPE_CHART_PATH := "res://data/type_chart.json"
 const CREATURES_PATH := "res://data/creatures.json"
 const MOVES_PATH := "res://data/moves.json"
+const ITEMS_PATH := "res://data/items.json"
 
 var type_chart: TypeChart
 var creatures: Dictionary = {}   # id -> 数据字典
 var moves: Dictionary = {}        # id -> 数据字典
+var items: Dictionary = {}        # id -> 数据字典
 
 func _ready() -> void:
     type_chart = TypeChart.new()
@@ -29,16 +31,23 @@ func _load_data() -> void:
     if cd:
         for c in cd["creatures"]:
             creatures[c["id"]] = c
-    var md: Dictionary = load_json(MOVES_PATH)
-    if md:
-        for m in md["moves"]:
-            moves[m["id"]] = m
+	var md: Dictionary = load_json(MOVES_PATH)
+	if md:
+		for m in md["moves"]:
+			moves[m["id"]] = m
+	var itd: Dictionary = load_json(ITEMS_PATH)
+	if itd:
+		for it in itd["items"]:
+			items[it["id"]] = it
 
 func get_creature(id: String) -> Dictionary:
-    return creatures.get(id, {})
+	return creatures.get(id, {})
 
 func get_move(id: String) -> Dictionary:
-    return moves.get(id, {})
+	return moves.get(id, {})
+
+func get_item(id: String) -> Dictionary:
+	return items.get(id, {})
 
 ## 攻击属性对防御属性的克制倍率
 func multiplier(atk_type: String, def_type: String) -> float:

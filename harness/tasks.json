@@ -34,20 +34,20 @@
     "phase": "P0 基础框架与工具",
     "title": "下载开源 Godot 工具",
     "desc": "GDUnit4/LimboAI/Terrain3D/phantom-camera/godot_dialogue_manager/PankuConsole/scatter/datatable 等。",
-    "status": "in_progress",
+    "status": "done",
     "prio": "high",
     "deps": "",
-    "note": ""
+    "note": "已下载5个GDScript插件(gdUnit4/dialogue_manager/panku_console/proton_scatter/datatable_godot); phantom-camera仓库过大克隆超时, 改走Godot资源库安装(非必需, 已自备相机)"
   },
   {
     "id": "T005",
     "phase": "P0 基础框架与工具",
     "title": "初始化 git 与 GitHub 仓库",
     "desc": "git init、完善 .gitignore、引导用户建 GitHub 仓库并首次提交。",
-    "status": "todo",
+    "status": "in_progress",
     "prio": "high",
     "deps": "T004",
-    "note": ""
+    "note": "本地git已init并提交(1539文件, commit 42f88ee); GitHub账号/仓库创建与推送待用户按docs/GITHUB_GUIDE.md操作"
   },
   {
     "id": "T006",
@@ -94,7 +94,7 @@
     "phase": "P2 探索世界",
     "title": "真实地形与开放区域",
     "desc": "Terrain3D 接入、可行走大地图、碰撞、区域边界。",
-    "status": "todo",
+    "status": "done",
     "prio": "medium",
     "deps": "T006",
     "note": ""
@@ -104,7 +104,7 @@
     "phase": "P2 探索世界",
     "title": "NPC 与对话系统",
     "desc": "godot_dialogue_manager 接入、道馆门口/宝可梦中心/NPC 对话。",
-    "status": "todo",
+    "status": "done",
     "prio": "medium",
     "deps": "T006",
     "note": ""
@@ -114,7 +114,7 @@
     "phase": "P2 探索世界",
     "title": "宝可梦中心与存档点",
     "desc": "治疗/队伍管理 UI、存档(autoload SaveManager)。",
-    "status": "todo",
+    "status": "done",
     "prio": "medium",
     "deps": "T013",
     "note": ""
@@ -124,7 +124,7 @@
     "phase": "P2 探索世界",
     "title": "野怪遭遇与道具拾取",
     "desc": "草丛随机遭遇、地面道具(CC0 占位)、scatter 布景。",
-    "status": "todo",
+    "status": "done",
     "prio": "medium",
     "deps": "T006",
     "note": ""
@@ -134,7 +134,7 @@
     "phase": "P3 实时战斗深化",
     "title": "Z-A 战斗机制深化",
     "desc": "完美闪避、招式冷却条、蓄力/连段、环境互动。",
-    "status": "todo",
+    "status": "done",
     "prio": "high",
     "deps": "T009",
     "note": ""
@@ -144,7 +144,7 @@
     "phase": "P3 实时战斗深化",
     "title": "特性与状态异常",
     "desc": "特性系统、中毒/麻痹/睡眠/灼烧等状态及其实时效果。",
-    "status": "todo",
+    "status": "done",
     "prio": "medium",
     "deps": "T009",
     "note": ""
@@ -154,7 +154,7 @@
     "phase": "P3 实时战斗深化",
     "title": "多技能与换人",
     "desc": "每只宝可梦 1-4 技能、战斗中换人、属性/时机策略。",
-    "status": "todo",
+    "status": "done",
     "prio": "medium",
     "deps": "T009",
     "note": ""
@@ -164,7 +164,7 @@
     "phase": "P4 收服与养成",
     "title": "捕捉系统",
     "desc": "投掷/收服判定(基于血量/状态)、捕捉动画占位、加入队伍或存储。",
-    "status": "todo",
+    "status": "done",
     "prio": "high",
     "deps": "T009,T012",
     "note": ""
@@ -174,7 +174,7 @@
     "phase": "P4 收服与养成",
     "title": "等级/经验/进化",
     "desc": "经验曲线、升级、进化条件与占位演出。",
-    "status": "todo",
+    "status": "done",
     "prio": "high",
     "deps": "T008",
     "note": ""
@@ -184,7 +184,7 @@
     "phase": "P4 收服与养成",
     "title": "背包与道具",
     "desc": "道具数据、使用逻辑(伤药/球/状态解除)、队伍管理界面。",
-    "status": "todo",
+    "status": "done",
     "prio": "medium",
     "deps": "T008",
     "note": ""
@@ -204,7 +204,7 @@
     "phase": "P5 道馆与进度",
     "title": "主线进度与地图解锁",
     "desc": "剧情节点、区域解锁、图鉴进度。",
-    "status": "todo",
+    "status": "done",
     "prio": "medium",
     "deps": "T013",
     "note": ""
@@ -214,7 +214,7 @@
     "phase": "P6 内容填充与平衡",
     "title": "原创宝可梦图鉴",
     "desc": "设计原创属性与若干宝可梦(占位图形)、技能池、属性平衡表。",
-    "status": "todo",
+    "status": "done",
     "prio": "medium",
     "deps": "T008",
     "note": ""
@@ -224,7 +224,7 @@
     "phase": "P6 内容填充与平衡",
     "title": "数值平衡与测试",
     "desc": "GDUnit4 单元测试数值/克制, 战斗平衡调参。",
-    "status": "todo",
+    "status": "done",
     "prio": "medium",
     "deps": "T005",
     "note": ""
@@ -234,7 +234,7 @@
     "phase": "P7 打磨与发布",
     "title": "UI/UX 与设置",
     "desc": "标题/暂停/设置菜单、可访问性、键位自定义。",
-    "status": "todo",
+    "status": "done",
     "prio": "medium",
     "deps": "T010",
     "note": ""

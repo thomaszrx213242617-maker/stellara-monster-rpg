@@ -1,15 +1,27 @@
 {
   "moves": [
-    { "id": "tackle",  "name": "撞击",   "type": "械", "power": 35, "energy": 15, "cooldown": 0.8, "accuracy": 1.0, "category": "物理", "desc": "基础撞击" },
-    { "id": "spark",   "name": "电击",   "type": "雷", "power": 40, "energy": 18, "cooldown": 1.0, "accuracy": 0.95, "category": "特殊", "desc": "释放电流" },
-    { "id": "flare",   "name": "火花",   "type": "炎", "power": 45, "energy": 20, "cooldown": 1.0, "accuracy": 0.95, "category": "特殊", "desc": "喷射火花" },
-    { "id": "blaze",   "name": "炎爆",   "type": "炎", "power": 70, "energy": 40, "cooldown": 2.5, "accuracy": 0.9,  "category": "特殊", "desc": "强力炎爆" },
-    { "id": "aqua",    "name": "水枪",   "type": "水", "power": 45, "energy": 20, "cooldown": 1.0, "accuracy": 0.95, "category": "特殊", "desc": "高压水枪" },
-    { "id": "torrent", "name": "激流",   "type": "水", "power": 70, "energy": 40, "cooldown": 2.5, "accuracy": 0.9,  "category": "特殊", "desc": "汹涌激流" },
-    { "id": "vine",    "name": "藤鞭",   "type": "木", "power": 45, "energy": 20, "cooldown": 1.0, "accuracy": 0.95, "category": "物理", "desc": "藤蔓抽击" },
-    { "id": "leaf",    "name": "飞叶",   "type": "木", "power": 65, "energy": 38, "cooldown": 2.2, "accuracy": 0.9,  "category": "物理", "desc": "锋利飞叶" },
-    { "id": "rock",    "name": "落石",   "type": "岩", "power": 50, "energy": 22, "cooldown": 1.2, "accuracy": 0.9,  "category": "物理", "desc": "投掷落石" },
-    { "id": "beam",    "name": "光束",   "type": "光", "power": 60, "energy": 35, "cooldown": 2.0, "accuracy": 0.95, "category": "特殊", "desc": "凝聚光束" },
-    { "id": "shadow",  "name": "暗影",   "type": "暗", "power": 55, "energy": 30, "cooldown": 1.6, "accuracy": 0.95, "category": "特殊", "desc": "暗影冲击" }
+    { "id": "tackle",     "name": "撞击",   "type": "械", "power": 35, "cooldown": 0.8, "accuracy": 1.0,  "category": "物理", "desc": "基础撞击" },
+    { "id": "spark",      "name": "电击",   "type": "雷", "power": 40, "cooldown": 1.0, "accuracy": 0.95, "category": "特殊", "desc": "释放电流" },
+    { "id": "flare",      "name": "火花",   "type": "炎", "power": 45, "cooldown": 1.0, "accuracy": 0.95, "category": "特殊", "desc": "喷射火花" },
+    { "id": "blaze",      "name": "炎爆",   "type": "炎", "power": 70, "cooldown": 2.5, "accuracy": 0.9,  "category": "特殊", "desc": "强力炎爆" },
+    { "id": "aqua",       "name": "水枪",   "type": "水", "power": 45, "cooldown": 1.0, "accuracy": 0.95, "category": "特殊", "desc": "高压水枪" },
+    { "id": "torrent",    "name": "激流",   "type": "水", "power": 70, "cooldown": 2.5, "accuracy": 0.9,  "category": "特殊", "desc": "汹涌激流" },
+    { "id": "vine",       "name": "藤鞭",   "type": "木", "power": 45, "cooldown": 1.0, "accuracy": 0.95, "category": "物理", "desc": "藤蔓抽击" },
+    { "id": "leaf",       "name": "飞叶",   "type": "木", "power": 65, "cooldown": 2.2, "accuracy": 0.9,  "category": "物理", "desc": "锋利飞叶" },
+    { "id": "rock",       "name": "落石",   "type": "岩", "power": 50, "cooldown": 1.2, "accuracy": 0.9,  "category": "物理", "desc": "投掷落石" },
+    { "id": "beam",       "name": "光束",   "type": "光", "power": 60, "cooldown": 2.0, "accuracy": 0.95, "category": "特殊", "desc": "凝聚光束" },
+    { "id": "shadow",     "name": "暗影",   "type": "暗", "power": 55, "cooldown": 1.6, "accuracy": 0.95, "category": "特殊", "desc": "暗影冲击" },
+    { "id": "gust",       "name": "起风",   "type": "风", "power": 40, "cooldown": 1.0, "accuracy": 0.95, "category": "特殊", "desc": "卷起疾风" },
+    { "id": "hurricane",  "name": "飓风",   "type": "风", "power": 65, "cooldown": 2.2, "accuracy": 0.9,  "category": "特殊", "desc": "狂暴飓风" },
+    { "id": "shadowclaw", "name": "暗爪",   "type": "暗", "power": 50, "cooldown": 1.2, "accuracy": 0.95, "category": "物理", "desc": "暗影利爪" },
+    { "id": "darkpulse",  "name": "恶波",   "type": "暗", "power": 65, "cooldown": 2.2, "accuracy": 0.9,  "category": "特殊", "desc": "释放恶意波动" },
+    { "id": "gear",       "name": "齿轮击", "type": "械", "power": 45, "cooldown": 1.0, "accuracy": 0.95, "category": "物理", "desc": "齿轮撞击" },
+    { "id": "ironbash",   "name": "铁头",   "type": "械", "power": 65, "cooldown": 2.2, "accuracy": 0.9,  "category": "物理", "desc": "钢铁冲撞" },
+    { "id": "spirit",     "name": "灵击",   "type": "灵", "power": 50, "cooldown": 1.2, "accuracy": 0.95, "category": "特殊", "desc": "灵力冲击" },
+    { "id": "soul",       "name": "魂爆",   "type": "灵", "power": 70, "cooldown": 2.5, "accuracy": 0.9,  "category": "特殊", "desc": "灵魂爆发" },
+    { "id": "inferno",    "name": "烈焰",   "type": "炎", "power": 50, "cooldown": 1.6, "accuracy": 0.9,  "category": "特殊", "desc": "附带灼烧", "status": "灼烧", "status_chance": 0.3 },
+    { "id": "toxicspore", "name": "毒孢",   "type": "木", "power": 30, "cooldown": 1.4, "accuracy": 0.95, "category": "物理", "desc": "附带中毒", "status": "中毒", "status_chance": 0.6 },
+    { "id": "thunderwave","name": "电磁波", "type": "雷", "power": 0,  "cooldown": 2.0, "accuracy": 0.9,  "category": "变化", "desc": "必定麻痹", "status": "麻痹", "status_chance": 1.0 },
+    { "id": "hypno",      "name": "催眠",   "type": "灵", "power": 20, "cooldown": 2.0, "accuracy": 0.9,  "category": "变化", "desc": "概率睡眠", "status": "睡眠", "status_chance": 0.5 }
   ]
 }
