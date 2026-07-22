@@ -11,9 +11,17 @@ config_version=5
 [application]
 
 config/name="宝可梦游戏设计"
+run/main_scene="res://world/World.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
-run/main_scene="res://world/World.tscn"
+
+[autoload]
+
+DataBus="*res://autoload/DataBus.gd"
+InputSetup="*res://autoload/InputSetup.gd"
+DayNight="*res://autoload/DayNight.gd"
+GameState="*res://autoload/GameState.gd"
+SaveManager="*res://autoload/SaveManager.gd"
 
 [display]
 
@@ -27,11 +35,3 @@ window/stretch/aspect="expand"
 [rendering]
 
 rendering_device/driver.windows="d3d12"
-
-[autoload]
-
-DataBus="*res://autoload/DataBus.gd"
-InputSetup="*res://autoload/InputSetup.gd"
-DayNight="*res://autoload/DayNight.gd"
-GameState="*res://autoload/GameState.gd"
-SaveManager="*res://autoload/SaveManager.gd"
