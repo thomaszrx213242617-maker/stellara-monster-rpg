@@ -1,4 +1,0 @@
-# Test
-```powershell
-$USER = "test"
-```
