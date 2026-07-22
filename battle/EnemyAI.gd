@@ -1,6 +1,8 @@
 extends Node
 class_name EnemyAI
 
+const CombatScript := preload("res://core/combat.gd")
+
 ## 敌方灵兽的简单 AI: 靠近玩家, 进入射程后周期性出招 (伤害含属性克制与特性)。
 ## 出招随机从技能池选取, 命中可施加状态异常。
 
@@ -45,7 +47,7 @@ func _enemy_attack() -> void:
 		if player.invulnerable <= 0.0 and mv.has("status"):
 			player.apply_status(mv["status"], 4.0)
 		return
-	var dmg: float = Combat.calc_damage(enemy.stats["atk"], player.stats["def"], power, mult, enemy.level, randf_range(0.85, 1.0))
+	var dmg: float = CombatScript.calc_damage(enemy.stats["atk"], player.stats["def"], power, mult, enemy.level, randf_range(0.85, 1.0))
 	if player.invulnerable > 0.0:
 		return
 	var cat: String = mv.get("category", "物理")

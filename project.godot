@@ -28,6 +28,10 @@ SaveManager="*res://autoload/SaveManager.gd"
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
+[filesystem]
+
+import/blender/enabled=false
+
 [physics]
 
 3d/physics_engine="Jolt Physics"

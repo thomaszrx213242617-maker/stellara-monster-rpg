@@ -30,7 +30,7 @@ var ability: String = ""
 var active_move_index: int = 0
 var sturdy_used: bool = false
 
-@onready var mesh: MeshInstance3D = $MeshInstance3D
+var mesh: MeshInstance3D
 
 func _ready() -> void:
 	var m := MeshInstance3D.new()

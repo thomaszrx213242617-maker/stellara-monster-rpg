@@ -1,6 +1,8 @@
 extends Area3D
 class_name EncounterZone
 
+const PlayerScript := preload("res://world/PlayerController.gd")
+
 ## 草丛遭遇区: 玩家进入时按概率触发野生灵兽战斗。
 ## pool 为可遭遇灵兽 id 列表; lvl_min/lvl_max 为等级区间。
 
@@ -31,7 +33,7 @@ func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 
 func _on_body_entered(b: Node) -> void:
-	if b is PlayerController:
+	if b is PlayerScript:
 		var id: String = pool[randi() % pool.size()]
 		var lv: int = randi_range(lvl_min, lvl_max)
 		triggered.emit(id, lv)

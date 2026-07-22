@@ -9,6 +9,7 @@ class_name BattleArena
 
 const CombatantScript := preload("res://battle/Combatant.gd")
 const EnemyAIScript := preload("res://battle/EnemyAI.gd")
+const CombatScript := preload("res://core/combat.gd")
 
 var player_combatant
 var enemy_combatant
@@ -65,8 +66,8 @@ func build_arena() -> void:
 
 	var cam := Camera3D.new()
 	cam.position = Vector3(0, 13, 17)
-	cam.look_at(Vector3.ZERO, Vector3.UP)
 	add_child(cam)
+	cam.look_at(Vector3.ZERO, Vector3.UP)
 
 func _build_hud() -> void:
 	hud_layer = CanvasLayer.new()
@@ -199,7 +200,7 @@ func _physics_process(delta: float) -> void:
 		dir = Vector3(input_dir.x, 0, input_dir.z).normalized()
 	if Input.is_action_just_pressed("dodge"):
 		player_combatant.invulnerable = 0.4
-		var dash := dir if dir != Vector3.ZERO else -player_combatant.global_transform.basis.z
+		var dash: Vector3 = dir if dir != Vector3.ZERO else -player_combatant.global_transform.basis.z
 		player_combatant.velocity += dash * 9.0
 	if Input.is_action_just_pressed("switch_move"):
 		player_combatant.set_move_index(player_combatant.active_move_index + 1)
@@ -237,7 +238,7 @@ func _player_attack() -> void:
 	if enemy_combatant.invulnerable > 0.0:
 		_pop("被闪避!")
 	else:
-		var dmg: float = Combat.calc_damage(player_combatant.stats["atk"], enemy_combatant.stats["def"], power, mult, player_combatant.level, randf_range(0.85, 1.0))
+		var dmg: float = CombatScript.calc_damage(player_combatant.stats["atk"], enemy_combatant.stats["def"], power, mult, player_combatant.level, randf_range(0.85, 1.0))
 		var cat: String = mv.get("category", "物理")
 		enemy_combatant.take_damage(dmg, player_combatant, cat)
 		var ename: String = DataBus.get_creature(enemy_combatant.creature_id)["name"]
@@ -261,7 +262,7 @@ func _try_capture() -> void:
 		return
 	GameState.consume_item(ball, 1)
 	var base: float = DataBus.get_creature(enemy_combatant.creature_id).get("catch_rate", 0.4)
-	var chance: float = Combat.capture_chance(enemy_combatant.hp, enemy_combatant.max_hp, base, GameState.ball_mod(ball), 1.0)
+	var chance: float = CombatScript.capture_chance(enemy_combatant.hp, enemy_combatant.max_hp, base, GameState.ball_mod(ball), 1.0)
 	if randf() < chance:
 		var ename: String = DataBus.get_creature(enemy_combatant.creature_id)["name"]
 		GameState.add_to_team(enemy_combatant.creature_id, enemy_combatant.level)
@@ -271,7 +272,7 @@ func _try_capture() -> void:
 	else:
 		_pop("收服失败……")
 
-func _popup(text: String) -> void:
+func _pop(text: String) -> void:
 	if popup_label:
 		popup_label.text = text
 		popup_timer.start()

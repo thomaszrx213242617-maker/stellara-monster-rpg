@@ -1,5 +1,4 @@
 extends Node
-class_name GameState
 
 ## 全局游戏状态 (autoload): 玩家队伍、存储箱、背包、徽章、图鉴进度。
 ## 队伍每只灵兽为可序列化字典: {id, level, exp, hp, max_hp, status, moves}

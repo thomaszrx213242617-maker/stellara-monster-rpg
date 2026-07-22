@@ -1,5 +1,7 @@
 extends GdUnitTest
 
+const CombatScript := preload("res://core/combat.gd")
+
 ## 游戏状态 / 养成 / 收服 单元测试 (启用 GDUnit4 后在编辑器运行)。
 
 func _make(creature_id: String, level: int) -> Dictionary:
@@ -19,13 +21,13 @@ func test_evolution_at_threshold():
 	assert_bool(res["evolved"]).is_true()
 
 func test_capture_chance_hp_monotonic():
-	var full: float = Combat.capture_chance(100, 100, 0.5, 1.0, 1.0)
-	var weak: float = Combat.capture_chance(5, 100, 0.5, 1.0, 1.0)
+	var full: float = CombatScript.capture_chance(100, 100, 0.5, 1.0, 1.0)
+	var weak: float = CombatScript.capture_chance(5, 100, 0.5, 1.0, 1.0)
 	assert_bool(weak > full).is_true()
 
 func test_ball_modifier_boosts_capture():
-	var normal: float = Combat.capture_chance(50, 100, 0.4, 1.0, 1.0)
-	var great: float = Combat.capture_chance(50, 100, 0.4, 1.5, 1.0)
+	var normal: float = CombatScript.capture_chance(50, 100, 0.4, 1.0, 1.0)
+	var great: float = CombatScript.capture_chance(50, 100, 0.4, 1.5, 1.0)
 	assert_bool(great > normal).is_true()
 
 func test_items_loaded_from_data():

@@ -7,6 +7,11 @@ class_name World
 
 const PlayerScript := preload("res://world/PlayerController.gd")
 const CameraScript := preload("res://world/CameraRig.gd")
+const DialogueScript := preload("res://ui/DialogueBox.gd")
+const CenterScript := preload("res://world/CenterZone.gd")
+const GymScript := preload("res://world/GymZone.gd")
+const NpcScript := preload("res://world/Npc.gd")
+const EncounterScript := preload("res://world/EncounterZone.gd")
 
 var _player
 var _camera
@@ -56,7 +61,7 @@ func _build_ui() -> void:
 	_gym_label.text = ""
 	layer.add_child(_gym_label)
 
-	_dialogue = DialogueBox.new()
+	_dialogue = DialogueScript.new()
 	_dialogue.name = "DialogueBox"
 	layer.add_child(_dialogue)
 	if _npc:
@@ -119,21 +124,21 @@ func build_world() -> void:
 	_add_encounter_zone(Vector3(-10, 0, 16), ["voltmink", "spiritbud", "lumiadeer"], 3, 8)
 
 	# 宝可梦中心
-	var center := CenterZone.new()
+	var center := CenterScript.new()
 	center.position = Vector3(0, 0, -22)
 	center.body_entered.connect(_on_center_enter)
 	center.body_exited.connect(_on_center_exit)
 	add_child(center)
 
 	# 道馆 (按 E 挑战馆主, 胜利获得徽章)
-	var gym := GymZone.new()
+	var gym := GymScript.new()
 	gym.position = Vector3(22, 0, -18)
 	gym.body_entered.connect(_on_gym_enter)
 	gym.body_exited.connect(_on_gym_exit)
 	add_child(gym)
 
 	# NPC
-	var npc := Npc.new()
+	var npc := NpcScript.new()
 	npc.name = "Npc"
 	npc.position = Vector3(4, 1, -19)
 	npc.player_ref = _player
@@ -146,7 +151,7 @@ func build_world() -> void:
 	add_child(npc)
 
 func _add_encounter_zone(pos: Vector3, pool: Array, lmin: int, lmax: int) -> void:
-	var z := EncounterZone.new()
+	var z := EncounterScript.new()
 	z.position = pos
 	z.pool = pool
 	z.lvl_min = lmin

@@ -1,5 +1,4 @@
 extends Node
-class_name SaveManager
 
 ## 存档管理 (autoload)。保存到 user://save.json。覆盖队伍/存储/背包/徽章/图鉴/时间。
 
