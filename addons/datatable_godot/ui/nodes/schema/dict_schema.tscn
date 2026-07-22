@@ -1,0 +1,28 @@
+[gd_scene load_steps=2 format=3 uid="uid://drtgy44d6xwuj"]
+
+[ext_resource type="Script" path="res://addons/datatable_godot/ui/schema/new_table/dict_schema.gd" id="1_7rpdw"]
+
+[node name="DictSchema" type="HBoxContainer"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_7rpdw")
+
+[node name="ParamName" type="RichTextLabel" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.4
+bbcode_enabled = true
+text = "[img]res://addons/datatable_godot/icons/dictionary.png[/img] Dictionnary name"
+fit_content = true
+autowrap_mode = 0
+
+[node name="ParamInteract" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Open editor"

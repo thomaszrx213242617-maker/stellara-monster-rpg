@@ -1,0 +1,252 @@
+[
+  {
+    "id": "T001",
+    "phase": "P0 基础框架与工具",
+    "title": "搭建 harness 开发框架",
+    "desc": "建立 docs/ 四件套(需求/task/devlog/规范)与 harness.py 任务管理脚本。",
+    "status": "done",
+    "prio": "high",
+    "deps": "",
+    "note": ""
+  },
+  {
+    "id": "T002",
+    "phase": "P0 基础框架与工具",
+    "title": "编写开发需求文档(游戏设计)",
+    "desc": "原创IP世界观、核心循环、3D探索、Z-A式实时战斗、属性克制、收服养成、道馆、昼夜规则。",
+    "status": "done",
+    "prio": "high",
+    "deps": "T001",
+    "note": ""
+  },
+  {
+    "id": "T003",
+    "phase": "P0 基础框架与工具",
+    "title": "编写 task 规划与开发规范",
+    "desc": "分阶段路线图 + GDScript 风格/目录/命名/分支提交/版权规范。",
+    "status": "done",
+    "prio": "high",
+    "deps": "T001",
+    "note": ""
+  },
+  {
+    "id": "T004",
+    "phase": "P0 基础框架与工具",
+    "title": "下载开源 Godot 工具",
+    "desc": "GDUnit4/LimboAI/Terrain3D/phantom-camera/godot_dialogue_manager/PankuConsole/scatter/datatable 等。",
+    "status": "in_progress",
+    "prio": "high",
+    "deps": "",
+    "note": ""
+  },
+  {
+    "id": "T005",
+    "phase": "P0 基础框架与工具",
+    "title": "初始化 git 与 GitHub 仓库",
+    "desc": "git init、完善 .gitignore、引导用户建 GitHub 仓库并首次提交。",
+    "status": "todo",
+    "prio": "high",
+    "deps": "T004",
+    "note": ""
+  },
+  {
+    "id": "T006",
+    "phase": "P1 MVP 垂直切片",
+    "title": "3D 探索移动与跟随相机",
+    "desc": "CharacterBody3D 玩家控制器、phantom-camera 第三人称跟随、输入映射、小测试场地。",
+    "status": "done",
+    "prio": "high",
+    "deps": "T004",
+    "note": "玩家控制器+跟随相机+世界场景完成, 待F5验证"
+  },
+  {
+    "id": "T007",
+    "phase": "P1 MVP 垂直切片",
+    "title": "属性/数值/技能数据层",
+    "desc": "原创宝可梦/技能/属性克制表 Resource 与 JSON 数据; 种族值、威力、PP、命中、克制倍率。",
+    "status": "done",
+    "prio": "high",
+    "deps": "T002",
+    "note": "type_chart/moves/creatures JSON + DataBus/Combat 完成"
+  },
+  {
+    "id": "T008",
+    "phase": "P1 MVP 垂直切片",
+    "title": "实时战斗原型(Z-A式)",
+    "desc": "竞技场场景、玩家操控宝可梦实时移动+闪避、卡时机放招、属性克制与数值生效、LimboAI 对手。",
+    "status": "done",
+    "prio": "high",
+    "deps": "T007,T008",
+    "note": "BattleArena+Combatant+EnemyAI 实时战斗原型完成, 含属性克制"
+  },
+  {
+    "id": "T009",
+    "phase": "P1 MVP 垂直切片",
+    "title": "昼夜循环与夜间规则",
+    "desc": "昼夜循环(光照/天空)、'夜间不可对战收集点数'规则与提示。",
+    "status": "done",
+    "prio": "medium",
+    "deps": "T007",
+    "note": "DayNight昼夜循环+夜间禁用收服规则完成"
+  },
+  {
+    "id": "T010",
+    "phase": "P2 探索世界",
+    "title": "真实地形与开放区域",
+    "desc": "Terrain3D 接入、可行走大地图、碰撞、区域边界。",
+    "status": "todo",
+    "prio": "medium",
+    "deps": "T006",
+    "note": ""
+  },
+  {
+    "id": "T011",
+    "phase": "P2 探索世界",
+    "title": "NPC 与对话系统",
+    "desc": "godot_dialogue_manager 接入、道馆门口/宝可梦中心/NPC 对话。",
+    "status": "todo",
+    "prio": "medium",
+    "deps": "T006",
+    "note": ""
+  },
+  {
+    "id": "T012",
+    "phase": "P2 探索世界",
+    "title": "宝可梦中心与存档点",
+    "desc": "治疗/队伍管理 UI、存档(autoload SaveManager)。",
+    "status": "todo",
+    "prio": "medium",
+    "deps": "T013",
+    "note": ""
+  },
+  {
+    "id": "T013",
+    "phase": "P2 探索世界",
+    "title": "野怪遭遇与道具拾取",
+    "desc": "草丛随机遭遇、地面道具(CC0 占位)、scatter 布景。",
+    "status": "todo",
+    "prio": "medium",
+    "deps": "T006",
+    "note": ""
+  },
+  {
+    "id": "T014",
+    "phase": "P3 实时战斗深化",
+    "title": "Z-A 战斗机制深化",
+    "desc": "完美闪避、招式冷却条、蓄力/连段、环境互动。",
+    "status": "todo",
+    "prio": "high",
+    "deps": "T009",
+    "note": ""
+  },
+  {
+    "id": "T015",
+    "phase": "P3 实时战斗深化",
+    "title": "特性与状态异常",
+    "desc": "特性系统、中毒/麻痹/睡眠/灼烧等状态及其实时效果。",
+    "status": "todo",
+    "prio": "medium",
+    "deps": "T009",
+    "note": ""
+  },
+  {
+    "id": "T016",
+    "phase": "P3 实时战斗深化",
+    "title": "多技能与换人",
+    "desc": "每只宝可梦 1-4 技能、战斗中换人、属性/时机策略。",
+    "status": "todo",
+    "prio": "medium",
+    "deps": "T009",
+    "note": ""
+  },
+  {
+    "id": "T017",
+    "phase": "P4 收服与养成",
+    "title": "捕捉系统",
+    "desc": "投掷/收服判定(基于血量/状态)、捕捉动画占位、加入队伍或存储。",
+    "status": "todo",
+    "prio": "high",
+    "deps": "T009,T012",
+    "note": ""
+  },
+  {
+    "id": "T018",
+    "phase": "P4 收服与养成",
+    "title": "等级/经验/进化",
+    "desc": "经验曲线、升级、进化条件与占位演出。",
+    "status": "todo",
+    "prio": "high",
+    "deps": "T008",
+    "note": ""
+  },
+  {
+    "id": "T019",
+    "phase": "P4 收服与养成",
+    "title": "背包与道具",
+    "desc": "道具数据、使用逻辑(伤药/球/状态解除)、队伍管理界面。",
+    "status": "todo",
+    "prio": "medium",
+    "deps": "T008",
+    "note": ""
+  },
+  {
+    "id": "T020",
+    "phase": "P5 道馆与进度",
+    "title": "道馆战(Z-A战斗+朱紫结构)",
+    "desc": "道馆场景、馆主 AI、连续对战、徽章奖励。",
+    "status": "todo",
+    "prio": "high",
+    "deps": "T015,T016",
+    "note": ""
+  },
+  {
+    "id": "T021",
+    "phase": "P5 道馆与进度",
+    "title": "主线进度与地图解锁",
+    "desc": "剧情节点、区域解锁、图鉴进度。",
+    "status": "todo",
+    "prio": "medium",
+    "deps": "T013",
+    "note": ""
+  },
+  {
+    "id": "T022",
+    "phase": "P6 内容填充与平衡",
+    "title": "原创宝可梦图鉴",
+    "desc": "设计原创属性与若干宝可梦(占位图形)、技能池、属性平衡表。",
+    "status": "todo",
+    "prio": "medium",
+    "deps": "T008",
+    "note": ""
+  },
+  {
+    "id": "T023",
+    "phase": "P6 内容填充与平衡",
+    "title": "数值平衡与测试",
+    "desc": "GDUnit4 单元测试数值/克制, 战斗平衡调参。",
+    "status": "todo",
+    "prio": "medium",
+    "deps": "T005",
+    "note": ""
+  },
+  {
+    "id": "T024",
+    "phase": "P7 打磨与发布",
+    "title": "UI/UX 与设置",
+    "desc": "标题/暂停/设置菜单、可访问性、键位自定义。",
+    "status": "todo",
+    "prio": "medium",
+    "deps": "T010",
+    "note": ""
+  },
+  {
+    "id": "T025",
+    "phase": "P7 打磨与发布",
+    "title": "性能优化与构建",
+    "desc": "剔除占位、批量处理、导出 Windows 构建。",
+    "status": "todo",
+    "prio": "medium",
+    "deps": "T011",
+    "note": ""
+  }
+]

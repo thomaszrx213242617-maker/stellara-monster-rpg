@@ -1,0 +1,15 @@
+{
+  "moves": [
+    { "id": "tackle",  "name": "撞击",   "type": "械", "power": 35, "energy": 15, "cooldown": 0.8, "accuracy": 1.0, "category": "物理", "desc": "基础撞击" },
+    { "id": "spark",   "name": "电击",   "type": "雷", "power": 40, "energy": 18, "cooldown": 1.0, "accuracy": 0.95, "category": "特殊", "desc": "释放电流" },
+    { "id": "flare",   "name": "火花",   "type": "炎", "power": 45, "energy": 20, "cooldown": 1.0, "accuracy": 0.95, "category": "特殊", "desc": "喷射火花" },
+    { "id": "blaze",   "name": "炎爆",   "type": "炎", "power": 70, "energy": 40, "cooldown": 2.5, "accuracy": 0.9,  "category": "特殊", "desc": "强力炎爆" },
+    { "id": "aqua",    "name": "水枪",   "type": "水", "power": 45, "energy": 20, "cooldown": 1.0, "accuracy": 0.95, "category": "特殊", "desc": "高压水枪" },
+    { "id": "torrent", "name": "激流",   "type": "水", "power": 70, "energy": 40, "cooldown": 2.5, "accuracy": 0.9,  "category": "特殊", "desc": "汹涌激流" },
+    { "id": "vine",    "name": "藤鞭",   "type": "木", "power": 45, "energy": 20, "cooldown": 1.0, "accuracy": 0.95, "category": "物理", "desc": "藤蔓抽击" },
+    { "id": "leaf",    "name": "飞叶",   "type": "木", "power": 65, "energy": 38, "cooldown": 2.2, "accuracy": 0.9,  "category": "物理", "desc": "锋利飞叶" },
+    { "id": "rock",    "name": "落石",   "type": "岩", "power": 50, "energy": 22, "cooldown": 1.2, "accuracy": 0.9,  "category": "物理", "desc": "投掷落石" },
+    { "id": "beam",    "name": "光束",   "type": "光", "power": 60, "energy": 35, "cooldown": 2.0, "accuracy": 0.95, "category": "特殊", "desc": "凝聚光束" },
+    { "id": "shadow",  "name": "暗影",   "type": "暗", "power": 55, "energy": 30, "cooldown": 1.6, "accuracy": 0.95, "category": "特殊", "desc": "暗影冲击" }
+  ]
+}
