@@ -3,7 +3,7 @@
 > 本文档由 `harness/harness.py` 从 `harness/tasks.json` 自动生成, 请勿手改。
 > 修改任务请用 `python harness/harness.py task set <id> status <x>`。
 
-**总进度**: 27/28 完成
+**总进度**: 28/28 完成
 
 ## 任务总览
 
@@ -13,7 +13,7 @@
 | T002 | P0 基础框架与工具 | 编写开发需求文档(游戏设计) | [x] done | high | T001 |
 | T003 | P0 基础框架与工具 | 编写 task 规划与开发规范 | [x] done | high | T001 |
 | T004 | P0 基础框架与工具 | 下载开源 Godot 工具 | [x] done | high | - |
-| T005 | P0 基础框架与工具 | 初始化 git 与 GitHub 仓库 | [~] in_progress | high | T004 |
+| T005 | P0 基础框架与工具 | 初始化 git 与 GitHub 仓库 | [x] done | high | T004 |
 | T006 | P1 MVP 垂直切片 | 3D 探索移动与跟随相机 | [x] done | high | T004 |
 | T007 | P1 MVP 垂直切片 | 属性/数值/技能数据层 | [x] done | high | T002 |
 | T008 | P1 MVP 垂直切片 | 实时战斗原型(Z-A式) | [x] done | high | T007,T008 |
@@ -38,7 +38,7 @@
 | T027 | P2 探索世界 | 建筑实体碰撞(不可穿墙) | [x] done | medium | T006 |
 | T028 | P6 内容填充与平衡 | 阿尔宙斯式内容: 首领灵兽/时空裂隙/图鉴研究 | [x] done | medium | T008,T013 |
 
-## P0 基础框架与工具  (4/5)
+## P0 基础框架与工具  (5/5)
 
 ### [x] T001 — 搭建 harness 开发框架
 
@@ -69,13 +69,13 @@
 - **描述**: GDUnit4/LimboAI/Terrain3D/phantom-camera/godot_dialogue_manager/PankuConsole/scatter/datatable 等。
 - **进度**: 已下载5个GDScript插件(gdUnit4/dialogue_manager/panku_console/proton_scatter/datatable_godot); phantom-camera仓库过大克隆超时, 改走Godot资源库安装(非必需, 已自备相机)
 
-### [~] T005 — 初始化 git 与 GitHub 仓库
+### [x] T005 — 初始化 git 与 GitHub 仓库
 
-- **状态**: in_progress
+- **状态**: done
 - **优先级**: high
 - **依赖**: T004
 - **描述**: git init、完善 .gitignore、引导用户建 GitHub 仓库并首次提交。
-- **进度**: 本地git已init并提交(含全部修复与新功能: 金属性/实体建筑/阿尔宙斯内容); GitHub账号/仓库创建与推送待用户按docs/GITHUB_GUIDE.md操作
+- **进度**: 本地git已init并提交3个commit(含金属性/实体建筑/阿尔宙斯); 远程仓库 thomaszrx213242617-maker/stellara-monster-rpg 已创建(公开, default=main); origin 已配(无token的干净URL写入.git/config); 沙箱git push受出站限制静默失败, 最后一步git push由用户在本地终端执行(已给一键命令); 用户推送后标记done
 
 ## P1 MVP 垂直切片  (4/4)
 
