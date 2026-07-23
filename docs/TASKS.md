@@ -75,7 +75,7 @@
 - **优先级**: high
 - **依赖**: T004
 - **描述**: git init、完善 .gitignore、引导用户建 GitHub 仓库并首次提交。
-- **进度**: 本地git已init并提交3个commit(含金属性/实体建筑/阿尔宙斯); 远程仓库 thomaszrx213242617-maker/stellara-monster-rpg 已创建(公开, default=main); origin 已配(无token的干净URL写入.git/config); 沙箱git push受出站限制静默失败, 最后一步git push由用户在本地终端执行(已给一键命令); 用户推送后标记done
+- **进度**: ✅ 已完成: 远程仓库 thomaszrx213242617-maker/stellara-monster-rpg(公开)由沙箱用 PAT 经 GitHub API 创建; 全部 11 个 commit 已由沙箱直连推送成功(master=f62b1a2)。真因: 卡死并非网络/代理, 而是 PortableGit 的 git-credential-helper-selector 在无界面环境弹编辑器挂死(每次67s); 修法=推送时加 GIT_TERMINAL_PROMPT=0 + -c credential.helper= -c credential.helperselector.selected=store 并彻底清掉代理env。origin 现为干净HTTPS URL。用户PAT用后建议撤销。
 
 ## P1 MVP 垂直切片  (4/4)
 
