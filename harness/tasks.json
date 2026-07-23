@@ -47,7 +47,7 @@
     "status": "in_progress",
     "prio": "high",
     "deps": "T004",
-    "note": "本地git已init并提交(1539文件, commit 42f88ee); GitHub账号/仓库创建与推送待用户按docs/GITHUB_GUIDE.md操作"
+    "note": "本地git已init并提交(含全部修复与新功能: 金属性/实体建筑/阿尔宙斯内容); GitHub账号/仓库创建与推送待用户按docs/GITHUB_GUIDE.md操作"
   },
   {
     "id": "T006",
@@ -248,5 +248,35 @@
     "prio": "medium",
     "deps": "T011",
     "note": ""
+  },
+  {
+    "id": "T026",
+    "phase": "P6 内容填充与平衡",
+    "title": "新增金属性(金)类型与金属灵兽/招式",
+    "desc": "type_chart 增加金属性及克制关系; 新增铁甲兽(野)/钢颚王(alpha boss)与金属招式钢爪、远古球道具; Combatant 颜色表补金。",
+    "status": "done",
+    "prio": "medium",
+    "deps": "T007",
+    "note": "金克制 岩/暗/灵/械, 被 炎/雷 克制, 抗 水/风/岩; headless 验证通过"
+  },
+  {
+    "id": "T027",
+    "phase": "P2 探索世界",
+    "title": "建筑实体碰撞(不可穿墙)",
+    "desc": "装饰房屋改为带 StaticBody3D 的实体; 宝可梦中心/道馆增加实体墙并放大检测区, 玩家像现实一样无法穿入建筑但可在门口按E交互。",
+    "status": "done",
+    "prio": "medium",
+    "deps": "T006",
+    "note": "World._add_house 生成实体房屋; CenterZone/GymZone 加 StaticBody3D 阻挡"
+  },
+  {
+    "id": "T028",
+    "phase": "P6 内容填充与平衡",
+    "title": "阿尔宙斯式内容: 首领灵兽/时空裂隙/图鉴研究",
+    "desc": "AlphaBeast(发光游荡首领, 靠近按E挑战可收服)、RiftZone(周期激活触发稀有金属遭遇)、图鉴研究任务(收服/击败3只金属性领远古球)及HUD。",
+    "status": "done",
+    "prio": "medium",
+    "deps": "T008,T013",
+    "note": "World 接线 + BattleArena 支持 alpha 缩放/额外经验 + GameState/SaveManager 研究进度; headless 验证通过"
   }
 ]

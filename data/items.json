@@ -3,6 +3,7 @@
     { "id": "ball",         "name": "灵球",   "type": "ball",   "catch_mod": 1.0, "desc": "收服野生灵兽的基础道具" },
     { "id": "great_ball",   "name": "上等球", "type": "ball",   "catch_mod": 1.5, "desc": "收服成功率更高的球" },
     { "id": "potion",       "name": "伤药",   "type": "heal",   "power": 30,      "desc": "恢复一只灵兽 30 点 HP" },
-    { "id": "super_potion", "name": "好伤药", "type": "heal",   "power": 60,      "desc": "恢复一只灵兽 60 点 HP" }
+    { "id": "super_potion", "name": "好伤药", "type": "heal",   "power": 60,      "desc": "恢复一只灵兽 60 点 HP" },
+    { "id": "ancient_ball",  "name": "远古球", "type": "ball",   "catch_mod": 2.0, "desc": "古老的灵球, 对首领灵兽更易收服" }
   ]
 }

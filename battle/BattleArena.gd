@@ -20,6 +20,7 @@ var battle_over: bool = false
 var enemy_is_wild: bool = true
 var _trainer_name: String = ""
 var _badge_id: String = ""
+var _enemy_is_alpha: bool = false
 
 var hud_layer: CanvasLayer
 var player_hp_bar: ProgressBar
@@ -140,11 +141,15 @@ func start_battle() -> void:
 	elif not GameState.pending_wild.is_empty():
 		enemy_id = GameState.pending_wild.get("id", "aqualeap")
 		enemy_level = int(GameState.pending_wild.get("level", 5))
+		_enemy_is_alpha = GameState.pending_wild.get("alpha", false)
 		GameState.pending_wild = {}
 
 	enemy_combatant = CombatantScript.new()
 	enemy_combatant.position = Vector3(6, 1, 0)
 	enemy_combatant.setup(enemy_id, enemy_level, false)
+	if _enemy_is_alpha:
+		enemy_combatant.scale = Vector3(1.7, 1.7, 1.7)
+		_pop("首领灵兽 " + DataBus.get_creature(enemy_id).get("name", "") + " 出现!")
 	add_child(enemy_combatant)
 	enemy_combatant.hp_changed.connect(_on_hp)
 	enemy_combatant.defeated_signal.connect(_on_enemy_defeated)
@@ -267,6 +272,7 @@ func _try_capture() -> void:
 		var ename: String = DataBus.get_creature(enemy_combatant.creature_id)["name"]
 		GameState.add_to_team(enemy_combatant.creature_id, enemy_combatant.level)
 		GameState.caught_count += 1
+		GameState.note_research(DataBus.get_creature(enemy_combatant.creature_id).get("type", ""))
 		_pop("收服成功! " + ename)
 		_end_battle(true)
 	else:
@@ -284,8 +290,12 @@ func _on_enemy_defeated() -> void:
 	# 给队伍首位加经验
 	var pdata: Dictionary = GameState.team[0]
 	var exp: int = GameState.wild_exp(enemy_combatant.level)
+	if _enemy_is_alpha:
+		exp = int(exp * 1.5)
 	var res: Dictionary = GameState.grant_exp(pdata, exp)
 	var msg: String = "胜利! 获得 " + str(exp) + " 经验"
+	if enemy_is_wild:
+		GameState.note_research(enemy_combatant.type)
 	if not enemy_is_wild and _badge_id != "":
 		GameState.grant_badge(_badge_id)
 		msg += "\n获得徽章: " + _badge_id

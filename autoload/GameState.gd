@@ -18,6 +18,8 @@ var badges_total: int = 8
 var pending_wild: Dictionary = {}  # 待进入的野怪战斗配置 {id, level}; 空则默认
 var pending_trainer: Dictionary = {}  # 训练家/道馆战配置 {enemy_id, enemy_level, trainer_name, badge_id}
 var caught_count: int = 0      # 图鉴: 收服总数
+## 图鉴研究任务(阿尔宙斯式调查): 收服/击败指定属性的灵兽达到数量即完成并发奖
+var research: Dictionary = {"type": "金", "need": 3, "progress": 0, "done": false, "reward": "ancient_ball", "reward_n": 1}
 
 func _ready() -> void:
 	if team.is_empty():
@@ -117,6 +119,17 @@ func grant_badge(id: String) -> void:
 ## 夜间规则: 不可进行"对战收集点数 / 收服"
 func can_collect() -> bool:
 	return DayNight.can_battle_collect_points()
+
+## 记录一次「收服/击败」事件, 推进图鉴研究任务; 完成时发放奖励道具。
+func note_research(creature_type: String) -> void:
+	if research.get("done", false):
+		return
+	if creature_type != research.get("type", ""):
+		return
+	research["progress"] = int(research.get("progress", 0)) + 1
+	if int(research["progress"]) >= int(research.get("need", 0)):
+		research["done"] = true
+		add_item(research.get("reward", "ancient_ball"), int(research.get("reward_n", 1)))
 
 func add_item(id: String, n: int) -> void:
 	inventory[id] = int(inventory.get(id, 0)) + n

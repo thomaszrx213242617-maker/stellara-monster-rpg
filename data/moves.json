@@ -22,6 +22,7 @@
     { "id": "inferno",    "name": "烈焰",   "type": "炎", "power": 50, "cooldown": 1.6, "accuracy": 0.9,  "category": "特殊", "desc": "附带灼烧", "status": "灼烧", "status_chance": 0.3 },
     { "id": "toxicspore", "name": "毒孢",   "type": "木", "power": 30, "cooldown": 1.4, "accuracy": 0.95, "category": "物理", "desc": "附带中毒", "status": "中毒", "status_chance": 0.6 },
     { "id": "thunderwave","name": "电磁波", "type": "雷", "power": 0,  "cooldown": 2.0, "accuracy": 0.9,  "category": "变化", "desc": "必定麻痹", "status": "麻痹", "status_chance": 1.0 },
-    { "id": "hypno",      "name": "催眠",   "type": "灵", "power": 20, "cooldown": 2.0, "accuracy": 0.9,  "category": "变化", "desc": "概率睡眠", "status": "睡眠", "status_chance": 0.5 }
+    { "id": "hypno",      "name": "催眠",   "type": "灵", "power": 20, "cooldown": 2.0, "accuracy": 0.9,  "category": "变化", "desc": "概率睡眠", "status": "睡眠", "status_chance": 0.5 },
+    { "id": "metal_claw", "name": "钢爪",   "type": "金", "power": 55, "cooldown": 1.2, "accuracy": 0.95, "category": "物理", "desc": "金属利爪抽击" }
   ]
 }

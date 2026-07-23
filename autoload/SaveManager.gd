@@ -14,6 +14,7 @@ func save_game() -> void:
 		"inventory": GameState.inventory,
 		"badges": GameState.badges,
 		"caught_count": GameState.caught_count,
+		"research": GameState.research,
 		"time": DayNight.time
 	}
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
@@ -41,6 +42,8 @@ func load_game() -> bool:
 		GameState.caught_count = int(data["caught_count"])
 	if data.has("time"):
 		DayNight.time = float(data["time"])
+	if data.has("research"):
+		GameState.research = data["research"]
 	print("SaveManager: 已读取存档")
 	return true
 

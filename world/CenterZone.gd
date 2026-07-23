@@ -17,10 +17,20 @@ func _ready() -> void:
 
 	var col := CollisionShape3D.new()
 	var sh := BoxShape3D.new()
-	sh.size = Vector3(6, 4, 6)
+	sh.size = Vector3(12, 8, 12)
 	col.shape = sh
 	col.position = Vector3(0, 2, 0)
 	add_child(col)
+
+	# 实体墙体: 让玩家像现实一样无法穿进建筑, 只能在门口(检测区内)按 E 交互
+	var sb := StaticBody3D.new()
+	var scol := CollisionShape3D.new()
+	var ssh := BoxShape3D.new()
+	ssh.size = Vector3(6, 4, 6)
+	scol.shape = ssh
+	scol.position = Vector3(0, 2, 0)
+	sb.add_child(scol)
+	add_child(sb)
 
 	# 屋顶标识
 	var roof := MeshInstance3D.new()
