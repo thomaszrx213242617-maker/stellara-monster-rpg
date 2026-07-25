@@ -278,5 +278,25 @@
     "prio": "medium",
     "deps": "T008,T013",
     "note": "World 接线 + BattleArena 支持 alpha 缩放/额外经验 + GameState/SaveManager 研究进度; headless 验证通过"
+  },
+  {
+    "id": "T029",
+    "phase": "P7 打磨与发布",
+    "title": "标题画面/主菜单",
+    "desc": "main_scene 改为 TitleScreen.tscn; 新游戏(二次确认覆盖存档)/继续(有存档时)/设置(全屏切换)/退出; 接入 GameState.reset_new_game 与 SaveManager。",
+    "status": "done",
+    "prio": "medium",
+    "deps": "",
+    "note": ""
+  },
+  {
+    "id": "T030",
+    "phase": "P7 打磨与发布",
+    "title": "世界内暂停菜单",
+    "desc": "Esc 开关暂停层(PauseMenu, process_mode=ALWAYS 以在场景树暂停时仍响应输入); 提供 继续/保存/返回标题。",
+    "status": "done",
+    "prio": "medium",
+    "deps": "",
+    "note": ""
   }
 ]

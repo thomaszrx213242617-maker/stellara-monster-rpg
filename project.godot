@@ -10,8 +10,8 @@ config_version=5
 
 [application]
 
-config/name="宝可梦游戏设计"
-run/main_scene="res://world/World.tscn"
+config/name="星澜物语 STELLARA"
+run/main_scene="res://ui/TitleScreen.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 

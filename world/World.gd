@@ -34,12 +34,35 @@ var _alpha_label: Label
 var _research_label: Label
 var _alpha
 var _rift
+var _pause_menu
 
 func _ready() -> void:
 	build_world()
 	_build_ui()
+	_setup_pause_menu()
 	DayNight.time_changed.connect(_on_time)
 	_on_time(0.0)
+
+func _setup_pause_menu() -> void:
+	var PauseScript := preload("res://ui/PauseMenu.gd")
+	_pause_menu = PauseScript.new()
+	_pause_menu.name = "PauseMenu"
+	_pause_menu.setup(self)
+	add_child(_pause_menu)
+
+## 由 PauseMenu 调用: 冻结场景树并打开暂停层。
+func open_pause() -> void:
+	if _pause_menu == null:
+		return
+	get_tree().paused = true
+	_pause_menu.open()
+
+## 由 PauseMenu 调用: 解除冻结并关闭暂停层。
+func resume_from_pause() -> void:
+	if _pause_menu == null:
+		return
+	get_tree().paused = false
+	_pause_menu.close()
 
 func _build_ui() -> void:
 	var layer := CanvasLayer.new()

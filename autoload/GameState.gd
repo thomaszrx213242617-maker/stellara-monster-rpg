@@ -116,6 +116,25 @@ func grant_badge(id: String) -> void:
 		badges.append(id)
 		badge_changed.emit()
 
+## 标题画面「开始新游戏」: 清空全部进度并重置为初始状态(同时删除本地存档)。
+func reset_new_game() -> void:
+	team = []
+	storage = []
+	inventory = {}
+	badges = []
+	caught_count = 0
+	research = {"type": "金", "need": 3, "progress": 0, "done": false, "reward": "ancient_ball", "reward_n": 1}
+	pending_wild = {}
+	pending_trainer = {}
+	if "time" in DayNight:
+		DayNight.time = 0.0
+	SaveManager.delete_save()
+	add_to_team("flarefox", 5)
+	inventory = {"ball": 5, "potion": 3}
+	team_changed.emit()
+	inventory_changed.emit()
+	badge_changed.emit()
+
 ## 夜间规则: 不可进行"对战收集点数 / 收服"
 func can_collect() -> bool:
 	return DayNight.can_battle_collect_points()

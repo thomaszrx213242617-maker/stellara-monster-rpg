@@ -3,7 +3,7 @@
 > 本文档由 `harness/harness.py` 从 `harness/tasks.json` 自动生成, 请勿手改。
 > 修改任务请用 `python harness/harness.py task set <id> status <x>`。
 
-**总进度**: 28/28 完成
+**总进度**: 30/30 完成
 
 ## 任务总览
 
@@ -37,6 +37,8 @@
 | T026 | P6 内容填充与平衡 | 新增金属性(金)类型与金属灵兽/招式 | [x] done | medium | T007 |
 | T027 | P2 探索世界 | 建筑实体碰撞(不可穿墙) | [x] done | medium | T006 |
 | T028 | P6 内容填充与平衡 | 阿尔宙斯式内容: 首领灵兽/时空裂隙/图鉴研究 | [x] done | medium | T008,T013 |
+| T029 | P7 打磨与发布 | 标题画面/主菜单 | [x] done | medium | - |
+| T030 | P7 打磨与发布 | 世界内暂停菜单 | [x] done | medium | - |
 
 ## P0 基础框架与工具  (5/5)
 
@@ -243,7 +245,7 @@
 - **描述**: AlphaBeast(发光游荡首领, 靠近按E挑战可收服)、RiftZone(周期激活触发稀有金属遭遇)、图鉴研究任务(收服/击败3只金属性领远古球)及HUD。
 - **进度**: World 接线 + BattleArena 支持 alpha 缩放/额外经验 + GameState/SaveManager 研究进度; headless 验证通过
 
-## P7 打磨与发布  (2/2)
+## P7 打磨与发布  (4/4)
 
 ### [x] T024 — UI/UX 与设置
 
@@ -258,3 +260,17 @@
 - **优先级**: medium
 - **依赖**: T011
 - **描述**: 剔除占位、批量处理、导出 Windows 构建。
+
+### [x] T029 — 标题画面/主菜单
+
+- **状态**: done
+- **优先级**: medium
+- **依赖**: 无
+- **描述**: main_scene 改为 TitleScreen.tscn; 新游戏(二次确认覆盖存档)/继续(有存档时)/设置(全屏切换)/退出; 接入 GameState.reset_new_game 与 SaveManager。
+
+### [x] T030 — 世界内暂停菜单
+
+- **状态**: done
+- **优先级**: medium
+- **依赖**: 无
+- **描述**: Esc 开关暂停层(PauseMenu, process_mode=ALWAYS 以在场景树暂停时仍响应输入); 提供 继续/保存/返回标题。

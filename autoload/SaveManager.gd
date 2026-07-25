@@ -49,3 +49,11 @@ func load_game() -> bool:
 
 func has_save() -> bool:
 	return FileAccess.file_exists(SAVE_PATH)
+
+## 删除本地存档(用于「开始新游戏」覆盖)。
+func delete_save() -> void:
+	if FileAccess.file_exists(SAVE_PATH):
+		var d := DirAccess.open("user://")
+		if d != null:
+			d.remove("save.json")
+		print("SaveManager: 已删除存档")
