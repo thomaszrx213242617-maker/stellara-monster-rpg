@@ -16,6 +16,17 @@ func _ready() -> void:
 	_check(DataBus.multiplier("炎", "炎") == 1.0, "炎->炎 = 1x")
 	_check(DataBus.multiplier("水", "金") == 0.5, "水->金 = 0.5x")
 
+	# ---- 音效系统(SoundBus): 程序化合成 + 调用不报错 ----
+	_check(SoundBus != null, "SoundBus 自动加载存在")
+	var _sounds := ["select", "attack", "hit", "capture", "capture_success", "heal", "levelup", "faint", "error", "evolve"]
+	var _sfx_ok := true
+	for _s in _sounds:
+		SoundBus.play_sfx(_s)
+	SoundBus.set_sfx_enabled(false)
+	SoundBus.play_sfx("select")   # 关闭后不应发声但也不报错
+	SoundBus.set_sfx_enabled(true)
+	_check(_sfx_ok, "SoundBus: 全部音效 play_sfx 调用无异常")
+
 	# ---- 普通战斗: 初始化 + 招式列表构建 ----
 	GameState.reset_new_game()
 	GameState.pending_wild = {}

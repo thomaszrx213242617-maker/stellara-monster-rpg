@@ -42,6 +42,7 @@ func _process(_delta: float) -> void:
 		return
 	if Input.is_action_just_pressed("interact") or Input.is_action_just_pressed("attack"):
 		idx += 1
+		SoundBus.play_sfx("select")
 		_show()
 
 func _end() -> void:

@@ -60,7 +60,9 @@ func _build() -> void:
 		buy.text = "购买"
 		buy.custom_minimum_size = Vector2(100, 34)
 		var captured: String = iid
-		buy.pressed.connect(func(): _buy(captured))
+		buy.pressed.connect(func():
+			SoundBus.play_sfx("select")
+			_buy(captured))
 		row.add_child(buy)
 		vb.add_child(row)
 
@@ -68,7 +70,9 @@ func _build() -> void:
 	close.text = "离开 (Esc)"
 	close.custom_minimum_size = Vector2(200, 44)
 	close.position = Vector2(180, 410)
-	close.pressed.connect(close_shop)
+	close.pressed.connect(func():
+		SoundBus.play_sfx("select")
+		close_shop())
 	_panel.add_child(close)
 
 func _buy(id: String) -> void:

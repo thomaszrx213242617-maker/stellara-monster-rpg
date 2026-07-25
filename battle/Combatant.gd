@@ -6,6 +6,7 @@ class_name Combatant
 
 signal hp_changed(current: int, maximum: int)
 signal defeated_signal
+signal damaged(amount: int)
 
 var creature_id: String = "flarefox"
 var level: int = 5
@@ -225,6 +226,7 @@ func take_damage(amount: float, attacker = null, category: String = "物理") ->
 		defeated = true
 		defeated_signal.emit()
 	hp_changed.emit(hp, max_hp)
+	damaged.emit(int(amount))
 	if mesh:
 		var t := create_tween()
 		t.tween_property(mesh, "scale", Vector3(1.15, 1.15, 1.15), 0.05)

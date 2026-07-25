@@ -30,7 +30,9 @@ func save_game() -> void:
 		"finale_stage": GameState.finale_stage,
 		"current_scene": GameState.current_scene,
 		"music_on": GameState.music_on,
-		"music_volume": GameState.music_volume
+		"music_volume": GameState.music_volume,
+		"sfx_on": GameState.sfx_on,
+		"sfx_volume": GameState.sfx_volume
 	}
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if f:
@@ -89,6 +91,10 @@ func load_game() -> bool:
 		GameState.music_on = bool(data["music_on"])
 	if data.has("music_volume"):
 		GameState.music_volume = float(data["music_volume"])
+	if data.has("sfx_on"):
+		GameState.sfx_on = bool(data["sfx_on"])
+	if data.has("sfx_volume"):
+		GameState.sfx_volume = float(data["sfx_volume"])
 	print("SaveManager: 已读取存档")
 	return true
 

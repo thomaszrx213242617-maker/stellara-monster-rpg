@@ -51,6 +51,7 @@ func _enemy_attack() -> void:
 	if player.invulnerable > 0.0:
 		return
 	var cat: String = mv.get("category", "物理")
+	SoundBus.play_sfx("attack")
 	player.take_damage(dmg, enemy, cat)
 	if mv.has("status") and randf() < float(mv.get("status_chance", 0.0)):
 		player.apply_status(mv["status"], 4.0)

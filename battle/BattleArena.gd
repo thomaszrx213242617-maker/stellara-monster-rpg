@@ -238,6 +238,7 @@ func start_battle() -> void:
 	add_child(player_combatant)
 	player_combatant.hp_changed.connect(_on_hp)
 	player_combatant.defeated_signal.connect(_on_player_defeated)
+	player_combatant.damaged.connect(_on_combatant_damaged)
 
 	var enemy_id: String = "aqualeap"
 	var enemy_level: int = 5
@@ -273,6 +274,7 @@ func start_battle() -> void:
 	add_child(enemy_combatant)
 	enemy_combatant.hp_changed.connect(_on_hp)
 	enemy_combatant.defeated_signal.connect(_on_enemy_defeated)
+	enemy_combatant.damaged.connect(_on_combatant_damaged)
 	# 图鉴: 遭遇即记为「已见」
 	GameState.note_dex_seen(enemy_combatant.creature_id)
 	if coin_label:
@@ -291,6 +293,10 @@ func start_battle() -> void:
 
 func _on_hp(_c: int, _m: int) -> void:
 	_update_bars()
+
+func _on_combatant_damaged(amount: int) -> void:
+	if amount > 0:
+		SoundBus.play_sfx("hit")
 
 func _update_bars() -> void:
 	if player_combatant and player_hp_bar:
@@ -418,6 +424,7 @@ func _player_attack() -> void:
 	if enemy_combatant.invulnerable > 0.0:
 		_pop("被闪避!")
 	else:
+		SoundBus.play_sfx("attack")
 		var dmg: float = CombatScript.calc_damage(player_combatant.stats["atk"], enemy_combatant.stats["def"], power, mult, player_combatant.level, randf_range(0.85, 1.0)) * player_combatant.dmg_mult
 		var cat: String = mv.get("category", "物理")
 		enemy_combatant.take_damage(dmg, player_combatant, cat)
@@ -446,6 +453,7 @@ func _try_capture() -> void:
 		return
 	GameState.consume_item(ball, 1)
 	_refresh_ball_btn()
+	SoundBus.play_sfx("capture")
 	var ename: String = DataBus.get_creature(enemy_combatant.creature_id).get("name", "敌方")
 	var base: float = DataBus.get_creature(enemy_combatant.creature_id).get("catch_rate", 0.4)
 	var chance: float = CombatScript.capture_chance(enemy_combatant.hp, enemy_combatant.max_hp, base, GameState.ball_mod(ball), 1.0)
@@ -455,6 +463,7 @@ func _try_capture() -> void:
 		GameState.note_dex_caught(enemy_combatant.creature_id)
 		GameState.note_research(DataBus.get_creature(enemy_combatant.creature_id).get("type", ""))
 		_pop("用" + DataBus.get_item(ball).get("name", "灵球") + "收服成功! " + ename)
+		SoundBus.play_sfx("capture_success")
 		_end_battle(true)
 	else:
 		_pop("收服失败……")
@@ -570,6 +579,7 @@ func _on_player_defeated() -> void:
 	_end_battle(false, "你输了……")
 
 func _on_enemy_defeated() -> void:
+	SoundBus.play_sfx("faint")
 	# 晶变坑讨伐: 击败后让玩家选择收服或放弃
 	if _raid_mode and not _raid_pending:
 		_raid_pending = true
@@ -598,6 +608,8 @@ func _on_enemy_defeated() -> void:
 		msg += "\n升级! Lv" + str(pdata["level"])
 	if res["evolved"]:
 		msg += "\n进化: " + res["from"] + " → " + res["to"] + "!"
+	if res["levels"] > 0 or res["evolved"]:
+		SoundBus.play_sfx("levelup")
 	_pop(msg)
 	_award_coins()
 
@@ -647,6 +659,7 @@ func _enter_raid_mode() -> void:
 	add_child(enemy_combatant)
 	enemy_combatant.hp_changed.connect(_on_hp)
 	enemy_combatant.defeated_signal.connect(_on_enemy_defeated)
+	enemy_combatant.damaged.connect(_on_combatant_damaged)
 	GameState.note_dex_seen(enemy_combatant.creature_id)
 	_pop("晶变坑讨伐！" + DataBus.get_creature(boss_id).get("name", "") + " 现身！三名训练家前来协助！")
 	# 协助训练家(视觉 + 自动攻击)

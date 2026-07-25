@@ -628,6 +628,7 @@ func _process(delta: float) -> void:
 		GameState.heal_player()
 		_last_save_point = _player.global_position
 		SaveManager.save_game()
+		SoundBus.play_sfx("heal")
 		if _dialogue and _dialogue.has_method("start"):
 			_dialogue.start(["宝可梦中心：队伍与体力已完全恢复，进度已保存。"])
 
@@ -636,6 +637,7 @@ func _process(delta: float) -> void:
 		GameState.heal_player()
 		_last_save_point = _player.global_position
 		SaveManager.save_game()
+		SoundBus.play_sfx("heal")
 		if _dialogue and _dialogue.has_method("start"):
 			_dialogue.start(["你在营地扎营休息，队伍与体力全部恢复，这里已成为新的复活点。"])
 

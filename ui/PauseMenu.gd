@@ -13,6 +13,7 @@ var _dex_open := false
 var _party
 var _party_open := false
 var _b_music: Button
+var _b_sfx: Button
 
 const PokedexScript := preload("res://ui/Pokedex.gd")
 const PartyScript := preload("res://ui/PartyBag.gd")
@@ -72,6 +73,10 @@ func _build() -> void:
 	_b_music.pressed.connect(_toggle_music)
 	vb.add_child(_b_music)
 
+	_b_sfx = _btn("音效: " + ("开" if GameState.sfx_on else "关"))
+	_b_sfx.pressed.connect(_toggle_sfx)
+	vb.add_child(_b_sfx)
+
 	_panel = vb
 
 func _btn(text: String) -> Button:
@@ -98,6 +103,7 @@ func close() -> void:
 	_panel.visible = true
 
 func _open_dex() -> void:
+	SoundBus.play_sfx("select")
 	if _dex == null:
 		_dex = PokedexScript.new()
 		_dex.name = "Pokedex"
@@ -115,6 +121,7 @@ func _on_dex_closed() -> void:
 	_resume_btn.grab_focus()
 
 func _open_party() -> void:
+	SoundBus.play_sfx("select")
 	if _party == null:
 		_party = PartyScript.new()
 		_party.name = "PartyBag"
@@ -144,9 +151,11 @@ func _unhandled_input(e: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 func _resume() -> void:
+	SoundBus.play_sfx("select")
 	_world.resume_from_pause()
 
 func _save() -> void:
+	SoundBus.play_sfx("select")
 	SaveManager.save_game()
 
 func _toggle_music() -> void:
@@ -155,6 +164,15 @@ func _toggle_music() -> void:
 	_b_music.text = "音乐: " + ("开" if on else "关")
 	SaveManager.save_game()
 
+func _toggle_sfx() -> void:
+	var on := not GameState.sfx_on
+	SoundBus.set_sfx_enabled(on)
+	_b_sfx.text = "音效: " + ("开" if on else "关")
+	if on:
+		SoundBus.play_sfx("select")
+	SaveManager.save_game()
+
 func _to_title() -> void:
+	SoundBus.play_sfx("select")
 	SaveManager.save_game()
 	get_tree().change_scene_to_file("res://ui/TitleScreen.tscn")

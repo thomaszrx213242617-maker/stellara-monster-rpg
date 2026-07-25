@@ -173,6 +173,7 @@ func _make_button(text: String) -> Button:
 	return b
 
 func _set_gender(g: String) -> void:
+	SoundBus.play_sfx("select")
 	_gender = g
 	_btn_boy.modulate = Color(1, 1, 1) if g == "少年" else Color(0.6, 0.6, 0.6)
 	_btn_girl.modulate = Color(1, 1, 1) if g == "少女" else Color(0.6, 0.6, 0.6)
@@ -193,24 +194,29 @@ func _settings_label() -> String:
 	return "设置: " + ("当前全屏 (点击切窗口)" if full else "当前窗口 (点击切全屏)")
 
 func _on_new() -> void:
+	SoundBus.play_sfx("select")
 	_menu.visible = false
 	_setup.visible = true
 	_name_edit.grab_focus()
 
 func _on_back_to_menu() -> void:
+	SoundBus.play_sfx("select")
 	_setup.visible = false
 	_menu.visible = true
 	_focus_default()
 
 func _on_setup_confirm() -> void:
+	SoundBus.play_sfx("select")
 	GameState.reset_new_game()
 	GameState.set_player_identity(_name_edit.text, _gender)
 	get_tree().change_scene_to_file(OPENING_SCENE)
 
 func _on_continue() -> void:
+	SoundBus.play_sfx("select")
 	get_tree().change_scene_to_file(WORLD_SCENE)
 
 func _on_settings() -> void:
+	SoundBus.play_sfx("select")
 	var full := DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED if full else DisplayServer.WINDOW_MODE_FULLSCREEN)
 	for c in _menu.get_children():
@@ -219,4 +225,5 @@ func _on_settings() -> void:
 			c.grab_focus()
 
 func _on_quit() -> void:
+	SoundBus.play_sfx("select")
 	get_tree().quit()
