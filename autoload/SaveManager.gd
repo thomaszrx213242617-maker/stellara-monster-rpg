@@ -27,7 +27,8 @@ func save_game() -> void:
 		"ending_done": GameState.ending_done,
 		"coins": GameState.coins,
 		"player_hp": GameState.player_hp,
-		"finale_stage": GameState.finale_stage
+		"finale_stage": GameState.finale_stage,
+		"current_scene": GameState.current_scene
 	}
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if f:
@@ -80,6 +81,8 @@ func load_game() -> bool:
 		GameState.player_hp = int(data["player_hp"])
 	if data.has("finale_stage"):
 		GameState.finale_stage = int(data["finale_stage"])
+	if data.has("current_scene"):
+		GameState.current_scene = str(data["current_scene"])
 	print("SaveManager: 已读取存档")
 	return true
 

@@ -518,5 +518,65 @@
     "prio": "high",
     "deps": "",
     "note": ""
+  },
+  {
+    "id": "T053",
+    "phase": "P11 大版本IV",
+    "title": "标题摆到屏幕正中央",
+    "desc": "TitleScreen 大标题水平+垂直居中, 菜单下移",
+    "status": "done",
+    "prio": "medium",
+    "deps": "",
+    "note": ""
+  },
+  {
+    "id": "T054",
+    "phase": "P11 大版本IV",
+    "title": "序章去掉'神兽听我话'台词",
+    "desc": "OpeningCutscene 删除'连金属性的神兽都听你号令'",
+    "status": "done",
+    "prio": "low",
+    "deps": "",
+    "note": ""
+  },
+  {
+    "id": "T055",
+    "phase": "P11 大版本IV",
+    "title": "所有灵球可购买",
+    "desc": "items.json ancient_ball 设 buyable+price, 商店列出全部球",
+    "status": "done",
+    "prio": "medium",
+    "deps": "",
+    "note": ""
+  },
+  {
+    "id": "T056",
+    "phase": "P11 大版本IV",
+    "title": "退出再进入回到上次场景",
+    "desc": "GameState.current_scene 持久化, TitleScreen 启动自动跳转",
+    "status": "done",
+    "prio": "high",
+    "deps": "",
+    "note": ""
+  },
+  {
+    "id": "T057",
+    "phase": "P11 大版本IV",
+    "title": "晶变坑(太晶坑)+三训练家协助+收服/放弃",
+    "desc": "原创命名晶变坑; BattleArena 三人协力讨伐; 胜利后可选收服或放弃",
+    "status": "done",
+    "prio": "high",
+    "deps": "",
+    "note": ""
+  },
+  {
+    "id": "T058",
+    "phase": "P11 大版本IV",
+    "title": "3D视觉真实度增强",
+    "desc": "世界雾/补光/树木; 战斗灵兽头眼细节与材质",
+    "status": "done",
+    "prio": "medium",
+    "deps": "",
+    "note": ""
   }
 ]

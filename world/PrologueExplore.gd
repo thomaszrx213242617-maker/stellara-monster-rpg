@@ -19,10 +19,11 @@ var _scout_triggered: bool = false
 var _in_depth: bool = false
 
 func _ready() -> void:
+	GameState.current_scene = "res://world/PrologueExplore.tscn"
 	_build_world()
 	_build_ui()
 	if GameState.prologue_scout_done:
-		_toast("侦查战已结束。向洞穴深处前进，按 E 进入。")
+		_show_toast("侦查战已结束。向洞穴深处前进，按 E 进入。")
 		if _dialogue and _dialogue.has_method("start"):
 			_dialogue.start(["凛：「就是这里了……前面有股不祥的气息。我们进去吧。」"])
 	else:
@@ -112,7 +113,7 @@ func _build_ui() -> void:
 	_toast.text = ""
 	layer.add_child(_toast)
 
-func _toast(text: String) -> void:
+func _show_toast(text: String) -> void:
 	if _toast:
 		_toast.text = text
 		_toast_t = 2.5
@@ -142,7 +143,7 @@ func _process(delta: float) -> void:
 			_hint.text = "WASD移动 | 右键转视角 | 空格跳 | E 与凛对话 | 向洞穴深处前进"
 
 func _start_scout_battle() -> void:
-	_toast("洞中有异动——野灵兽袭来！迎战！")
+	_show_toast("洞中有异动——野灵兽袭来！迎战！")
 	GameState.prologue_scout_done = true
 	GameState.battle_return_scene = "res://world/PrologueExplore.tscn"
 	GameState.pending_wild = {"id": "shadepup", "level": 6}

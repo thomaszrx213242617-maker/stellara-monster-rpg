@@ -34,17 +34,58 @@ var sturdy_used: bool = false
 var dmg_mult: float = 1.0
 
 var mesh: MeshInstance3D
+var _head: MeshInstance3D
 
 func _ready() -> void:
-	var m := MeshInstance3D.new()
-	m.name = "MeshInstance3D"
+	var body := MeshInstance3D.new()
+	body.name = "MeshInstance3D"
 	var cap := CapsuleMesh.new()
 	cap.radius = 0.6
 	cap.height = 1.6
-	m.mesh = cap
-	m.position = Vector3(0, 0.9, 0)
-	add_child(m)
-	mesh = m
+	body.mesh = cap
+	body.position = Vector3(0, 0.9, 0)
+	var bmat := StandardMaterial3D.new()
+	bmat.roughness = 0.5
+	bmat.metalness = 0.12
+	body.material_override = bmat
+	add_child(body)
+	mesh = body
+	# 头部
+	var head := MeshInstance3D.new()
+	var hm := SphereMesh.new()
+	hm.radius = 0.42
+	hm.height = 0.84
+	head.mesh = hm
+	head.position = Vector3(0, 1.95, 0)
+	var hmat := StandardMaterial3D.new()
+	hmat.roughness = 0.5
+	hmat.metalness = 0.12
+	head.material_override = hmat
+	body.add_child(head)
+	_head = head
+	# 眼睛(白底 + 暗瞳, 朝向 +Z, 更生动)
+	for sx in [-0.16, 0.16]:
+		var eye := MeshInstance3D.new()
+		var em := SphereMesh.new()
+		em.radius = 0.1
+		em.height = 0.2
+		eye.mesh = em
+		eye.position = Vector3(sx, 2.02, 0.32)
+		var emat := StandardMaterial3D.new()
+		emat.albedo_color = Color(1, 1, 1)
+		emat.roughness = 0.3
+		eye.material_override = emat
+		body.add_child(eye)
+		var pupil := MeshInstance3D.new()
+		var pm := SphereMesh.new()
+		pm.radius = 0.05
+		pm.height = 0.1
+		pupil.mesh = pm
+		pupil.position = Vector3(sx, 2.02, 0.4)
+		var pmat := StandardMaterial3D.new()
+		pmat.albedo_color = Color(0.08, 0.08, 0.12)
+		pupil.material_override = pmat
+		body.add_child(pupil)
 	var col := CollisionShape3D.new()
 	var shp := CapsuleShape3D.new()
 	shp.radius = 0.6
@@ -94,7 +135,15 @@ func _apply_color() -> void:
 	if mesh:
 		var mat := StandardMaterial3D.new()
 		mat.albedo_color = c
+		mat.roughness = 0.5
+		mat.metalness = 0.12
 		mesh.material_override = mat
+	if _head:
+		var hmat := StandardMaterial3D.new()
+		hmat.albedo_color = c
+		hmat.roughness = 0.5
+		hmat.metalness = 0.12
+		_head.material_override = hmat
 
 func _physics_process(delta: float) -> void:
 	invulnerable = max(0.0, invulnerable - delta)

@@ -38,6 +38,13 @@ var _crystal_btn: Button
 var _hyper_btn: Button
 var coin_label: Label
 
+## 晶变坑(太晶坑原创命名)讨伐: 三名训练家协助, 胜利后可选收服/放弃
+var _raid_mode: bool = false
+var _raid_pending: bool = false
+var _raid_allies: Array = []
+var _ally_t: float = 0.0
+var _raid_panel: Panel
+
 ## 三秘环: 每场战斗各可用一次(巨灵环/晶变环/超衍环)
 var _bands_used: Dictionary = {"giant": false, "crystal": false, "hyper": false}
 
@@ -169,7 +176,38 @@ func _build_hud() -> void:
 	hud_layer.add_child(_hyper_btn)
 	_refresh_band_btns()
 
+	# 晶变坑讨伐结果: 收服 / 放弃
+	_raid_panel = Panel.new()
+	_raid_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	_raid_panel.custom_minimum_size = Vector2(440, 200)
+	_raid_panel.visible = false
+	hud_layer.add_child(_raid_panel)
+	var rl := Label.new()
+	rl.text = "讨伐成功！是否收服这只灵兽？"
+	rl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	rl.add_theme_font_size_override("font_size", 20)
+	rl.position = Vector2(20, 22)
+	rl.size = Vector2(400, 40)
+	_raid_panel.add_child(rl)
+	var cap_btn := Button.new()
+	cap_btn.text = "收服"
+	cap_btn.custom_minimum_size = Vector2(160, 50)
+	cap_btn.position = Vector2(50, 100)
+	cap_btn.pressed.connect(func(): _raid_finish(true))
+	_raid_panel.add_child(cap_btn)
+	var dec_btn := Button.new()
+	dec_btn.text = "放弃收服"
+	dec_btn.custom_minimum_size = Vector2(160, 50)
+	dec_btn.position = Vector2(230, 100)
+	dec_btn.pressed.connect(func(): _raid_finish(false))
+	_raid_panel.add_child(dec_btn)
+
 func start_battle() -> void:
+	# 记录当前场景, 退出重进时自动回到此处(续玩)
+	if GameState.battle_return_scene != "":
+		GameState.current_scene = GameState.battle_return_scene
+	else:
+		GameState.current_scene = "res://world/World.tscn"
 	if GameState.team.is_empty():
 		GameState.add_to_team("flarefox", 5)
 	var pdata: Dictionary = GameState.team[0]
@@ -196,6 +234,11 @@ func start_battle() -> void:
 		_enemy_is_alpha = GameState.pending_wild.get("alpha", false)
 		_enemy_is_finale = GameState.pending_wild.get("finale", false)
 		GameState.pending_wild = {}
+
+	# ---- 晶变坑讨伐(三人协力): 独立分支, 覆盖默认敌人 ----
+	if not GameState.pending_raid.is_empty():
+		_enter_raid_mode()
+		return
 
 	enemy_combatant = CombatantScript.new()
 	enemy_combatant.position = Vector3(6, 1, 0)
@@ -254,7 +297,7 @@ func _refresh_move_label() -> void:
 	move_label.text = est + " Lv" + str(player_combatant.level) + pst + "  |  " + mtxt + "\n" + est2 + estat
 
 func _physics_process(delta: float) -> void:
-	if battle_over:
+	if battle_over or _raid_pending:
 		return
 	player_cooldown = max(0.0, player_cooldown - delta)
 
@@ -277,6 +320,15 @@ func _physics_process(delta: float) -> void:
 
 	if Input.is_action_pressed("attack") and player_cooldown <= 0.0:
 		_player_attack()
+	# 协助训练家自动攻击(晶变坑三人协力)
+	if _raid_mode and enemy_combatant and not enemy_combatant.defeated:
+		_ally_t += delta
+		if _ally_t >= 1.6:
+			_ally_t = 0.0
+			var dmg: float = 8.0 + float(player_combatant.level) * 1.5
+			for _a in _raid_allies:
+				enemy_combatant.take_damage(dmg, null, "特殊")
+			_pop("三名训练家协力攻击！总计 -" + str(int(dmg * _raid_allies.size())))
 	if Input.is_action_just_pressed("capture"):
 		_try_capture()
 
@@ -318,6 +370,9 @@ func _player_attack() -> void:
 	player_cooldown = float(mv["cooldown"])
 
 func _try_capture() -> void:
+	if _raid_mode:
+		_pop("晶变坑讨伐中无法收服，胜利后再决定。")
+		return
 	if not enemy_is_wild:
 		_pop("无法收服" + _trainer_name + "的灵兽!")
 		return
@@ -456,6 +511,12 @@ func _on_player_defeated() -> void:
 	_end_battle(false, "你输了……")
 
 func _on_enemy_defeated() -> void:
+	# 晶变坑讨伐: 击败后让玩家选择收服或放弃
+	if _raid_mode and not _raid_pending:
+		_raid_pending = true
+		_award_coins()
+		_show_raid_result()
+		return
 	# 给队伍首位加经验
 	var pdata: Dictionary = GameState.team[0]
 	var exp: int = GameState.wild_exp(enemy_combatant.level)
@@ -505,6 +566,92 @@ func _on_enemy_defeated() -> void:
 		_end_battle(true, "首领灵兽倒下……星辉重燃！", "res://ui/EndingCutscene.tscn")
 		return
 	_end_battle(true, "胜利!")
+
+## ---- 晶变坑讨伐(太晶坑原创) ----
+func _enter_raid_mode() -> void:
+	_raid_mode = true
+	var cfg: Dictionary = GameState.pending_raid
+	var boss_id: String = cfg.get("boss_id", "crystal_guardian")
+	var boss_level: int = int(cfg.get("boss_level", 28))
+	var allies: Array = cfg.get("allies", [])
+	enemy_is_wild = true
+	enemy_combatant = CombatantScript.new()
+	enemy_combatant.position = Vector3(9, 1, 0)
+	enemy_combatant.setup(boss_id, boss_level, false)
+	enemy_combatant.scale = Vector3(1.5, 1.5, 1.5)
+	add_child(enemy_combatant)
+	enemy_combatant.hp_changed.connect(_on_hp)
+	enemy_combatant.defeated_signal.connect(_on_enemy_defeated)
+	GameState.note_dex_seen(enemy_combatant.creature_id)
+	_pop("晶变坑讨伐！" + DataBus.get_creature(boss_id).get("name", "") + " 现身！三名训练家前来协助！")
+	# 协助训练家(视觉 + 自动攻击)
+	_raid_allies = []
+	var slots := [Vector3(-9, 1, 4), Vector3(-9, 1, 0), Vector3(-9, 1, -4)]
+	for i in range(min(allies.size(), 3)):
+		_raid_allies.append(_make_ally(allies[i], slots[i]))
+	enemy_ai = EnemyAIScript.new()
+	enemy_ai.player = player_combatant
+	enemy_ai.enemy = enemy_combatant
+	enemy_ai.attack_range = attack_range
+	add_child(enemy_ai)
+	_bands_used = {"giant": false, "crystal": false, "hyper": false}
+	_refresh_band_btns()
+	_refresh_move_label()
+	_update_bars()
+
+func _make_ally(name: String, pos: Vector3) -> Node3D:
+	var n := Node3D.new()
+	n.name = name
+	n.position = pos
+	var body := MeshInstance3D.new()
+	var bm := CapsuleMesh.new()
+	bm.radius = 0.5
+	bm.height = 1.4
+	body.mesh = bm
+	body.position = Vector3(0, 0.9, 0)
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.4, 0.7, 0.5)
+	mat.roughness = 0.55
+	body.material_override = mat
+	n.add_child(body)
+	var head := MeshInstance3D.new()
+	var hm := SphereMesh.new()
+	hm.radius = 0.36
+	hm.height = 0.72
+	head.mesh = hm
+	head.position = Vector3(0, 1.85, 0)
+	var hmat := StandardMaterial3D.new()
+	hmat.albedo_color = Color(0.95, 0.85, 0.7)
+	hmat.roughness = 0.55
+	head.material_override = hmat
+	n.add_child(head)
+	var label := Label3D.new()
+	label.text = name
+	label.position = Vector3(0, 2.6, 0)
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.font_size = 26
+	label.modulate = Color(1, 1, 1)
+	n.add_child(label)
+	add_child(n)
+	return n
+
+func _show_raid_result() -> void:
+	if _raid_panel:
+		_raid_panel.visible = true
+
+func _raid_finish(capture: bool) -> void:
+	if _raid_panel:
+		_raid_panel.visible = false
+	if capture and enemy_combatant:
+		var id: String = enemy_combatant.creature_id
+		GameState.add_to_team(id, enemy_combatant.level)
+		GameState.note_dex_caught(id)
+		GameState.note_research(enemy_combatant.type)
+		_pop("收服了 " + DataBus.get_creature(id).get("name", "") + "！")
+	else:
+		_pop("你放弃了收服。")
+	GameState.pending_raid = {}
+	_end_battle(true, "晶变坑讨伐完成！", "res://world/World.tscn")
 
 func _end_battle(win: bool, msg: String = "", next_scene: String = "res://world/World.tscn") -> void:
 	if battle_over:

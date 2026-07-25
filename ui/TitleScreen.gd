@@ -18,6 +18,10 @@ var _btn_continue: Button
 
 func _ready() -> void:
 	_build()
+	# 续玩: 已有存档且记录了上次所在场景 → 直接进入该场景(自动回到退出前位置)
+	if SaveManager.has_save() and GameState.current_scene != "":
+		get_tree().change_scene_to_file(GameState.current_scene)
+		return
 	_menu.visible = true
 	_setup.visible = false
 	_focus_default()
@@ -29,19 +33,30 @@ func _build() -> void:
 	bg.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(bg)
 
-	# ---- 主菜单 ----
+	# ---- 居中的大标题(屏幕正中央) ----
+	var big_title := Label.new()
+	big_title.text = "星澜物语"
+	big_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	big_title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	big_title.add_theme_font_size_override("font_size", 72)
+	big_title.modulate = Color(0.95, 0.97, 1.0)
+	big_title.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	big_title.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	big_title.grow_vertical = Control.GROW_DIRECTION_BOTH
+	big_title.offset_top = -150
+	big_title.offset_bottom = -150
+	big_title.offset_left = -320
+	big_title.offset_right = 320
+	add_child(big_title)
+
+	# ---- 主菜单(位于标题下方) ----
 	_menu = VBoxContainer.new()
 	_menu.alignment = BoxContainer.ALIGNMENT_CENTER
 	_menu.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	_menu.custom_minimum_size = Vector2(460, 0)
+	_menu.offset_top = 30
+	_menu.offset_bottom = 30
 	add_child(_menu)
-
-	var title := Label.new()
-	title.text = "星澜物语"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 56)
-	title.modulate = Color(0.92, 0.96, 1.0)
-	_menu.add_child(title)
 
 	var sub := Label.new()
 	sub.text = "STELLARA · 原创灵兽冒险"

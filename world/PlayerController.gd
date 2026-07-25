@@ -20,6 +20,8 @@ func _ready() -> void:
 	body.position = Vector3(0, 0.55, 0)
 	var bmat := StandardMaterial3D.new()
 	bmat.albedo_color = body_color
+	bmat.roughness = 0.55
+	bmat.metalness = 0.05
 	body.material_override = bmat
 	add_child(body)
 	# 头(大)
@@ -30,9 +32,22 @@ func _ready() -> void:
 	head.mesh = hm
 	head.position = Vector3(0, 1.15, 0)
 	var hmat := StandardMaterial3D.new()
-	hmat.albedo_color = Color(1.0, 0.86, 0.72)
+	hmat.albedo_color = Color(0.98, 0.85, 0.72)
+	hmat.roughness = 0.5
 	head.material_override = hmat
 	add_child(head)
+	# 眼睛(朝向 +Z)
+	for sx in [-0.15, 0.15]:
+		var eye := MeshInstance3D.new()
+		var em := SphereMesh.new()
+		em.radius = 0.07
+		em.height = 0.14
+		eye.mesh = em
+		eye.position = Vector3(sx, 1.2, 0.36)
+		var emat := StandardMaterial3D.new()
+		emat.albedo_color = Color(0.12, 0.12, 0.16)
+		eye.material_override = emat
+		add_child(eye)
 	# 碰撞(保持与原移动手感一致)
 	var col := CollisionShape3D.new()
 	var shp := CapsuleShape3D.new()

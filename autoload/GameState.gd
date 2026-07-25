@@ -46,6 +46,10 @@ var transformation_bands: bool = true
 var battle_return_scene: String = ""
 ## 序章探险: 洞中野怪侦查战是否已完成(用于场景重建后跳过)
 var prologue_scout_done: bool = false
+## 退出游戏前所在的场景路径; 重进时若有存档则自动回到此处(续玩)
+var current_scene: String = ""
+## 晶变坑(太晶坑原创命名)讨伐配置: {boss_id, boss_level, allies:[训练家名]}
+var pending_raid: Dictionary = {}
 
 ## 设置玩家名字与性别(名字空则回退为"旅人")
 func set_player_identity(name: String, gender: String) -> void:
@@ -193,6 +197,8 @@ func reset_new_game() -> void:
 	player_name = ""
 	battle_return_scene = ""
 	prologue_scout_done = false
+	current_scene = ""
+	pending_raid = {}
 	player_gender = "少年"
 	finale_stage = 0
 	coins = 300

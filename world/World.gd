@@ -19,6 +19,7 @@ const RiftScript := preload("res://world/RiftZone.gd")
 const FieldAmbushScript := preload("res://world/FieldAmbush.gd")
 const CampScript := preload("res://world/CampSite.gd")
 const ShopScript := preload("res://ui/Shop.gd")
+const TeraScript := preload("res://world/TeraPit.gd")
 
 var _player
 var _camera
@@ -45,6 +46,9 @@ var _in_shop: bool = false
 var _shop_label: Label
 var _in_camp: bool = false
 var _camp_label: Label
+var _in_tera: bool = false
+var _tera_label: Label
+var _tera_pit
 
 # 野外突袭 / 玩家体力 / 存档点
 var _ambush = null
@@ -60,6 +64,7 @@ func _ready() -> void:
 	_build_ui()
 	_setup_pause_menu()
 	_setup_shop()
+	GameState.current_scene = "res://world/World.tscn"
 	DayNight.time_changed.connect(_on_time)
 	_on_time(0.0)
 
@@ -151,6 +156,11 @@ func _build_ui() -> void:
 	_camp_label.text = ""
 	layer.add_child(_camp_label)
 
+	_tera_label = Label.new()
+	_tera_label.position = Vector2(12, 404)
+	_tera_label.text = ""
+	layer.add_child(_tera_label)
+
 	_toast = Label.new()
 	_toast.position = Vector2(440, 200)
 	_toast.scale = Vector2(1.4, 1.4)
@@ -175,14 +185,27 @@ func build_world() -> void:
 	_env = Environment.new()
 	_env.background_mode = Environment.BG_COLOR
 	_env.background_color = Color(0.6, 0.75, 0.95)
-	_env.ambient_light_energy = 0.6
+	_env.ambient_light_energy = 0.75
+	_env.ambient_light_color = Color(0.7, 0.8, 0.95)
+	_env.fog_enabled = true
+	_env.fog_density = 0.012
+	_env.fog_color = Color(0.65, 0.78, 0.95)
 	env_node.environment = _env
 
 	_light = DirectionalLight3D.new()
 	_light.position = Vector3(10, 25, 10)
 	_light.rotation = Vector3(deg_to_rad(-55), 0, 0)
-	_light.light_energy = 1.2
+	_light.light_energy = 1.3
+	_light.light_color = Color(1.0, 0.97, 0.9)
 	add_child(_light)
+
+	# 柔和补光(提升立体感与真实度)
+	var fill := DirectionalLight3D.new()
+	fill.position = Vector3(-12, 18, -8)
+	fill.rotation = Vector3(deg_to_rad(40), deg_to_rad(180), 0)
+	fill.light_energy = 0.45
+	fill.light_color = Color(0.7, 0.8, 1.0)
+	add_child(fill)
 
 	# 大地(扩张为 240x240, 分区)
 	var ground := MeshInstance3D.new()
@@ -200,6 +223,9 @@ func build_world() -> void:
 	col.position = Vector3(0, -0.1, 0)
 	sb.add_child(col)
 	add_child(sb)
+
+	# ---- 植被/树木: 提升 3D 真实度 ----
+	_scatter_trees()
 
 	# ---- 星澜村(新手村): 房子 + 中心 + NPC, 无草丛无Boss ----
 	_add_house(Vector3(-14, 0, 8),  Vector3(4, 3, 4), Color(0.85, 0.7, 0.5))
@@ -295,6 +321,15 @@ func build_world() -> void:
 
 	# ---- 商栈(可购买灵球/伤药, 至尊球可买) ----
 	_add_shop(Vector3(8, 0, -14))
+
+	# ---- 晶变坑(太晶坑原创命名): 三人协力讨伐金属灵兽, 胜利后可收服/放弃 ----
+	_add_sign("晶变坑 · 三人协力讨伐", Vector3(-14, 0, -66))
+	var pit := TeraScript.new()
+	pit.position = Vector3(-14, 0, -72)
+	pit.body_entered.connect(_on_tera_enter)
+	pit.body_exited.connect(_on_tera_exit)
+	add_child(pit)
+	_tera_pit = pit
 
 	# ---- 黯潮深渊(南): 终Boss(黯潮之主·凛), 需中期Boss后 ----
 	_add_sign("黯潮深渊 · 首领出没", Vector3(0, 0, 50))
@@ -408,6 +443,53 @@ func _add_shop(pos: Vector3) -> void:
 	zone.body_exited.connect(_on_shop_exit)
 	zone.position = pos
 	add_child(zone)
+
+func _on_tera_enter(b: Node) -> void:
+	if b == _player:
+		_in_tera = true
+
+func _on_tera_exit(b: Node) -> void:
+	if b == _player:
+		_in_tera = false
+
+func _scatter_trees() -> void:
+	var spots := [
+		Vector3(-30, 0, 12), Vector3(-26, 0, -4), Vector3(-22, 0, 18),
+		Vector3(28, 0, 12), Vector3(34, 0, -10), Vector3(30, 0, 24),
+		Vector3(-12, 0, -46), Vector3(14, 0, -50), Vector3(-4, 0, -60),
+		Vector3(40, 0, 4), Vector3(-40, 0, -30), Vector3(60, 0, 20)
+	]
+	for s in spots:
+		_add_tree(s)
+
+func _add_tree(pos: Vector3) -> void:
+	var t := Node3D.new()
+	var trunk := MeshInstance3D.new()
+	var tm := CylinderMesh.new()
+	tm.top_radius = 0.25
+	tm.bottom_radius = 0.35
+	tm.height = 2.0
+	trunk.mesh = tm
+	trunk.position = Vector3(0, 1.0, 0)
+	var tmat := StandardMaterial3D.new()
+	tmat.albedo_color = Color(0.45, 0.3, 0.18)
+	tmat.roughness = 0.9
+	trunk.material_override = tmat
+	t.add_child(trunk)
+	var foliage := MeshInstance3D.new()
+	var fm := CylinderMesh.new()
+	fm.top_radius = 0.0
+	fm.bottom_radius = 1.3
+	fm.height = 3.0
+	foliage.mesh = fm
+	foliage.position = Vector3(0, 3.2, 0)
+	var fmat := StandardMaterial3D.new()
+	fmat.albedo_color = Color(0.2, 0.5, 0.25)
+	fmat.roughness = 0.8
+	foliage.material_override = fmat
+	t.add_child(foliage)
+	t.position = pos
+	add_child(t)
 
 func _on_encounter(creature_id: String, level: int) -> void:
 	# 草丛遇敌改为「野外突袭」: 在大地图生成野怪扑来, 不再直接进战斗
@@ -560,6 +642,22 @@ func _process(delta: float) -> void:
 	if _in_shop and Input.is_action_just_pressed("interact") and _shop != null and not _shop._open:
 		_shop.open_shop()
 
+	# 晶变坑: 三人协力讨伐(胜利后可收服/放弃)
+	if _in_tera and Input.is_action_just_pressed("interact"):
+		if GameState.pending_raid.is_empty():
+			if GameState.story_stage < 1:
+				if _dialogue and _dialogue.has_method("start"):
+					_dialogue.start(["晶变坑寂静无声……等你真正踏入星澜大地后，守护兽才会苏醒。"])
+			elif GameState.team.is_empty():
+				_show_toast("你还没有任何灵兽，无法挑战晶变坑。")
+			else:
+				GameState.pending_raid = {
+					"boss_id": "crystal_guardian",
+					"boss_level": 28,
+					"allies": ["劲敌·岩", "伙伴·小岚", "伙伴·阿砂"]
+				}
+				get_tree().change_scene_to_file("res://battle/BattleArena.tscn")
+
 	if _center_label:
 		_center_label.text = "宝可梦中心(按 E 治疗)" if _in_center else ""
 
@@ -643,6 +741,8 @@ func _update_player_hud() -> void:
 		_shop_label.text = "星辉商栈 (按 E 购买)" if _in_shop else ""
 	if _camp_label:
 		_camp_label.text = "营地 (按 E 扎营休息)" if _in_camp else ""
+	if _tera_label:
+		_tera_label.text = "晶变坑 (按 E 三人协力讨伐)" if _in_tera else ""
 
 func _update_team_label() -> void:
 	if not _team_label:
