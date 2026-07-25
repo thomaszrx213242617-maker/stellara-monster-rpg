@@ -15,6 +15,11 @@ var storage: Array = []        # 存储箱(超出6只)
 var inventory: Dictionary = {} # item_id -> count
 var badges: Array = []         # 已获得徽章 id
 var badges_total: int = 8
+var coins: int = 300           # 货币(原创: 星辉币)
+var player_hp: int = 100       # 野外玩家血量(被野生灵兽袭击时扣减)
+var player_max_hp: int = 100
+var finale_stage: int = 0      # 终局链: 0 未开始 / 1 已击败凛 / 2 已击败辉金龙
+var selected_ball: String = "ball"  # 战斗中使用的球(可在战斗内切换)
 var pending_wild: Dictionary = {}  # 待进入的野怪战斗配置 {id, level}; 空则默认
 var pending_trainer: Dictionary = {}  # 训练家/道馆战配置 {enemy_id, enemy_level, trainer_name, badge_id}
 var caught_count: int = 0      # 图鉴: 收服总数
@@ -31,6 +36,7 @@ var story_stage: int = 0             # 0 序章前 / 1 落地星澜 / 2 中期Bo
 var opening_done: bool = false
 var midboss_done: bool = false
 var ending_done: bool = false
+var prologue_done: bool = false
 
 ## 设置玩家名字与性别(名字空则回退为"旅人")
 func set_player_identity(name: String, gender: String) -> void:
@@ -64,6 +70,9 @@ func _ready() -> void:
 		add_to_team("flarefox", 5)
 	if inventory.is_empty():
 		inventory = {"ball": 5, "potion": 3}
+	coins = 300
+	player_hp = player_max_hp
+	selected_ball = "ball"
 
 ## 升到某级所需经验(中速曲线)
 func exp_needed(level: int) -> int:
@@ -169,9 +178,14 @@ func reset_new_game() -> void:
 	opening_done = false
 	midboss_done = false
 	ending_done = false
+	prologue_done = false
 	story_stage = 0
 	player_name = ""
 	player_gender = "少年"
+	finale_stage = 0
+	coins = 300
+	player_hp = player_max_hp
+	selected_ball = "ball"
 	if "time" in DayNight:
 		DayNight.time = 0.0
 	SaveManager.delete_save()
@@ -222,3 +236,73 @@ func ball_mod(id: String) -> float:
 	if it.is_empty():
 		return 1.0
 	return float(it.get("catch_mod", 1.0))
+
+## ---- 货币 / 商店 ----
+func price_of(id: String) -> int:
+	var it: Dictionary = DataBus.get_item(id)
+	if it.is_empty():
+		return 0
+	return int(it.get("price", 0))
+
+func can_buy(id: String) -> bool:
+	var it: Dictionary = DataBus.get_item(id)
+	if it.is_empty():
+		return false
+	return bool(it.get("buyable", false))
+
+## 在商店购买 n 个道具; 钱不够或不可购买返回 false
+func buy_item(id: String, n: int = 1) -> bool:
+	if not can_buy(id):
+		return false
+	var cost: int = price_of(id) * n
+	if coins < cost:
+		return false
+	coins -= cost
+	add_item(id, n)
+	return true
+
+## 可购买的道具列表(球类在前)
+func shop_items() -> Array:
+	var out := []
+	for iid in DataBus.items.keys():
+		if can_buy(iid):
+			out.append(iid)
+	return out
+
+## 玩家野外血量
+func heal_player() -> void:
+	player_hp = player_max_hp
+
+func damage_player(amount: int) -> void:
+	player_hp = max(0, player_hp - amount)
+
+func is_player_fainted() -> bool:
+	return player_hp <= 0
+
+## ---- 战斗用球选择(朱紫式可切换球) ----
+func owned_balls() -> Array:
+	var out := []
+	for id in inventory.keys():
+		var it: Dictionary = DataBus.get_item(id)
+		if not it.is_empty() and it.get("type") == "ball":
+			out.append(id)
+	return out
+
+## 在已拥有的球之间循环选择
+func cycle_ball() -> String:
+	var owned := owned_balls()
+	if owned.is_empty():
+		selected_ball = ""
+		return ""
+	if selected_ball == "" or not selected_ball in owned:
+		selected_ball = owned[0]
+	else:
+		var i: int = owned.find(selected_ball)
+		selected_ball = owned[(i + 1) % owned.size()]
+	return selected_ball
+
+## 收服成功后把神兽收入队伍/存储(终局奖励)
+func obtain_legendary(id: String) -> void:
+	add_to_team(id, 30)
+	note_dex_seen(id)
+	note_dex_caught(id)

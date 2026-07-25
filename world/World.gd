@@ -3,8 +3,9 @@ class_name World
 
 ## 探索场景: 代码构建世界(环境/光照/地面/玩家/相机/各区域/遭遇/中心/NPC/Boss)。
 ## 分区: 星澜村(新手村, 无草丛无Boss) / 北之路(草丛野怪) / 晨曦镇(道馆+中期小Boss) / 黯潮深渊(终Boss)。
-## 核心循环: 踩草丛→随机遭遇→实时战斗→收服/击败→回世界; 中心按E治疗并存档。
-## 阿尔宙斯式: 首领灵兽(alpha, 终Boss, 需中期Boss后于黯潮深渊出现); 时空裂隙(北之路周期激活)。
+## 核心循环: 踩草丛→野外突袭(未派出灵兽则玩家掉血)→迎战→收服/击败→回世界; 中心/营地按E治疗并存档。
+## 阿尔宙斯式: 首领灵兽(终Boss=黯潮之主·凛)于黯潮深渊出现(需中期Boss后); 时空裂隙(北之路周期激活)。
+## 朱紫式: 草丛遇敌为「野外突袭」, 玩家可被直接攻击掉血, 倒下复活到最近存档点。
 
 const PlayerScript := preload("res://world/PlayerController.gd")
 const CameraScript := preload("res://world/CameraRig.gd")
@@ -15,6 +16,9 @@ const NpcScript := preload("res://world/Npc.gd")
 const EncounterScript := preload("res://world/EncounterZone.gd")
 const AlphaScript := preload("res://world/AlphaBeast.gd")
 const RiftScript := preload("res://world/RiftZone.gd")
+const FieldAmbushScript := preload("res://world/FieldAmbush.gd")
+const CampScript := preload("res://world/CampSite.gd")
+const ShopScript := preload("res://ui/Shop.gd")
 
 var _player
 var _camera
@@ -36,11 +40,26 @@ var _research_label: Label
 var _alpha
 var _rift
 var _pause_menu
+var _shop
+var _in_shop: bool = false
+var _shop_label: Label
+var _in_camp: bool = false
+var _camp_label: Label
+
+# 野外突袭 / 玩家体力 / 存档点
+var _ambush = null
+var _last_save_point: Vector3 = Vector3(0, 1, 0)
+var _player_hp_bar: ProgressBar
+var _player_hp_label: Label
+var _coins_label: Label
+var _toast: Label
+var _toast_t: float = 0.0
 
 func _ready() -> void:
 	build_world()
 	_build_ui()
 	_setup_pause_menu()
+	_setup_shop()
 	DayNight.time_changed.connect(_on_time)
 	_on_time(0.0)
 
@@ -67,7 +86,7 @@ func _build_ui() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
 	var hint := Label.new()
-	hint.text = "WASD移动 | 右键转视角 | 空格跳 | 草丛遇野怪 | 中心/道馆/东镇按E | B随机遭遇 | C收服(夜禁) | 发光首领(黯潮深渊)按E挑战 | 紫裂隙激活靠近触发"
+	hint.text = "WASD移动 | 右键转视角 | 空格跳/攻击 | Shift闪避 | E交互/迎战 | B随机遭遇/迎战 | C收服(夜禁) | I/按钮 伤药 | 发光首领(黯潮深渊)按E挑战 | 紫裂隙激活靠近触发 | Esc暂停"
 	hint.position = Vector2(12, 12)
 	layer.add_child(hint)
 	var t := Label.new()
@@ -105,6 +124,39 @@ func _build_ui() -> void:
 	_alpha_label.scale = Vector2(1.4, 1.4)
 	_alpha_label.text = ""
 	layer.add_child(_alpha_label)
+
+	# 玩家体力条(野外被野怪攻击时扣减)
+	_player_hp_label = Label.new()
+	_player_hp_label.text = "体力"
+	_player_hp_label.position = Vector2(12, 70)
+	layer.add_child(_player_hp_label)
+	_player_hp_bar = ProgressBar.new()
+	_player_hp_bar.position = Vector2(12, 90)
+	_player_hp_bar.size = Vector2(220, 18)
+	_player_hp_bar.max_value = float(GameState.player_max_hp)
+	layer.add_child(_player_hp_bar)
+
+	_coins_label = Label.new()
+	_coins_label.position = Vector2(12, 116)
+	_coins_label.add_theme_font_size_override("font_size", 16)
+	layer.add_child(_coins_label)
+
+	_shop_label = Label.new()
+	_shop_label.position = Vector2(12, 332)
+	_shop_label.text = ""
+	layer.add_child(_shop_label)
+
+	_camp_label = Label.new()
+	_camp_label.position = Vector2(12, 356)
+	_camp_label.text = ""
+	layer.add_child(_camp_label)
+
+	_toast = Label.new()
+	_toast.position = Vector2(440, 200)
+	_toast.scale = Vector2(1.4, 1.4)
+	_toast.modulate = Color(1.0, 0.5, 0.4)
+	_toast.text = ""
+	layer.add_child(_toast)
 
 func _on_time(_t: float) -> void:
 	if _time_label:
@@ -167,32 +219,40 @@ func build_world() -> void:
 	_player = PlayerScript.new()
 	_player.position = Vector3(0, 1, 0)
 	add_child(_player)
+	_last_save_point = _player.global_position
 
 	_camera = CameraScript.new()
 	add_child(_camera)
 	_camera.follow_target = _camera.get_path_to(_player)
 
-	# 村内 NPC(向导/村民/商店/劲敌)
+	# 村内 NPC(向导/村民/劲敌/新伙伴)
 	_add_npc(Vector3(4, 1, -19), "向导·岚", Color(0.3, 0.7, 0.9), [
-		GameState.player_name if GameState.player_name != "" else "旅行者" + "，欢迎来到星澜村。",
-		"你自星海降临的事，辉光已告知我。去北之路收服灵兽，壮大你的队伍吧。",
-		"宝可梦中心(村中北侧)按 E 可治疗并自动存档；受伤时战斗里也能用伤药。",
-		"东边的晨曦镇有道馆与一位强劲的训练家，等你变强再去挑战。",
+		GameState.player_name if GameState.player_name != "" else "旅行者" + "，欢迎回到星澜村。",
+		"你从山洞归来后失了记忆，连伙伴『凛』和那两头金属神兽都下落不明……但辉光说，你仍是星辉冠军。",
+		"宝可梦中心(村中北侧)或路旁营地按 E 可治疗并自动存档；受伤时战斗里也能用伤药。",
+		"东边的晨曦镇有道馆与一位强劲的训练家，等你变强再去挑战。北之路的草丛里，野怪会直接扑上来——记得带够伤药！",
 	], _player)
 	_add_npc(Vector3(-6, 1, -16), "村民·禾", Color(0.9, 0.8, 0.3), [
-		"最近北之路的草丛里野怪活跃，出门记得带够伤药。",
-		"听说黯潮深渊里潜伏着会发光的『首领灵兽』，寻常人可近不得。",
-	], _player)
-	_add_npc(Vector3(8, 1, -14), "商店·琳", Color(0.8, 0.5, 0.8), [
-		"我这儿虽没有店铺，但村里探索常能捡到伤药与灵球，多留意草丛。",
-		"战斗里队伍首位没血时，按『道具/伤药』按钮就能治疗，很方便。",
+		"最近北之路的草丛里野怪活跃，而且会主动扑人。被咬到可是会掉体力的！",
+		"听说黯潮深渊里潜伏着『黯潮之主·凛』——那竟是失踪的伙伴……",
 	], _player)
 	_add_npc(Vector3(-4, 1, 6), "劲敌·岩", Color(0.9, 0.5, 0.4), [
 		"我也想成为点燃星辉的人！不过眼下还得先去北之路练级。",
 		"等你在晨曦镇打败那位训练家，黯潮深渊的首领才会出现哦。",
 	], _player)
+	# 新伙伴: 小岚(同行向导少女)
+	_add_npc(Vector3(10, 1, -16), "伙伴·小岚", Color(0.6, 0.9, 0.7), [
+		"我叫小岚，是村里的巡林人。你从山洞被救回来那刻，我就守在床边。",
+		"以后这一路，我陪你找凛、找那两头金属神兽。放心，伤药我包了。",
+		"对了，村口商栈能买到各种灵球，至尊球连神兽都能收服——攒够星辉币就去吧！",
+	], _player)
+	# 新伙伴: 阿砂(劲敌兼挚友)
+	_add_npc(Vector3(-10, 1, -14), "伙伴·阿砂", Color(0.9, 0.6, 0.9), [
+		"我是阿砂。虽然咱俩是竞争关系，但找回凛这事上，咱是一条船。",
+		"等你击败晨曦镇的暗潮使·玄，黯潮深渊的大门才会开。",
+	], _player)
 
-	# ---- 北之路: 草丛野怪 + 裂隙 + 警告NPC ----
+	# ---- 北之路: 草丛野怪 + 裂隙 + 警告NPC + 营地 ----
 	_add_sign("北之路 · 野生灵兽出没", Vector3(0, 0, -40))
 	_add_encounter_zone(Vector3(-20, 0, -50), ["flarefox", "vinelop", "windpip"], 2, 6)
 	_add_encounter_zone(Vector3(20, 0, -55), ["aqualeap", "bouldon", "shadepup", "ironhide"], 3, 7)
@@ -202,11 +262,14 @@ func build_world() -> void:
 	_rift.position = Vector3(10, 0, -68)
 	add_child(_rift)
 	_add_npc(Vector3(-30, 1, -45), "登山客·石", Color(0.6, 0.6, 0.6), [
-		"草丛里每走一步都可能窜出野怪，这可是宝可梦(灵兽)世界的规矩。",
+		"草丛里每走一步都可能窜出野怪，而且它们会直接扑向你——不派出灵兽就会掉体力！",
 		"紫色的『时空裂隙』会周期性开启，激活时靠近会遇到稀有金属灵兽。",
+		"路旁有帐篷营地，按 E 扎营能回满体力和灵兽，也会成为你倒下后的复活点。",
 	], _player)
+	# 营地(北之路中途)
+	_add_camp(Vector3(-2, 0, -32))
 
-	# ---- 晨曦镇(东): 道馆 + 中期小Boss ----
+	# ---- 晨曦镇(东): 道馆 + 中期小Boss + 营地 ----
 	_add_sign("晨曦镇", Vector3(50, 0, 0))
 	_add_house(Vector3(55, 0, 8),  Vector3(4, 3, 4), Color(0.7, 0.8, 0.85))
 	_add_house(Vector3(82, 0, -6), Vector3(5, 4, 5), Color(0.85, 0.75, 0.6))
@@ -227,8 +290,13 @@ func build_world() -> void:
 		"馆主·岩心就在这镇北，想拿徽章得先证明实力。",
 		"镇东那位『暗潮使·玄』更不好惹，听说击败他才能唤醒黯潮深渊的首领。",
 	], _player)
+	# 营地(镇外)
+	_add_camp(Vector3(38, 0, 6))
 
-	# ---- 黯潮深渊(南): 终Boss(alpha), 需中期Boss后 ----
+	# ---- 商栈(可购买灵球/伤药, 至尊球可买) ----
+	_add_shop(Vector3(8, 0, -14))
+
+	# ---- 黯潮深渊(南): 终Boss(黯潮之主·凛), 需中期Boss后 ----
 	_add_sign("黯潮深渊 · 首领出没", Vector3(0, 0, 50))
 	_alpha = AlphaScript.new()
 	_alpha.position = Vector3(0, 0, 72)
@@ -319,12 +387,85 @@ func _add_encounter_zone(pos: Vector3, pool: Array, lmin: int, lmax: int) -> voi
 	z.triggered.connect(_on_encounter)
 	add_child(z)
 
+func _add_camp(pos: Vector3) -> void:
+	var c := CampScript.new()
+	c.position = pos
+	c.body_entered.connect(_on_camp_enter)
+	c.body_exited.connect(_on_camp_exit)
+	add_child(c)
+
+func _add_shop(pos: Vector3) -> void:
+	# 商栈招牌
+	_add_sign("星辉商栈 · 按 E 购买", pos + Vector3(0, 0, 2.4))
+	var zone := Area3D.new()
+	var col := CollisionShape3D.new()
+	var sh := BoxShape3D.new()
+	sh.size = Vector3(6, 4, 6)
+	col.shape = sh
+	col.position = Vector3(0, 2, 0)
+	zone.add_child(col)
+	zone.body_entered.connect(_on_shop_enter)
+	zone.body_exited.connect(_on_shop_exit)
+	zone.position = pos
+	add_child(zone)
+
 func _on_encounter(creature_id: String, level: int) -> void:
-	if _encounter_cd > 0.0:
+	# 草丛遇敌改为「野外突袭」: 在大地图生成野怪扑来, 不再直接进战斗
+	if _ambush != null or _encounter_cd > 0.0:
 		return
 	_encounter_cd = 2.5
-	GameState.pending_wild = {"id": creature_id, "level": level}
+	_spawn_ambush(creature_id, level)
+
+func _spawn_ambush(creature_id: String, level: int) -> void:
+	var a := FieldAmbushScript.new()
+	a.creature_id = creature_id
+	a.level = level
+	a.player = _player
+	# 在玩家附近随机方向生成
+	var ang: float = randf() * TAU
+	var off := Vector3(cos(ang), 0, sin(ang)) * 7.0
+	a.position = _player.global_position + off
+	a.attack_player.connect(_on_ambush_attack)
+	a.fainted.connect(_on_ambush_gone)
+	add_child(a)
+	_ambush = a
+	_show_toast("野生灵兽来袭！按 B/E 迎战，或快跑！")
+	# 同时记入图鉴「已见」
+	GameState.note_dex_seen(creature_id)
+
+func _on_ambush_attack(dmg: int, is_big: bool) -> void:
+	GameState.damage_player(dmg)
+	_show_toast(( "大招！" if is_big else "") + "被野生灵兽攻击，体力 -" + str(dmg))
+	if GameState.is_player_fainted():
+		_on_player_fainted()
+
+func _on_ambush_gone() -> void:
+	if _ambush != null and is_instance_valid(_ambush):
+		_ambush.queue_free()
+	_ambush = null
+
+func _engage_ambush() -> void:
+	if _ambush == null:
+		return
+	var id: String = _ambush.creature_id
+	var lv: int = _ambush.level
+	_on_ambush_gone()
+	GameState.pending_wild = {"id": id, "level": lv}
 	get_tree().change_scene_to_file("res://battle/BattleArena.tscn")
+
+func _on_player_fainted() -> void:
+	_on_ambush_gone()
+	# 复活到最近存档点, 回满体力与队伍
+	_player.global_position = _last_save_point
+	GameState.heal_player()
+	GameState.heal_team()
+	SaveManager.save_game()
+	_show_toast("你被野生灵兽击倒了……在最近的营地/中心苏醒，体力已恢复。")
+
+func _show_toast(text: String) -> void:
+	if _toast:
+		_toast.text = text
+		_toast_t = 2.2
 
 func _on_center_enter(b: Node) -> void:
 	if b == _player:
@@ -350,11 +491,43 @@ func _on_midboss_exit(b: Node) -> void:
 	if b == _player:
 		_in_midboss = false
 
+func _on_camp_enter(b: Node) -> void:
+	if b == _player:
+		_in_camp = true
+
+func _on_camp_exit(b: Node) -> void:
+	if b == _player:
+		_in_camp = false
+
+func _on_shop_enter(b: Node) -> void:
+	if b == _player:
+		_in_shop = true
+
+func _on_shop_exit(b: Node) -> void:
+	if b == _player:
+		_in_shop = false
+
+func _setup_shop() -> void:
+	_shop = ShopScript.new()
+	_shop.name = "Shop"
+	_shop.setup(self)
+	add_child(_shop)
+
 func _process(delta: float) -> void:
 	if _encounter_cd > 0.0:
 		_encounter_cd = max(0.0, _encounter_cd - delta)
+	if _toast_t > 0.0:
+		_toast_t -= delta
+		if _toast_t <= 0.0 and _toast:
+			_toast.text = ""
 
-	if Input.is_action_just_pressed("start_battle"):
+	# 野外突袭: 按 B 或 E 迎战(派出灵兽进入战斗)
+	if _ambush != null and is_instance_valid(_ambush):
+		if Input.is_action_just_pressed("start_battle") or Input.is_action_just_pressed("interact"):
+			_engage_ambush()
+			return
+
+	if Input.is_action_just_pressed("start_battle") and _ambush == null:
 		var wild_ids := []
 		for cid in DataBus.creatures.keys():
 			var d: Dictionary = DataBus.get_creature(cid)
@@ -370,9 +543,22 @@ func _process(delta: float) -> void:
 
 	if _in_center and Input.is_action_just_pressed("interact"):
 		GameState.heal_team()
+		GameState.heal_player()
+		_last_save_point = _player.global_position
 		SaveManager.save_game()
 		if _dialogue and _dialogue.has_method("start"):
-			_dialogue.start(["宝可梦中心：队伍已完全恢复，进度已保存。"])
+			_dialogue.start(["宝可梦中心：队伍与体力已完全恢复，进度已保存。"])
+
+	if _in_camp and Input.is_action_just_pressed("interact"):
+		GameState.heal_team()
+		GameState.heal_player()
+		_last_save_point = _player.global_position
+		SaveManager.save_game()
+		if _dialogue and _dialogue.has_method("start"):
+			_dialogue.start(["你在营地扎营休息，队伍与体力全部恢复，这里已成为新的复活点。"])
+
+	if _in_shop and Input.is_action_just_pressed("interact") and _shop != null and not _shop._open:
+		_shop.open_shop()
 
 	if _center_label:
 		_center_label.text = "宝可梦中心(按 E 治疗)" if _in_center else ""
@@ -410,14 +596,14 @@ func _process(delta: float) -> void:
 		else:
 			_midboss_label.text = ""
 
-	# 首领灵兽(alpha, 终Boss): 仅中期Boss后于黯潮深渊出现
+	# 首领灵兽(终Boss = 黯潮之主·凛): 仅中期Boss后于黯潮深渊出现
 	if _alpha and is_instance_valid(_alpha) and _alpha.visible:
 		var da: float = _player.global_position.distance_to(_alpha.global_position)
 		if da < 6.0 and not _in_center and not _in_gym:
 			if _alpha_label:
-				_alpha_label.text = "首领灵兽出没! 按 E 挑战 (可收服→结局)"
+				_alpha_label.text = "黯潮之主·凛 出没! 按 E 挑战 (可收服→终局)"
 			if Input.is_action_just_pressed("interact"):
-				GameState.pending_wild = {"id": "steeljaw_king", "level": 22, "alpha": true}
+				GameState.pending_wild = {"id": "steeljaw_king", "level": 22, "alpha": true, "finale": true}
 				get_tree().change_scene_to_file("res://battle/BattleArena.tscn")
 		else:
 			if _alpha_label:
@@ -446,6 +632,17 @@ func _process(delta: float) -> void:
 
 	_update_team_label()
 	_update_research_label()
+	_update_player_hud()
+
+func _update_player_hud() -> void:
+	if _player_hp_bar:
+		_player_hp_bar.value = float(GameState.player_hp) / float(max(GameState.player_max_hp, 1))
+	if _coins_label:
+		_coins_label.text = "星辉币: " + str(GameState.coins)
+	if _shop_label:
+		_shop_label.text = "星辉商栈 (按 E 购买)" if _in_shop else ""
+	if _camp_label:
+		_camp_label.text = "营地 (按 E 扎营休息)" if _in_camp else ""
 
 func _update_team_label() -> void:
 	if not _team_label:

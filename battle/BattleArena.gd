@@ -21,6 +21,7 @@ var enemy_is_wild: bool = true
 var _trainer_name: String = ""
 var _badge_id: String = ""
 var _enemy_is_alpha: bool = false
+var _enemy_is_finale: bool = false
 
 var hud_layer: CanvasLayer
 var player_hp_bar: ProgressBar
@@ -31,6 +32,8 @@ var popup_label: Label
 var result_label: Label
 var popup_timer: Timer
 var item_btn: Button
+var ball_btn: Button
+var coin_label: Label
 
 func _ready() -> void:
 	build_arena()
@@ -126,6 +129,19 @@ func _build_hud() -> void:
 	item_btn.pressed.connect(_on_use_potion)
 	hud_layer.add_child(item_btn)
 
+	# 切换球按钮(朱紫式: 战斗中可切换使用的灵球)
+	ball_btn = Button.new()
+	ball_btn.position = Vector2(185, 412)
+	ball_btn.custom_minimum_size = Vector2(170, 38)
+	ball_btn.pressed.connect(_on_cycle_ball)
+	hud_layer.add_child(ball_btn)
+	_refresh_ball_btn()
+
+	coin_label = Label.new()
+	coin_label.position = Vector2(480, 412)
+	coin_label.add_theme_font_size_override("font_size", 16)
+	hud_layer.add_child(coin_label)
+
 func start_battle() -> void:
 	if GameState.team.is_empty():
 		GameState.add_to_team("flarefox", 5)
@@ -151,6 +167,7 @@ func start_battle() -> void:
 		enemy_id = GameState.pending_wild.get("id", "aqualeap")
 		enemy_level = int(GameState.pending_wild.get("level", 5))
 		_enemy_is_alpha = GameState.pending_wild.get("alpha", false)
+		_enemy_is_finale = GameState.pending_wild.get("finale", false)
 		GameState.pending_wild = {}
 
 	enemy_combatant = CombatantScript.new()
@@ -158,12 +175,17 @@ func start_battle() -> void:
 	enemy_combatant.setup(enemy_id, enemy_level, false)
 	if _enemy_is_alpha:
 		enemy_combatant.scale = Vector3(1.7, 1.7, 1.7)
-		_pop("首领灵兽 " + DataBus.get_creature(enemy_id).get("name", "") + " 出现!")
+		if GameState.pending_wild.get("finale", false):
+			_pop("黯潮之主·凛 现身! 曾经的伙伴，如今被黯潮吞没……")
+		else:
+			_pop("首领灵兽 " + DataBus.get_creature(enemy_id).get("name", "") + " 出现!")
 	add_child(enemy_combatant)
 	enemy_combatant.hp_changed.connect(_on_hp)
 	enemy_combatant.defeated_signal.connect(_on_enemy_defeated)
 	# 图鉴: 遭遇即记为「已见」
 	GameState.note_dex_seen(enemy_combatant.creature_id)
+	if coin_label:
+		coin_label.text = "星辉币: " + str(GameState.coins)
 
 	enemy_ai = EnemyAIScript.new()
 	enemy_ai.player = player_combatant
@@ -272,23 +294,50 @@ func _try_capture() -> void:
 	if not GameState.can_collect():
 		_pop("夜晚黯潮汹涌，无法收服灵兽!")
 		return
-	var ball: String = GameState.first_ball()
+	var ball: String = GameState.selected_ball
+	if ball == "" or GameState.inventory.get(ball, 0) <= 0:
+		ball = GameState.first_ball()
 	if ball == "":
 		_pop("没有灵球了!")
 		return
 	GameState.consume_item(ball, 1)
+	_refresh_ball_btn()
+	var ename: String = DataBus.get_creature(enemy_combatant.creature_id)["name"]
 	var base: float = DataBus.get_creature(enemy_combatant.creature_id).get("catch_rate", 0.4)
 	var chance: float = CombatScript.capture_chance(enemy_combatant.hp, enemy_combatant.max_hp, base, GameState.ball_mod(ball), 1.0)
 	if randf() < chance:
-		var ename: String = DataBus.get_creature(enemy_combatant.creature_id)["name"]
 		GameState.add_to_team(enemy_combatant.creature_id, enemy_combatant.level)
 		GameState.caught_count += 1
 		GameState.note_dex_caught(enemy_combatant.creature_id)
 		GameState.note_research(DataBus.get_creature(enemy_combatant.creature_id).get("type", ""))
-		_pop("收服成功! " + ename)
+		_pop("用" + DataBus.get_item(ball).get("name", "灵球") + "收服成功! " + ename)
 		_end_battle(true)
 	else:
 		_pop("收服失败……")
+
+## 战斗中切换使用的灵球(朱紫式)
+func _on_cycle_ball() -> void:
+	var b: String = GameState.cycle_ball()
+	_refresh_ball_btn()
+
+func _refresh_ball_btn() -> void:
+	if not ball_btn:
+		return
+	var b: String = GameState.selected_ball
+	if b == "" or GameState.inventory.get(b, 0) <= 0:
+		b = GameState.first_ball()
+	if b == "":
+		ball_btn.text = "灵球: 无"
+		return
+	var it: Dictionary = DataBus.get_item(b)
+	ball_btn.text = "灵球: " + it.get("name", b) + " ×" + str(GameState.inventory.get(b, 0))
+
+## 胜利奖励星辉币
+func _award_coins() -> void:
+	var reward: int = 20 + enemy_combatant.level * 4
+	GameState.coins += reward
+	if coin_label:
+		coin_label.text = "星辉币: " + str(GameState.coins) + " (+" + str(reward) + ")"
 
 func _pop(text: String) -> void:
 	if popup_label:
@@ -343,7 +392,30 @@ func _on_enemy_defeated() -> void:
 	if res["evolved"]:
 		msg += "\n进化: " + res["from"] + " → " + res["to"] + "!"
 	_pop(msg)
-	# 首领灵兽(终Boss)被击败 → 进入结局
+	_award_coins()
+
+	# ---- 终局链: 凛 → 辉金龙 → 黯钢兽 → 结局 ----
+	if _enemy_is_finale and _enemy_is_alpha:
+		# 第一阶段: 击败黯潮之主·凛
+		GameState.finale_stage = 1
+		GameState.pending_wild = {"id": "hui_jin_long", "level": 32, "alpha": true, "finale": true}
+		_end_battle(true, "凛倒下了！但辉金龙自黯潮中崛起——迎战！", "res://battle/BattleArena.tscn")
+		return
+	if GameState.finale_stage == 1:
+		# 第二阶段: 击败辉金龙
+		GameState.finale_stage = 2
+		GameState.pending_wild = {"id": "an_gang_shou", "level": 34, "alpha": true, "finale": true}
+		_end_battle(true, "辉金龙归服！黯钢兽咆哮着现身！", "res://battle/BattleArena.tscn")
+		return
+	if GameState.finale_stage == 2:
+		# 第三阶段: 击败黯钢兽 → 收服双神兽, 进入结局
+		GameState.obtain_legendary("hui_jin_long")
+		GameState.obtain_legendary("an_gang_shou")
+		GameState.ending_done = true
+		GameState.story_stage = 3
+		_end_battle(true, "双神兽归你所有！星澜大陆重归平衡。", "res://ui/EndingCutscene.tscn")
+		return
+	# 首领灵兽(终Boss, 非终局旗标)被击败 → 进入结局(兜底)
 	if _enemy_is_alpha:
 		GameState.ending_done = true
 		GameState.story_stage = 3

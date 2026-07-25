@@ -398,5 +398,85 @@
     "prio": "high",
     "deps": "",
     "note": ""
+  },
+  {
+    "id": "T041",
+    "phase": "P9 大版本II",
+    "title": "捕获球分级+商店货币",
+    "desc": "items.json 加 优良球/高级球/至尊球(大师等价,可买)分级与价格; GameState 加 coins; BattleArena 胜利给币; 商店NPC可买球/伤药。",
+    "status": "done",
+    "prio": "high",
+    "deps": "",
+    "note": ""
+  },
+  {
+    "id": "T042",
+    "phase": "P9 大版本II",
+    "title": "草丛遇敌优化",
+    "desc": "EncounterZone 进入不立即刷; 每次判定保留30%不刷出(虚假响动)。",
+    "status": "done",
+    "prio": "medium",
+    "deps": "",
+    "note": ""
+  },
+  {
+    "id": "T043",
+    "phase": "P9 大版本II",
+    "title": "路旁帐篷营地+睡觉回血+存档点",
+    "desc": "新增 CampSite(帐篷): 路上放置, 按E睡觉回满血并存档, 记录最近存档点用于复活。",
+    "status": "done",
+    "prio": "medium",
+    "deps": "",
+    "note": ""
+  },
+  {
+    "id": "T044",
+    "phase": "P9 大版本II",
+    "title": "野外遇袭/玩家血量/死亡复活",
+    "desc": "新增 FieldAmbush: 草丛遇敌改为野外突袭; 未派出灵兽则玩家掉血, 多次/大招致死则复活到最近存档点; World 加玩家血条与存档点追踪。",
+    "status": "done",
+    "prio": "high",
+    "deps": "",
+    "note": ""
+  },
+  {
+    "id": "T045",
+    "phase": "P9 大版本II",
+    "title": "双封面神兽(金属性)+伙伴凛",
+    "desc": "creatures.json 加 辉金龙/黯钢兽(金, 神兽); 伙伴 凛 设定为终boss化身。",
+    "status": "done",
+    "prio": "high",
+    "deps": "",
+    "note": ""
+  },
+  {
+    "id": "T046",
+    "phase": "P9 大版本II",
+    "title": "冠军序章重制",
+    "desc": "OpeningCutscene 重写为: 你是星辉冠军(拥有全灵兽)→与凛探山洞→遇双神兽→失败 cave毁→在家苏醒; 衔接新序章。",
+    "status": "done",
+    "prio": "high",
+    "deps": "",
+    "note": ""
+  },
+  {
+    "id": "T047",
+    "phase": "P9 大版本II",
+    "title": "新序章(新伙伴)",
+    "desc": "新增 PrologueCutscene: 在家苏醒, 结识新伙伴(小岚/阿砂等), 进入世界。",
+    "status": "done",
+    "prio": "medium",
+    "deps": "",
+    "note": ""
+  },
+  {
+    "id": "T048",
+    "phase": "P9 大版本II",
+    "title": "结局重制(凛=最终boss+双神兽+全员助战)",
+    "desc": "结局链: 击败凛→辉金龙→黯钢兽, 全部训练家NPC参战(叙事+最终战), 收服双神兽; EndingCutscene 重写。",
+    "status": "done",
+    "prio": "high",
+    "deps": "",
+    "note": ""
   }
 ]

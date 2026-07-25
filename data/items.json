@@ -1,9 +1,11 @@
 {
   "items": [
-    { "id": "ball",         "name": "灵球",   "type": "ball",   "catch_mod": 1.0, "desc": "收服野生灵兽的基础道具" },
-    { "id": "great_ball",   "name": "上等球", "type": "ball",   "catch_mod": 1.5, "desc": "收服成功率更高的球" },
-    { "id": "potion",       "name": "伤药",   "type": "heal",   "power": 30,      "desc": "恢复一只灵兽 30 点 HP" },
-    { "id": "super_potion", "name": "好伤药", "type": "heal",   "power": 60,      "desc": "恢复一只灵兽 60 点 HP" },
-    { "id": "ancient_ball",  "name": "远古球", "type": "ball",   "catch_mod": 2.0, "desc": "古老的灵球, 对首领灵兽更易收服" }
+    { "id": "ball",         "name": "灵球",   "type": "ball",   "catch_mod": 1.0, "price": 100, "buyable": true,  "desc": "收服野生灵兽的基础道具" },
+    { "id": "great_ball",   "name": "优良球", "type": "ball",   "catch_mod": 1.5, "price": 250, "buyable": true,  "desc": "收服成功率更高的球" },
+    { "id": "ultra_ball",   "name": "高级球", "type": "ball",   "catch_mod": 2.0, "price": 600, "buyable": true,  "desc": "高级球，收服成功率大幅提升" },
+    { "id": "master_ball",  "name": "至尊球", "type": "ball",   "catch_mod": 999.0, "price": 1500, "buyable": true, "desc": "至尊球(大师等价)：必定收服，可在商店购买" },
+    { "id": "ancient_ball", "name": "远古球", "type": "ball",   "catch_mod": 3.0, "price": 0,   "buyable": false, "desc": "古老的灵球，对首领灵兽更易收服（研究奖励）" },
+    { "id": "potion",        "name": "伤药",     "type": "heal", "power": 30, "price": 80,  "buyable": true, "desc": "恢复一只灵兽 30 点 HP" },
+    { "id": "super_potion",  "name": "好伤药",   "type": "heal", "power": 60, "price": 180, "buyable": true, "desc": "恢复一只灵兽 60 点 HP" }
   ]
 }

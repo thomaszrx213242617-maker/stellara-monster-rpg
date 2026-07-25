@@ -22,8 +22,12 @@ func save_game() -> void:
 		"player_gender": GameState.player_gender,
 		"story_stage": GameState.story_stage,
 		"opening_done": GameState.opening_done,
+		"prologue_done": GameState.prologue_done,
 		"midboss_done": GameState.midboss_done,
-		"ending_done": GameState.ending_done
+		"ending_done": GameState.ending_done,
+		"coins": GameState.coins,
+		"player_hp": GameState.player_hp,
+		"finale_stage": GameState.finale_stage
 	}
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if f:
@@ -68,6 +72,14 @@ func load_game() -> bool:
 		GameState.midboss_done = bool(data["midboss_done"])
 	if data.has("ending_done"):
 		GameState.ending_done = bool(data["ending_done"])
+	if data.has("prologue_done"):
+		GameState.prologue_done = bool(data["prologue_done"])
+	if data.has("coins"):
+		GameState.coins = int(data["coins"])
+	if data.has("player_hp"):
+		GameState.player_hp = int(data["player_hp"])
+	if data.has("finale_stage"):
+		GameState.finale_stage = int(data["finale_stage"])
 	print("SaveManager: 已读取存档")
 	return true
 

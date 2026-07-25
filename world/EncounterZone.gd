@@ -13,6 +13,7 @@ var lvl_min: int = 2
 var lvl_max: int = 6
 var _inside: bool = false
 var _cd: float = 0.0
+var _grace: float = 0.0
 var _tufts: Array = []
 var _t: float = 0.0
 
@@ -57,6 +58,8 @@ func _build_grass() -> void:
 func _on_body_entered(b: Node) -> void:
 	if b is PlayerScript:
 		_inside = true
+		# 进入草丛不立即遇敌: 给予一段缓冲时间
+		_grace = 2.2
 
 func _on_body_exited(b: Node) -> void:
 	if b is PlayerScript:
@@ -66,14 +69,18 @@ func _physics_process(delta: float) -> void:
 	_t += delta
 	if _cd > 0.0:
 		_cd = max(0.0, _cd - delta)
+	if _grace > 0.0:
+		_grace = max(0.0, _grace - delta)
 	# 草摆动
 	var sway: float = sin(_t * 3.0) * 0.06
 	for t in _tufts:
 		t.rotation.z = sway
 	# 在草丛内逐步随机遇敌(宝可梦式 ~12%/秒 触发概率)
-	if _inside and _cd <= 0.0:
+	if _inside and _cd <= 0.0 and _grace <= 0.0:
 		if randf() < 0.12:
-			var id: String = pool[randi() % pool.size()]
-			var lv: int = randi_range(lvl_min, lvl_max)
-			_cd = 1.5
-			triggered.emit(id, lv)
+			_cd = 1.6
+			# 保留 30% 不刷出(虚假响动): 草丛晃动但不出现野怪
+			if randf() >= 0.30:
+				var id: String = pool[randi() % pool.size()]
+				var lv: int = randi_range(lvl_min, lvl_max)
+				triggered.emit(id, lv)

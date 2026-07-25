@@ -1,8 +1,7 @@
 extends Control
 
-## 原创结局(借鉴《旷野之息》"苏醒的力量/大地重归翠色/引路者解脱"的结构, 文案全原创)。
-## 剧情: 击败被黯潮吞没的伙伴凛(最终boss)与双生金属神兽, 全体训练家NPC倾巢助战,
-## 收服双神兽、救回凛, 星澜大陆重归平衡。由终局链触发; 播完置 ending_done 并存档, 返回标题。
+## 原创新序章: 从山洞归来后在自家苏醒, 结识新伙伴(巡林人小岚 / 劲敌阿砂),
+## 辉光指引你重新踏上寻找凛与双神兽之路。由 OpeningCutscene 衔接进入; 播完进世界。
 
 var _lines: Array = []
 var _idx: int = 0
@@ -19,7 +18,7 @@ func _ready() -> void:
 
 func _build() -> void:
 	var bg := ColorRect.new()
-	bg.color = Color(0.18, 0.14, 0.12)
+	bg.color = Color(0.10, 0.13, 0.18)
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	bg.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(bg)
@@ -29,25 +28,27 @@ func _build() -> void:
 		s.position = Vector2(randf() * 1280.0, randf() * 600.0)
 		s.custom_minimum_size = Vector2(2, 2)
 		var c := ColorRect.new()
-		c.color = Color(1.0, 0.95, 0.7, randf() * 0.6 + 0.3)
+		c.color = Color(1, 1, 1, randf() * 0.5 + 0.2)
 		c.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		s.add_child(c)
 		add_child(s)
 
 	_orb = Label.new()
 	_orb.text = "✦"
-	_orb.add_theme_font_size_override("font_size", 140)
-	_orb.modulate = Color(1.0, 0.9, 0.6)
-	_orb.position = Vector2(600, 520)
-	_orb.size = Vector2(140, 140)
+	_orb.add_theme_font_size_override("font_size", 100)
+	_orb.modulate = Color(0.85, 0.95, 1.0)
+	_orb.position = Vector2(600, -120)
+	_orb.size = Vector2(120, 120)
 	add_child(_orb)
 
 	var title := Label.new()
-	title.text = "终章 · 双生神兽与重燃的星辉"
+	title.text = "新序章 · 重燃的星辉"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 34)
-	title.modulate = Color(1.0, 0.95, 0.8)
+	title.modulate = Color(0.88, 0.92, 1.0)
 	title.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	title.offset_left = 0
+	title.offset_right = 0
 	title.position = Vector2(0, 60)
 	title.size = Vector2(1280, 50)
 	add_child(title)
@@ -65,14 +66,14 @@ func _build() -> void:
 	_label.size = Vector2(1000, 110)
 	_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_label.add_theme_font_size_override("font_size", 24)
-	_label.modulate = Color(1.0, 0.97, 0.9)
+	_label.modulate = Color(0.95, 0.97, 1.0)
 	add_child(_label)
 
 	var hint := Label.new()
 	hint.text = "按 E / 空格 继续"
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.add_theme_font_size_override("font_size", 14)
-	hint.modulate = Color(0.7, 0.65, 0.55)
+	hint.modulate = Color(0.6, 0.65, 0.75)
 	hint.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
 	hint.position = Vector2(0, 700)
 	hint.size = Vector2(1280, 30)
@@ -81,14 +82,13 @@ func _build() -> void:
 func _assemble_lines() -> void:
 	var nm: String = GameState.player_name if GameState.player_name != "" else "旅人"
 	_lines = [
-		"黯潮之主·凛轰然倒下。你伸手按住他胸口的暗痕：「回来吧，凛。这不是你。」",
-		"金光自他体内渗出——被吞没的伙伴，终于挣脱黯潮的枷锁。",
-		"可辉金龙与黯钢兽仍在狂暴。正当它们要再放大招，天际传来齐声呼喊——",
-		"向导·岚、劲敌·岩、小岚、阿砂、馆主·岩心、暗潮使·玄、登山客·石……所有训练家倾巢而至！",
-		"「这一战，我们陪你！」万千灵兽同时跃起，将双生神兽的杀招一一挡下。",
-		nm + "乘势抛出至尊球——辉金龙与黯钢兽，终于归你所有。",
-		"黯潮溃散，星辉自地脉深处重新流淌。凛揉着眼睛笑了：「下次探洞，可别再把我弄丢。」",
-		"光之灵兽自长眠中睁眼，旷野重新披上翠色与繁花。这，是只属于你们的传说。"
+		"床边守着一位扎着绿巾的少女——「你终于醒了！我是小岚，村里的巡林人。」",
+		"「你被冲上岸时，怀里还抱着那只炎尾狐。可你的伙伴凛……还有那两头金属神兽，都不见了。」",
+		"这时门被推开，少年阿砂探进头：「听说冠军回来了？咱俩虽是劲敌，但这事上得并肩。」",
+		"脑海里，辉光的声音轻轻响起：「黯潮并未散去。凛被它吞噬，才会化作『黯潮之主』。」",
+		"「去北之路收服灵兽、变强，唤醒晨曦镇的暗潮使·玄，深渊的大门才会为你敞开。」",
+		nm + "，拿起灵球。这一回，你要找回凛，也要救下那两头被污染的金属神兽。",
+		"——冒险，再次开始。"
 	]
 
 func _show() -> void:
@@ -101,7 +101,7 @@ func _process(delta: float) -> void:
 	if not _active:
 		return
 	_t += delta
-	_orb.position.y = lerp(_orb.position.y, 120.0, delta * 0.6) + sin(_t * 2.0) * 0.4
+	_orb.position.y = lerp(_orb.position.y, 280.0, delta * 0.6) + sin(_t * 2.0) * 0.4
 	if Input.is_action_just_pressed("interact") or Input.is_action_just_pressed("attack"):
 		_idx += 1
 		_show()
@@ -111,8 +111,8 @@ func _finish() -> void:
 		return
 	_finished = true
 	_active = false
-	GameState.ending_done = true
-	GameState.story_stage = 3
+	GameState.prologue_done = true
+	GameState.story_stage = 1
 	SaveManager.save_game()
-	await get_tree().create_timer(0.8).timeout
-	get_tree().change_scene_to_file("res://ui/TitleScreen.tscn")
+	await get_tree().create_timer(0.6).timeout
+	get_tree().change_scene_to_file("res://world/World.tscn")

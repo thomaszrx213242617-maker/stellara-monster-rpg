@@ -1,7 +1,8 @@
 extends Control
 
 ## 原创序章(借鉴《王国之泪》"自星海降临/引路者低语/封印灾厄"的结构, 文案全原创)。
-## 由 TitleScreen「开始新游戏」后进入; 播完置 opening_done 并存档, 进入世界。
+## 剧情: 你是星辉冠军(拥有全灵兽, 含金属性神兽)→与伙伴凛探山洞→遇双封面神兽(辉金龙/黯钢兽)→失败、山洞崩毁→在家苏醒、伙伴与神兽失踪。
+## 由 TitleScreen「开始新游戏」后进入; 播完衔接 PrologueCutscene(新序章), 再进世界。
 
 var _lines: Array = []
 var _idx: int = 0
@@ -45,7 +46,7 @@ func _build() -> void:
 
 	# 标题卡
 	var title := Label.new()
-	title.text = "序章 · 星海降临"
+	title.text = "序章 · 星辉冠军与沉眠之洞"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 34)
 	title.modulate = Color(0.85, 0.9, 1.0)
@@ -86,13 +87,15 @@ func _build() -> void:
 func _assemble_lines() -> void:
 	var nm: String = GameState.player_name if GameState.player_name != "" else "旅人"
 	_lines = [
-		"（星海之上，万古的寂静里，有一缕光忽然睁开了眼。）",
-		nm + "，你自星辉中苏醒。记忆像碎掉的光，散落在风里。",
-		"一缕温柔的声音在脑海响起——「我是辉光，被封印在星核深处的引路者。」",
-		"「星澜大陆的光之灵兽，正被名为『黯潮』的阴影侵蚀。若光尽，万物将长眠不醒。」",
-		"「我唤你而来，是要你重新点燃星辉。这只『炎尾狐』会陪你启程。」",
-		"（一道光自云端垂落，将你轻轻送往星澜大陆的晨曦之中……）",
-		"——冒险，开始。"
+		nm + "，你是星澜大陆的星辉冠军——历代最强的灵兽训练家，连金属性的神兽都听你号令。",
+		"伙伴『凛』拍了拍你的肩：「山脊后面新发现了一道沉眠之洞，传说是双生神兽的封印。去看看？」",
+		"你们举着火把走入洞中。岩壁上映着两道古老的刻痕——一龙，一兽，皆泛着金属的光泽。",
+		"忽然，洞窟深处亮起两双眼睛。辉金龙与黯钢兽，两头金属性封面神兽同时苏醒！",
+		"「不好，它们被黯潮污染了！」凛抛出灵球，你也与最强的伙伴并肩迎战——",
+		"然而神兽之力的洪流远超预料。双生神兽齐声咆哮，释放出毁天灭地的大招！",
+		"山洞在金属风暴中崩塌。你最后看见的，是凛被一道暗光卷走……",
+		"（再睁眼时，你躺在自家床上。窗外是星澜村熟悉的晨光。凛，和那两头神兽，都不见了。）",
+		"——新的旅程，从这里开始。"
 	]
 
 func _show() -> void:
@@ -117,7 +120,6 @@ func _finish() -> void:
 	_finished = true
 	_active = false
 	GameState.opening_done = true
-	GameState.story_stage = 1
 	SaveManager.save_game()
 	await get_tree().create_timer(0.6).timeout
-	get_tree().change_scene_to_file("res://world/World.tscn")
+	get_tree().change_scene_to_file("res://ui/PrologueCutscene.tscn")
