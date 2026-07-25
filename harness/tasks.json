@@ -478,5 +478,45 @@
     "prio": "high",
     "deps": "",
     "note": ""
+  },
+  {
+    "id": "T049",
+    "phase": "P10 大版本III",
+    "title": "分辨率 1920x1080",
+    "desc": "project.godot 窗口视口设为 1920x1080",
+    "status": "done",
+    "prio": "high",
+    "deps": "",
+    "note": ""
+  },
+  {
+    "id": "T050",
+    "phase": "P10 大版本III",
+    "title": "三秘环系统(战斗各一次)",
+    "desc": "原创命名巨灵环/晶变环/超衍环(对应极巨/太晶/超演机制, 规避版权), 开局获得, 每场战斗各可用一次",
+    "status": "done",
+    "prio": "high",
+    "deps": "",
+    "note": ""
+  },
+  {
+    "id": "T051",
+    "phase": "P10 大版本III",
+    "title": "序章补充台词",
+    "desc": "序章加入『被神兽打败后宝可梦全部消失』及三秘环说明",
+    "status": "done",
+    "prio": "medium",
+    "deps": "",
+    "note": ""
+  },
+  {
+    "id": "T052",
+    "phase": "P10 大版本III",
+    "title": "序章真实对话/探险/战斗",
+    "desc": "新增可探索序章场景: 行走+与凛真实对话+真实野怪战斗, 衔接洞穴崩塌与新序章",
+    "status": "done",
+    "prio": "high",
+    "deps": "",
+    "note": ""
   }
 ]

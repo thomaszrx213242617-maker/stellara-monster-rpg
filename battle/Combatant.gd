@@ -30,6 +30,9 @@ var ability: String = ""
 var active_move_index: int = 0
 var sturdy_used: bool = false
 
+## 秘环增益: 玩家出招伤害倍率(晶变环/超衍环会提升, 默认1.0)
+var dmg_mult: float = 1.0
+
 var mesh: MeshInstance3D
 
 func _ready() -> void:

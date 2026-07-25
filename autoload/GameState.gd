@@ -38,6 +38,15 @@ var midboss_done: bool = false
 var ending_done: bool = false
 var prologue_done: bool = false
 
+## 三枚秘环(原创机制, 对应极巨/太晶/超演之力, 规避版权): 开局即拥有, 每场战斗各可用一次
+## giant=巨灵环(巨大化) / crystal=晶变环(晶化增伤) / hyper=超衍环(超演增益)
+var transformation_bands: bool = true
+
+## 战斗结束后返回的自定义场景(序章探险用; 空则回 World)
+var battle_return_scene: String = ""
+## 序章探险: 洞中野怪侦查战是否已完成(用于场景重建后跳过)
+var prologue_scout_done: bool = false
+
 ## 设置玩家名字与性别(名字空则回退为"旅人")
 func set_player_identity(name: String, gender: String) -> void:
 	player_name = name.strip_edges()
@@ -179,8 +188,11 @@ func reset_new_game() -> void:
 	midboss_done = false
 	ending_done = false
 	prologue_done = false
+	transformation_bands = true
 	story_stage = 0
 	player_name = ""
+	battle_return_scene = ""
+	prologue_scout_done = false
 	player_gender = "少年"
 	finale_stage = 0
 	coins = 300

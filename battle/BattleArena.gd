@@ -33,7 +33,13 @@ var result_label: Label
 var popup_timer: Timer
 var item_btn: Button
 var ball_btn: Button
+var _giant_btn: Button
+var _crystal_btn: Button
+var _hyper_btn: Button
 var coin_label: Label
+
+## 三秘环: 每场战斗各可用一次(巨灵环/晶变环/超衍环)
+var _bands_used: Dictionary = {"giant": false, "crystal": false, "hyper": false}
 
 func _ready() -> void:
 	build_arena()
@@ -78,7 +84,7 @@ func _build_hud() -> void:
 	hud_layer = CanvasLayer.new()
 	add_child(hud_layer)
 	hint_label = Label.new()
-	hint_label.text = "WASD移动 | 空格攻击 | Shift闪避 | Q切技能 | C收服(夜晚禁用) | I/按钮 伤药"
+	hint_label.text = "WASD移动 | 空格攻击 | Shift闪避 | Q切技能 | C收服(夜晚禁用) | I/按钮 伤药 | 巨灵/晶变/超衍环 各一场一次"
 	hint_label.position = Vector2(20, 12)
 	hud_layer.add_child(hint_label)
 
@@ -142,6 +148,27 @@ func _build_hud() -> void:
 	coin_label.add_theme_font_size_override("font_size", 16)
 	hud_layer.add_child(coin_label)
 
+	# 三秘环按钮(每场战斗各可用一次)——原创命名, 对应极巨/太晶/超演之力
+	_giant_btn = Button.new()
+	_giant_btn.text = "巨灵环"
+	_giant_btn.position = Vector2(20, 456)
+	_giant_btn.custom_minimum_size = Vector2(130, 34)
+	_giant_btn.pressed.connect(_on_use_band.bind("giant"))
+	hud_layer.add_child(_giant_btn)
+	_crystal_btn = Button.new()
+	_crystal_btn.text = "晶变环"
+	_crystal_btn.position = Vector2(155, 456)
+	_crystal_btn.custom_minimum_size = Vector2(130, 34)
+	_crystal_btn.pressed.connect(_on_use_band.bind("crystal"))
+	hud_layer.add_child(_crystal_btn)
+	_hyper_btn = Button.new()
+	_hyper_btn.text = "超衍环"
+	_hyper_btn.position = Vector2(290, 456)
+	_hyper_btn.custom_minimum_size = Vector2(130, 34)
+	_hyper_btn.pressed.connect(_on_use_band.bind("hyper"))
+	hud_layer.add_child(_hyper_btn)
+	_refresh_band_btns()
+
 func start_battle() -> void:
 	if GameState.team.is_empty():
 		GameState.add_to_team("flarefox", 5)
@@ -192,6 +219,9 @@ func start_battle() -> void:
 	enemy_ai.enemy = enemy_combatant
 	enemy_ai.attack_range = attack_range
 	add_child(enemy_ai)
+	# 秘环每场重置(各可用一次)
+	_bands_used = {"giant": false, "crystal": false, "hyper": false}
+	_refresh_band_btns()
 	_refresh_move_label()
 	_update_bars()
 
@@ -276,7 +306,7 @@ func _player_attack() -> void:
 	if enemy_combatant.invulnerable > 0.0:
 		_pop("被闪避!")
 	else:
-		var dmg: float = CombatScript.calc_damage(player_combatant.stats["atk"], enemy_combatant.stats["def"], power, mult, player_combatant.level, randf_range(0.85, 1.0))
+		var dmg: float = CombatScript.calc_damage(player_combatant.stats["atk"], enemy_combatant.stats["def"], power, mult, player_combatant.level, randf_range(0.85, 1.0)) * player_combatant.dmg_mult
 		var cat: String = mv.get("category", "物理")
 		enemy_combatant.take_damage(dmg, player_combatant, cat)
 		var ename: String = DataBus.get_creature(enemy_combatant.creature_id)["name"]
@@ -331,6 +361,59 @@ func _refresh_ball_btn() -> void:
 		return
 	var it: Dictionary = DataBus.get_item(b)
 	ball_btn.text = "灵球: " + it.get("name", b) + " ×" + str(GameState.inventory.get(b, 0))
+
+## ---- 三秘环: 每场战斗各可用一次 ----
+func _on_use_band(kind: String) -> void:
+	if battle_over or not player_combatant or not GameState.transformation_bands:
+		return
+	if _bands_used.get(kind, false):
+		_pop("该秘环本场已经用过了")
+		return
+	_apply_band(kind)
+	_bands_used[kind] = true
+	_refresh_band_btns()
+
+func _apply_band(kind: String) -> void:
+	var p: Combatant = player_combatant
+	var nm: String = DataBus.get_creature(p.creature_id).get("name", "")
+	match kind:
+		"giant":
+			p.stats["atk"] = int(float(p.stats["atk"]) * 1.5)
+			p.max_hp = int(float(p.max_hp) * 1.5)
+			p.hp = p.max_hp
+			p.scale = Vector3(1.8, 1.8, 1.8)
+			_pop("巨灵环！" + nm + " 巨大化, 攻击与体力大涨!")
+		"crystal":
+			p.dmg_mult *= 1.5
+			if p.mesh:
+				var mat := StandardMaterial3D.new()
+				mat.albedo_color = Color(0.7, 0.85, 1.0)
+				p.mesh.material_override = mat
+			_pop("晶变环！" + nm + " 招式伤害提升, 泛起金属光泽!")
+		"hyper":
+			p.stats["atk"] = int(float(p.stats["atk"]) * 1.6)
+			p.base_speed *= 1.4
+			p.max_hp = int(float(p.max_hp) * 1.3)
+			p.hp = p.max_hp
+			_pop("超衍环！" + nm + " 速度与攻击飙升!")
+	_refresh_move_label()
+	_update_bars()
+
+func _refresh_band_btns() -> void:
+	if not _giant_btn:
+		return
+	var owned: bool = GameState.transformation_bands
+	_giant_btn.visible = owned
+	_crystal_btn.visible = owned
+	_hyper_btn.visible = owned
+	if not owned:
+		return
+	_giant_btn.text = "巨灵环" + (" ✓" if _bands_used.get("giant", false) else "")
+	_giant_btn.disabled = _bands_used.get("giant", false)
+	_crystal_btn.text = "晶变环" + (" ✓" if _bands_used.get("crystal", false) else "")
+	_crystal_btn.disabled = _bands_used.get("crystal", false)
+	_hyper_btn.text = "超衍环" + (" ✓" if _bands_used.get("hyper", false) else "")
+	_hyper_btn.disabled = _bands_used.get("hyper", false)
 
 ## 胜利奖励星辉币
 func _award_coins() -> void:
@@ -432,5 +515,10 @@ func _end_battle(win: bool, msg: String = "", next_scene: String = "res://world/
 		GameState.team[0]["hp"] = int(clamp(player_combatant.hp, 0, player_combatant.max_hp))
 	SaveManager.save_game()
 	result_label.text = msg if msg != "" else ("胜利!" if win else "失败")
+	# 序章探险等场景可指定战斗结束后的返回点
+	var target: String = next_scene
+	if GameState.battle_return_scene != "":
+		target = GameState.battle_return_scene
+		GameState.battle_return_scene = ""
 	await get_tree().create_timer(1.8).timeout
-	get_tree().change_scene_to_file(next_scene)
+	get_tree().change_scene_to_file(target)
