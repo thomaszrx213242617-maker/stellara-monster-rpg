@@ -153,6 +153,8 @@ func start_battle() -> void:
 	add_child(enemy_combatant)
 	enemy_combatant.hp_changed.connect(_on_hp)
 	enemy_combatant.defeated_signal.connect(_on_enemy_defeated)
+	# 图鉴: 遭遇即记为「已见」
+	GameState.note_dex_seen(enemy_combatant.creature_id)
 
 	enemy_ai = EnemyAIScript.new()
 	enemy_ai.player = player_combatant
@@ -272,6 +274,7 @@ func _try_capture() -> void:
 		var ename: String = DataBus.get_creature(enemy_combatant.creature_id)["name"]
 		GameState.add_to_team(enemy_combatant.creature_id, enemy_combatant.level)
 		GameState.caught_count += 1
+		GameState.note_dex_caught(enemy_combatant.creature_id)
 		GameState.note_research(DataBus.get_creature(enemy_combatant.creature_id).get("type", ""))
 		_pop("收服成功! " + ename)
 		_end_battle(true)

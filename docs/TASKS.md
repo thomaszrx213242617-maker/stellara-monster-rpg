@@ -3,7 +3,7 @@
 > 本文档由 `harness/harness.py` 从 `harness/tasks.json` 自动生成, 请勿手改。
 > 修改任务请用 `python harness/harness.py task set <id> status <x>`。
 
-**总进度**: 30/30 完成
+**总进度**: 32/32 完成
 
 ## 任务总览
 
@@ -39,6 +39,8 @@
 | T028 | P6 内容填充与平衡 | 阿尔宙斯式内容: 首领灵兽/时空裂隙/图鉴研究 | [x] done | medium | T008,T013 |
 | T029 | P7 打磨与发布 | 标题画面/主菜单 | [x] done | medium | - |
 | T030 | P7 打磨与发布 | 世界内暂停菜单 | [x] done | medium | - |
+| T031 | P7 打磨与发布 | 图鉴数据层与登记 | [x] done | medium | - |
+| T032 | P7 打磨与发布 | 图鉴UI与暂停菜单接入 | [x] done | medium | - |
 
 ## P0 基础框架与工具  (5/5)
 
@@ -245,7 +247,7 @@
 - **描述**: AlphaBeast(发光游荡首领, 靠近按E挑战可收服)、RiftZone(周期激活触发稀有金属遭遇)、图鉴研究任务(收服/击败3只金属性领远古球)及HUD。
 - **进度**: World 接线 + BattleArena 支持 alpha 缩放/额外经验 + GameState/SaveManager 研究进度; headless 验证通过
 
-## P7 打磨与发布  (4/4)
+## P7 打磨与发布  (6/6)
 
 ### [x] T024 — UI/UX 与设置
 
@@ -274,3 +276,17 @@
 - **优先级**: medium
 - **依赖**: 无
 - **描述**: Esc 开关暂停层(PauseMenu, process_mode=ALWAYS 以在场景树暂停时仍响应输入); 提供 继续/保存/返回标题。
+
+### [x] T031 — 图鉴数据层与登记
+
+- **状态**: done
+- **优先级**: medium
+- **依赖**: 无
+- **描述**: GameState 增加 dex_seen/dex_caught 集合与 note_dex_seen/note_dex_caught 方法; SaveManager 持久化; BattleArena 在遭遇开始登记已见、收服成功登记已捕; reset_new_game 清空。
+
+### [x] T032 — 图鉴UI与暂停菜单接入
+
+- **状态**: done
+- **优先级**: medium
+- **依赖**: 无
+- **描述**: 新增 Pokedex 面板: 列出全部灵兽, 区分 已捕/已见/未知 状态, 显示属性与种族值; 暂停菜单加「图鉴」按钮打开/关闭。

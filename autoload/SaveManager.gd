@@ -14,6 +14,8 @@ func save_game() -> void:
 		"inventory": GameState.inventory,
 		"badges": GameState.badges,
 		"caught_count": GameState.caught_count,
+		"dex_seen": GameState.dex_seen,
+		"dex_caught": GameState.dex_caught,
 		"research": GameState.research,
 		"time": DayNight.time
 	}
@@ -40,6 +42,10 @@ func load_game() -> bool:
 		GameState.badges = data["badges"]
 	if data.has("caught_count"):
 		GameState.caught_count = int(data["caught_count"])
+	if data.has("dex_seen"):
+		GameState.dex_seen = data["dex_seen"]
+	if data.has("dex_caught"):
+		GameState.dex_caught = data["dex_caught"]
 	if data.has("time"):
 		DayNight.time = float(data["time"])
 	if data.has("research"):

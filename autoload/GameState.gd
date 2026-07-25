@@ -18,8 +18,31 @@ var badges_total: int = 8
 var pending_wild: Dictionary = {}  # 待进入的野怪战斗配置 {id, level}; 空则默认
 var pending_trainer: Dictionary = {}  # 训练家/道馆战配置 {enemy_id, enemy_level, trainer_name, badge_id}
 var caught_count: int = 0      # 图鉴: 收服总数
+## 图鉴: 按物种记录「已见 / 已捕」
+var dex_seen: Dictionary = {}   # id -> true  (遭遇/见过)
+var dex_caught: Dictionary = {} # id -> true  (成功收服过)
 ## 图鉴研究任务(阿尔宙斯式调查): 收服/击败指定属性的灵兽达到数量即完成并发奖
 var research: Dictionary = {"type": "金", "need": 3, "progress": 0, "done": false, "reward": "ancient_ball", "reward_n": 1}
+
+## 图鉴: 标记一只灵兽为「已见」(野生/训练家遭遇、alpha、裂隙均算)
+func note_dex_seen(id: String) -> void:
+	if id != "":
+		dex_seen[id] = true
+
+## 图鉴: 标记一只灵兽为「已捕」(同时记入已见)
+func note_dex_caught(id: String) -> void:
+	if id != "":
+		dex_caught[id] = true
+		dex_seen[id] = true
+
+func dex_total() -> int:
+	return DataBus.creatures.size()
+
+func dex_seen_count() -> int:
+	return dex_seen.size()
+
+func dex_caught_count() -> int:
+	return dex_caught.size()
 
 func _ready() -> void:
 	if team.is_empty():
@@ -123,6 +146,8 @@ func reset_new_game() -> void:
 	inventory = {}
 	badges = []
 	caught_count = 0
+	dex_seen = {}
+	dex_caught = {}
 	research = {"type": "金", "need": 3, "progress": 0, "done": false, "reward": "ancient_ball", "reward_n": 1}
 	pending_wild = {}
 	pending_trainer = {}

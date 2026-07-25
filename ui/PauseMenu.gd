@@ -8,6 +8,10 @@ var _world
 var _panel: Control
 var _open := false
 var _resume_btn: Button
+var _dex
+var _dex_open := false
+
+const PokedexScript := preload("res://ui/Pokedex.gd")
 
 func setup(world) -> void:
 	_world = world
@@ -52,6 +56,10 @@ func _build() -> void:
 	b_title.pressed.connect(_to_title)
 	vb.add_child(b_title)
 
+	var b_dex := _btn("灵兽图鉴")
+	b_dex.pressed.connect(_open_dex)
+	vb.add_child(b_dex)
+
 	_panel = vb
 
 func _btn(text: String) -> Button:
@@ -69,10 +77,33 @@ func open() -> void:
 func close() -> void:
 	_open = false
 	visible = false
+	_dex_open = false
+	if _dex != null:
+		_dex.visible = false
+	_panel.visible = true
+
+func _open_dex() -> void:
+	if _dex == null:
+		_dex = PokedexScript.new()
+		_dex.name = "Pokedex"
+		add_child(_dex)
+		_dex.closed.connect(_on_dex_closed)
+	_dex.visible = true
+	_panel.visible = false
+	_dex_open = true
+
+func _on_dex_closed() -> void:
+	if _dex != null:
+		_dex.visible = false
+	_panel.visible = true
+	_dex_open = false
+	_resume_btn.grab_focus()
 
 func _unhandled_input(e: InputEvent) -> void:
 	if e.is_action_pressed("ui_cancel"):
-		if _open:
+		if _dex_open:
+			_on_dex_closed()
+		elif _open:
 			_world.resume_from_pause()
 		else:
 			_world.open_pause()
