@@ -17,3 +17,5 @@
 ## 2026-07-25 13:15 — 新增标题画面(新游戏/继续/设置/退出)与暂停菜单(Esc), main_scene 切到 TitleScreen.tscn; 全脚本编译验证通过。
 
 ## 2026-07-25 13:23 — 新增灵兽图鉴系统: GameState.dex_seen/dex_caught + note_dex_seen/note_dex_caught, SaveManager 持久化, BattleArena 遭遇登记已见/收服登记已捕; Pokedex 面板(已捕/已见/未知三态, 显示属性与种族值), 暂停菜单加「灵兽图鉴」按钮。编辑器导入编译验证通过。
+
+## 2026-07-25 13:47 — 修复 Godot 报错: InputSetup 注册 ui_cancel(KEY_ESCAPE, 原 KEY_ESC 在 Godot4 不存在); 新增 队伍/背包 面板(PartyBag): 查看队伍(名称/等级/HP/种族值/招式)与背包, 野外对选中成员使用伤药治疗, 暂停菜单加「队伍/背包」按钮。编辑器导入编译验证通过(无 SCRIPT ERROR/Parse Error)。

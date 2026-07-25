@@ -318,5 +318,15 @@
     "prio": "medium",
     "deps": "",
     "note": ""
+  },
+  {
+    "id": "T033",
+    "phase": "P7 打磨与发布",
+    "title": "队伍/背包面板",
+    "desc": "新增 PartyBag 面板: 从暂停菜单打开, 查看队伍(名称/等级/HP/种族值/招式)与存储数量, 野外对选中成员使用伤药治疗; 接入 GameState 队伍/背包数据。",
+    "status": "done",
+    "prio": "medium",
+    "deps": "",
+    "note": ""
   }
 ]

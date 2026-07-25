@@ -14,6 +14,8 @@ func _ready() -> void:
 	_ensure("start_battle", [KEY_B])
 	_ensure("capture", [KEY_C])
 	_ensure("switch_move", [KEY_Q])
+	# 显式确保 ui_cancel(默认绑定 Esc) 存在, 保证暂停菜单的 Esc 开关可靠工作
+	_ensure("ui_cancel", [KEY_ESCAPE])
 
 func _ensure(action_name: String, keys: Array) -> void:
 	if InputMap.has_action(action_name):

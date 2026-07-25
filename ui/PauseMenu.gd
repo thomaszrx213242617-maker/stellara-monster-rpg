@@ -10,8 +10,11 @@ var _open := false
 var _resume_btn: Button
 var _dex
 var _dex_open := false
+var _party
+var _party_open := false
 
 const PokedexScript := preload("res://ui/Pokedex.gd")
+const PartyScript := preload("res://ui/PartyBag.gd")
 
 func setup(world) -> void:
 	_world = world
@@ -60,6 +63,10 @@ func _build() -> void:
 	b_dex.pressed.connect(_open_dex)
 	vb.add_child(b_dex)
 
+	var b_party := _btn("队伍 / 背包")
+	b_party.pressed.connect(_open_party)
+	vb.add_child(b_party)
+
 	_panel = vb
 
 func _btn(text: String) -> Button:
@@ -78,8 +85,11 @@ func close() -> void:
 	_open = false
 	visible = false
 	_dex_open = false
+	_party_open = false
 	if _dex != null:
 		_dex.visible = false
+	if _party != null:
+		_party.visible = false
 	_panel.visible = true
 
 func _open_dex() -> void:
@@ -99,10 +109,29 @@ func _on_dex_closed() -> void:
 	_dex_open = false
 	_resume_btn.grab_focus()
 
+func _open_party() -> void:
+	if _party == null:
+		_party = PartyScript.new()
+		_party.name = "PartyBag"
+		add_child(_party)
+		_party.closed.connect(_on_party_closed)
+	_party.visible = true
+	_panel.visible = false
+	_party_open = true
+
+func _on_party_closed() -> void:
+	if _party != null:
+		_party.visible = false
+		_panel.visible = true
+	_party_open = false
+	_resume_btn.grab_focus()
+
 func _unhandled_input(e: InputEvent) -> void:
 	if e.is_action_pressed("ui_cancel"):
 		if _dex_open:
 			_on_dex_closed()
+		elif _party_open:
+			_on_party_closed()
 		elif _open:
 			_world.resume_from_pause()
 		else:
