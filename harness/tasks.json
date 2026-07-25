@@ -328,5 +328,75 @@
     "prio": "medium",
     "deps": "",
     "note": ""
+  },
+  {
+    "id": "T034",
+    "phase": "P8 大版本扩展",
+    "title": "玩家身份(名字/性别)与存档",
+    "desc": "GameState 增加 player_name/player_gender/story_stage/opening_done/midboss_done/ending_done; SaveManager 持久化; TitleScreen 新增名字输入+性别选择, 确定后进入序章。",
+    "status": "done",
+    "prio": "high",
+    "deps": "",
+    "note": ""
+  },
+  {
+    "id": "T035",
+    "phase": "P8 大版本扩展",
+    "title": "开局序章(王国之泪风)",
+    "desc": "新增 OpeningCutscene 场景: 原创序章(星海降临+辉光低语+黯潮侵蚀), 结束后置 opening_done 并存档进 World。",
+    "status": "done",
+    "prio": "high",
+    "deps": "",
+    "note": ""
+  },
+  {
+    "id": "T036",
+    "phase": "P8 大版本扩展",
+    "title": "角色/NPC宝可梦化外观+更多NPC",
+    "desc": "PlayerController/Npc 改为 Q版(大头小身)外观; NPC 增加颜色/名字标签; 放置更多NPC(向导/村民/商店/劲敌)带多样对话。",
+    "status": "done",
+    "prio": "medium",
+    "deps": "",
+    "note": ""
+  },
+  {
+    "id": "T037",
+    "phase": "P8 大版本扩展",
+    "title": "草丛宝可梦化(逐步遇敌+草动)",
+    "desc": "EncounterZone 改为逐步踩草概率遇敌+草动动画, 视觉更像高草; 新手村不放草丛。",
+    "status": "done",
+    "prio": "medium",
+    "deps": "",
+    "note": ""
+  },
+  {
+    "id": "T038",
+    "phase": "P8 大版本扩展",
+    "title": "地图扩张+区域+Boss中期",
+    "desc": "World 扩地并分区(新手村/北路线/东小镇/南终域); 草丛与Boss不在新手村; 中期小Boss在东小镇; 终Boss在南域(需中期后)。加路牌Label3D。",
+    "status": "done",
+    "prio": "high",
+    "deps": "",
+    "note": ""
+  },
+  {
+    "id": "T039",
+    "phase": "P8 大版本扩展",
+    "title": "战斗内伤药(低血可用)",
+    "desc": "BattleArena 加「道具/伤药」按钮: 队伍首位HP未满且有potion时可治疗(+20), 消耗道具, 更新血条。",
+    "status": "done",
+    "prio": "medium",
+    "deps": "",
+    "note": ""
+  },
+  {
+    "id": "T040",
+    "phase": "P8 大版本扩展",
+    "title": "结局(旷野之息风)",
+    "desc": "新增 EndingCutscene 场景(原创: 光归/辉光解脱/大地复苏); 终Boss击败后触发, 置 ending_done。接入 World 触发。",
+    "status": "done",
+    "prio": "high",
+    "deps": "",
+    "note": ""
   }
 ]

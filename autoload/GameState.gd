@@ -24,6 +24,21 @@ var dex_caught: Dictionary = {} # id -> true  (成功收服过)
 ## 图鉴研究任务(阿尔宙斯式调查): 收服/击败指定属性的灵兽达到数量即完成并发奖
 var research: Dictionary = {"type": "金", "need": 3, "progress": 0, "done": false, "reward": "ancient_ball", "reward_n": 1}
 
+## 玩家身份与剧情进度(原创IP)
+var player_name: String = ""
+var player_gender: String = "少年"   # 少年 / 少女
+var story_stage: int = 0             # 0 序章前 / 1 落地星澜 / 2 中期Boss后 / 3 结局后
+var opening_done: bool = false
+var midboss_done: bool = false
+var ending_done: bool = false
+
+## 设置玩家名字与性别(名字空则回退为"旅人")
+func set_player_identity(name: String, gender: String) -> void:
+	player_name = name.strip_edges()
+	if player_name == "":
+		player_name = "旅人"
+	player_gender = gender
+
 ## 图鉴: 标记一只灵兽为「已见」(野生/训练家遭遇、alpha、裂隙均算)
 func note_dex_seen(id: String) -> void:
 	if id != "":
@@ -151,6 +166,12 @@ func reset_new_game() -> void:
 	research = {"type": "金", "need": 3, "progress": 0, "done": false, "reward": "ancient_ball", "reward_n": 1}
 	pending_wild = {}
 	pending_trainer = {}
+	opening_done = false
+	midboss_done = false
+	ending_done = false
+	story_stage = 0
+	player_name = ""
+	player_gender = "少年"
 	if "time" in DayNight:
 		DayNight.time = 0.0
 	SaveManager.delete_save()

@@ -19,3 +19,5 @@
 ## 2026-07-25 13:23 — 新增灵兽图鉴系统: GameState.dex_seen/dex_caught + note_dex_seen/note_dex_caught, SaveManager 持久化, BattleArena 遭遇登记已见/收服登记已捕; Pokedex 面板(已捕/已见/未知三态, 显示属性与种族值), 暂停菜单加「灵兽图鉴」按钮。编辑器导入编译验证通过。
 
 ## 2026-07-25 13:47 — 修复 Godot 报错: InputSetup 注册 ui_cancel(KEY_ESCAPE, 原 KEY_ESC 在 Godot4 不存在); 新增 队伍/背包 面板(PartyBag): 查看队伍(名称/等级/HP/种族值/招式)与背包, 野外对选中成员使用伤药治疗, 暂停菜单加「队伍/背包」按钮。编辑器导入编译验证通过(无 SCRIPT ERROR/Parse Error)。
+
+## 2026-07-25 14:05 — 大版本扩展(P8): 玩家身份(名字/性别, TitleScreen 设置面板+GameState/SaveManager 持久化); 原创序章 OpeningCutscene(星海降临/辉光低语/黯潮侵蚀); 原创结局 EndingCutscene(终Boss击败后触发, 光归/辉光解脱); 角色/NPC Q版大头小身+头顶名字标签; 草丛改为逐步踩草概率遇敌+草动(新手村不放); 地图扩张分区(星澜村/北之路/晨曦镇/黯潮深渊)+路牌Label3D, Boss不在新手村, 中期小Boss(暗潮使·玄,需收服≥2种)在晨曦镇, 终Boss(alpha)在黯潮深渊需中期后; 战斗内伤药按钮(队伍首位低血可用, 普通+20/超级+50); 更多NPC(向导/村民/商店/劲敌/登山客/镇民)。全脚本编辑器导入编译+场景启动期运行验证通过。

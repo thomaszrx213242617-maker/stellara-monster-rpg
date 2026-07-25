@@ -3,7 +3,7 @@
 > 本文档由 `harness/harness.py` 从 `harness/tasks.json` 自动生成, 请勿手改。
 > 修改任务请用 `python harness/harness.py task set <id> status <x>`。
 
-**总进度**: 33/33 完成
+**总进度**: 40/40 完成
 
 ## 任务总览
 
@@ -42,6 +42,13 @@
 | T031 | P7 打磨与发布 | 图鉴数据层与登记 | [x] done | medium | - |
 | T032 | P7 打磨与发布 | 图鉴UI与暂停菜单接入 | [x] done | medium | - |
 | T033 | P7 打磨与发布 | 队伍/背包面板 | [x] done | medium | - |
+| T034 | P8 大版本扩展 | 玩家身份(名字/性别)与存档 | [x] done | high | - |
+| T035 | P8 大版本扩展 | 开局序章(王国之泪风) | [x] done | high | - |
+| T036 | P8 大版本扩展 | 角色/NPC宝可梦化外观+更多NPC | [x] done | medium | - |
+| T037 | P8 大版本扩展 | 草丛宝可梦化(逐步遇敌+草动) | [x] done | medium | - |
+| T038 | P8 大版本扩展 | 地图扩张+区域+Boss中期 | [x] done | high | - |
+| T039 | P8 大版本扩展 | 战斗内伤药(低血可用) | [x] done | medium | - |
+| T040 | P8 大版本扩展 | 结局(旷野之息风) | [x] done | high | - |
 
 ## P0 基础框架与工具  (5/5)
 
@@ -298,3 +305,54 @@
 - **优先级**: medium
 - **依赖**: 无
 - **描述**: 新增 PartyBag 面板: 从暂停菜单打开, 查看队伍(名称/等级/HP/种族值/招式)与存储数量, 野外对选中成员使用伤药治疗; 接入 GameState 队伍/背包数据。
+
+## P8 大版本扩展  (7/7)
+
+### [x] T034 — 玩家身份(名字/性别)与存档
+
+- **状态**: done
+- **优先级**: high
+- **依赖**: 无
+- **描述**: GameState 增加 player_name/player_gender/story_stage/opening_done/midboss_done/ending_done; SaveManager 持久化; TitleScreen 新增名字输入+性别选择, 确定后进入序章。
+
+### [x] T035 — 开局序章(王国之泪风)
+
+- **状态**: done
+- **优先级**: high
+- **依赖**: 无
+- **描述**: 新增 OpeningCutscene 场景: 原创序章(星海降临+辉光低语+黯潮侵蚀), 结束后置 opening_done 并存档进 World。
+
+### [x] T036 — 角色/NPC宝可梦化外观+更多NPC
+
+- **状态**: done
+- **优先级**: medium
+- **依赖**: 无
+- **描述**: PlayerController/Npc 改为 Q版(大头小身)外观; NPC 增加颜色/名字标签; 放置更多NPC(向导/村民/商店/劲敌)带多样对话。
+
+### [x] T037 — 草丛宝可梦化(逐步遇敌+草动)
+
+- **状态**: done
+- **优先级**: medium
+- **依赖**: 无
+- **描述**: EncounterZone 改为逐步踩草概率遇敌+草动动画, 视觉更像高草; 新手村不放草丛。
+
+### [x] T038 — 地图扩张+区域+Boss中期
+
+- **状态**: done
+- **优先级**: high
+- **依赖**: 无
+- **描述**: World 扩地并分区(新手村/北路线/东小镇/南终域); 草丛与Boss不在新手村; 中期小Boss在东小镇; 终Boss在南域(需中期后)。加路牌Label3D。
+
+### [x] T039 — 战斗内伤药(低血可用)
+
+- **状态**: done
+- **优先级**: medium
+- **依赖**: 无
+- **描述**: BattleArena 加「道具/伤药」按钮: 队伍首位HP未满且有potion时可治疗(+20), 消耗道具, 更新血条。
+
+### [x] T040 — 结局(旷野之息风)
+
+- **状态**: done
+- **优先级**: high
+- **依赖**: 无
+- **描述**: 新增 EndingCutscene 场景(原创: 光归/辉光解脱/大地复苏); 终Boss击败后触发, 置 ending_done。接入 World 触发。

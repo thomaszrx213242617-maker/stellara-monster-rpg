@@ -17,7 +17,13 @@ func save_game() -> void:
 		"dex_seen": GameState.dex_seen,
 		"dex_caught": GameState.dex_caught,
 		"research": GameState.research,
-		"time": DayNight.time
+		"time": DayNight.time,
+		"player_name": GameState.player_name,
+		"player_gender": GameState.player_gender,
+		"story_stage": GameState.story_stage,
+		"opening_done": GameState.opening_done,
+		"midboss_done": GameState.midboss_done,
+		"ending_done": GameState.ending_done
 	}
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if f:
@@ -50,6 +56,18 @@ func load_game() -> bool:
 		DayNight.time = float(data["time"])
 	if data.has("research"):
 		GameState.research = data["research"]
+	if data.has("player_name"):
+		GameState.player_name = str(data["player_name"])
+	if data.has("player_gender"):
+		GameState.player_gender = str(data["player_gender"])
+	if data.has("story_stage"):
+		GameState.story_stage = int(data["story_stage"])
+	if data.has("opening_done"):
+		GameState.opening_done = bool(data["opening_done"])
+	if data.has("midboss_done"):
+		GameState.midboss_done = bool(data["midboss_done"])
+	if data.has("ending_done"):
+		GameState.ending_done = bool(data["ending_done"])
 	print("SaveManager: 已读取存档")
 	return true
 

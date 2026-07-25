@@ -30,6 +30,7 @@ var move_label: Label
 var popup_label: Label
 var result_label: Label
 var popup_timer: Timer
+var item_btn: Button
 
 func _ready() -> void:
 	build_arena()
@@ -74,7 +75,7 @@ func _build_hud() -> void:
 	hud_layer = CanvasLayer.new()
 	add_child(hud_layer)
 	hint_label = Label.new()
-	hint_label.text = "WASD移动 | 空格攻击 | Shift闪避 | Q切技能 | C收服(夜晚禁用)"
+	hint_label.text = "WASD移动 | 空格攻击 | Shift闪避 | Q切技能 | C收服(夜晚禁用) | I/按钮 伤药"
 	hint_label.position = Vector2(20, 12)
 	hud_layer.add_child(hint_label)
 
@@ -116,6 +117,14 @@ func _build_hud() -> void:
 	result_label.position = Vector2(300, 200)
 	result_label.scale = Vector2(2, 2)
 	hud_layer.add_child(result_label)
+
+	# 道具/伤药按钮(队伍首位HP未满且有伤药时可用)
+	item_btn = Button.new()
+	item_btn.text = "道具 / 伤药"
+	item_btn.position = Vector2(20, 412)
+	item_btn.custom_minimum_size = Vector2(150, 38)
+	item_btn.pressed.connect(_on_use_potion)
+	hud_layer.add_child(item_btn)
 
 func start_battle() -> void:
 	if GameState.team.is_empty():
@@ -286,6 +295,31 @@ func _pop(text: String) -> void:
 		popup_label.text = text
 		popup_timer.start()
 
+## 战斗中给队伍首位使用伤药(原创: 普通伤药+20 / 超级伤药+50)
+func _on_use_potion() -> void:
+	if battle_over or not player_combatant:
+		return
+	if int(player_combatant.hp) >= int(player_combatant.max_hp):
+		_pop("HP 已满，无需伤药")
+		return
+	var has_super: bool = int(GameState.inventory.get("super_potion", 0)) > 0
+	var has_pot: bool = int(GameState.inventory.get("potion", 0)) > 0
+	if not has_super and not has_pot:
+		_pop("没有伤药了!")
+		return
+	var use_super: bool = has_super
+	var heal: int = 50 if use_super else 20
+	var item_id: String = "super_potion" if use_super else "potion"
+	GameState.consume_item(item_id, 1)
+	var before: int = int(player_combatant.hp)
+	player_combatant.hp = mini(player_combatant.max_hp, before + heal)
+	if not GameState.team.is_empty():
+		GameState.team[0]["hp"] = int(player_combatant.hp)
+	GameState.team_changed.emit()
+	var label: String = "超级伤药" if use_super else "伤药"
+	_pop("使用" + label + "！HP +" + str(int(player_combatant.hp) - before))
+	_update_bars()
+
 func _on_player_defeated() -> void:
 	_end_battle(false, "你输了……")
 
@@ -301,15 +335,23 @@ func _on_enemy_defeated() -> void:
 		GameState.note_research(enemy_combatant.type)
 	if not enemy_is_wild and _badge_id != "":
 		GameState.grant_badge(_badge_id)
+		if _badge_id == "badge_mid":
+			GameState.midboss_done = true
 		msg += "\n获得徽章: " + _badge_id
 	if res["levels"] > 0:
 		msg += "\n升级! Lv" + str(pdata["level"])
 	if res["evolved"]:
 		msg += "\n进化: " + res["from"] + " → " + res["to"] + "!"
 	_pop(msg)
+	# 首领灵兽(终Boss)被击败 → 进入结局
+	if _enemy_is_alpha:
+		GameState.ending_done = true
+		GameState.story_stage = 3
+		_end_battle(true, "首领灵兽倒下……星辉重燃！", "res://ui/EndingCutscene.tscn")
+		return
 	_end_battle(true, "胜利!")
 
-func _end_battle(win: bool, msg: String = "") -> void:
+func _end_battle(win: bool, msg: String = "", next_scene: String = "res://world/World.tscn") -> void:
 	if battle_over:
 		return
 	battle_over = true
@@ -319,4 +361,4 @@ func _end_battle(win: bool, msg: String = "") -> void:
 	SaveManager.save_game()
 	result_label.text = msg if msg != "" else ("胜利!" if win else "失败")
 	await get_tree().create_timer(1.8).timeout
-	get_tree().change_scene_to_file("res://world/World.tscn")
+	get_tree().change_scene_to_file(next_scene)

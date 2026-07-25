@@ -8,17 +8,32 @@ class_name PlayerController
 var gravity: float = 22.0
 
 func _ready() -> void:
-	# 占位玩家模型 (蓝色胶囊)
-	var m := MeshInstance3D.new()
-	var cap := CapsuleMesh.new()
-	cap.radius = 0.5
-	cap.height = 1.6
-	m.mesh = cap
-	m.position = Vector3(0, 0.9, 0)
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.25, 0.55, 1.0)
-	m.material_override = mat
-	add_child(m)
+	# Q版角色: 大头小身(原创卡通形象, 非任何版权素材)
+	var is_girl: bool = (GameState.player_gender == "少女")
+	var body_color := Color(0.25, 0.55, 1.0) if not is_girl else Color(1.0, 0.5, 0.7)
+	# 身体(小)
+	var body := MeshInstance3D.new()
+	var bm := CapsuleMesh.new()
+	bm.radius = 0.32
+	bm.height = 0.7
+	body.mesh = bm
+	body.position = Vector3(0, 0.55, 0)
+	var bmat := StandardMaterial3D.new()
+	bmat.albedo_color = body_color
+	body.material_override = bmat
+	add_child(body)
+	# 头(大)
+	var head := MeshInstance3D.new()
+	var hm := SphereMesh.new()
+	hm.radius = 0.42
+	hm.height = 0.6
+	head.mesh = hm
+	head.position = Vector3(0, 1.15, 0)
+	var hmat := StandardMaterial3D.new()
+	hmat.albedo_color = Color(1.0, 0.86, 0.72)
+	head.material_override = hmat
+	add_child(head)
+	# 碰撞(保持与原移动手感一致)
 	var col := CollisionShape3D.new()
 	var shp := CapsuleShape3D.new()
 	shp.radius = 0.5
