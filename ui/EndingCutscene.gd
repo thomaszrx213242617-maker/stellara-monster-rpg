@@ -16,6 +16,7 @@ func _ready() -> void:
 	_build()
 	_assemble_lines()
 	_show()
+	MusicBus.play_track("ending")
 
 func _build() -> void:
 	var bg := ColorRect.new()

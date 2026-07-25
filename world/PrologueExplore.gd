@@ -29,6 +29,7 @@ func _ready() -> void:
 	else:
 		if _dialogue and _dialogue.has_method("start"):
 			_dialogue.start(["凛：「这洞里似乎有野灵兽游荡，小心些。派你的灵兽迎战！」"])
+	MusicBus.play_track("overworld")
 
 func _build_world() -> void:
 	var env_node := WorldEnvironment.new()

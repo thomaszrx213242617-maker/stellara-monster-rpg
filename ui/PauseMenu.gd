@@ -12,6 +12,7 @@ var _dex
 var _dex_open := false
 var _party
 var _party_open := false
+var _b_music: Button
 
 const PokedexScript := preload("res://ui/Pokedex.gd")
 const PartyScript := preload("res://ui/PartyBag.gd")
@@ -66,6 +67,10 @@ func _build() -> void:
 	var b_party := _btn("队伍 / 背包")
 	b_party.pressed.connect(_open_party)
 	vb.add_child(b_party)
+
+	_b_music = _btn("音乐: " + ("开" if GameState.music_on else "关"))
+	_b_music.pressed.connect(_toggle_music)
+	vb.add_child(_b_music)
 
 	_panel = vb
 
@@ -142,6 +147,12 @@ func _resume() -> void:
 	_world.resume_from_pause()
 
 func _save() -> void:
+	SaveManager.save_game()
+
+func _toggle_music() -> void:
+	var on := not GameState.music_on
+	MusicBus.set_music_enabled(on)
+	_b_music.text = "音乐: " + ("开" if on else "关")
 	SaveManager.save_game()
 
 func _to_title() -> void:

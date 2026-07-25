@@ -67,6 +67,7 @@ func _ready() -> void:
 	GameState.current_scene = "res://world/World.tscn"
 	DayNight.time_changed.connect(_on_time)
 	_on_time(0.0)
+	MusicBus.play_track("overworld")
 
 func _setup_pause_menu() -> void:
 	var PauseScript := preload("res://ui/PauseMenu.gd")

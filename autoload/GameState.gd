@@ -51,6 +51,10 @@ var current_scene: String = ""
 ## 晶变坑(太晶坑原创命名)讨伐配置: {boss_id, boss_level, allies:[训练家名]}
 var pending_raid: Dictionary = {}
 
+## 音频设置(背景音乐开关/音量; 全局偏好, 不随「新游戏」重置)
+var music_on: bool = true
+var music_volume: float = 0.6
+
 ## 设置玩家名字与性别(名字空则回退为"旅人")
 func set_player_identity(name: String, gender: String) -> void:
 	player_name = name.strip_edges()

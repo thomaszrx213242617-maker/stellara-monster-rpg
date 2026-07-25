@@ -22,6 +22,7 @@ InputSetup="*res://autoload/InputSetup.gd"
 DayNight="*res://autoload/DayNight.gd"
 GameState="*res://autoload/GameState.gd"
 SaveManager="*res://autoload/SaveManager.gd"
+MusicBus="*res://autoload/audio/MusicBus.gd"
 
 [display]
 
