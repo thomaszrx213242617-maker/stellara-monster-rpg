@@ -27,7 +27,7 @@ var hud_layer: CanvasLayer
 var player_hp_bar: ProgressBar
 var enemy_hp_bar: ProgressBar
 var hint_label: Label
-var move_label: Label
+var _move_box: VBoxContainer
 var popup_label: Label
 var result_label: Label
 var popup_timer: Timer
@@ -95,9 +95,24 @@ func _build_hud() -> void:
 	hint_label.position = Vector2(20, 12)
 	hud_layer.add_child(hint_label)
 
-	move_label = Label.new()
-	move_label.position = Vector2(20, 36)
-	hud_layer.add_child(move_label)
+	# 招式列表(放大 + 按克制效果四档着色)。背景面板提升可读性
+	var move_bg := Panel.new()
+	move_bg.position = Vector2(10, 30)
+	move_bg.size = Vector2(400, 168)
+	var move_bg_style := StyleBoxFlat.new()
+	move_bg_style.bg_color = Color(0.05, 0.07, 0.12, 0.55)
+	move_bg_style.corner_radius_top_left = 8
+	move_bg_style.corner_radius_top_right = 8
+	move_bg_style.corner_radius_bottom_left = 8
+	move_bg_style.corner_radius_bottom_right = 8
+	move_bg.add_theme_stylebox_override("panel", move_bg_style)
+	hud_layer.add_child(move_bg)
+
+	_move_box = VBoxContainer.new()
+	_move_box.position = Vector2(20, 40)
+	_move_box.size = Vector2(380, 150)
+	_move_box.add_theme_constant_override("separation", 3)
+	hud_layer.add_child(_move_box)
 
 	var pl := Label.new()
 	pl.text = "我方"
@@ -272,29 +287,60 @@ func _on_hp(_c: int, _m: int) -> void:
 	_update_bars()
 
 func _update_bars() -> void:
-	if player_combatant:
+	if player_combatant and player_hp_bar:
 		player_hp_bar.value = float(player_combatant.hp) / float(max(player_combatant.max_hp, 1))
-	if enemy_combatant:
+	if enemy_combatant and enemy_hp_bar:
 		enemy_hp_bar.value = float(enemy_combatant.hp) / float(max(enemy_combatant.max_hp, 1))
 	_refresh_move_label()
 
 func _refresh_move_label() -> void:
-	if not player_combatant or not move_label:
+	if not player_combatant or not _move_box:
 		return
-	var move_id: String = ""
-	if not player_combatant.moves.is_empty():
-		move_id = player_combatant.moves[player_combatant.active_move_index]
-	var mv: Dictionary = DataBus.get_move(move_id)
-	var mtxt: String = "技能: " + (mv.get("name", "无") if not mv.is_empty() else "无")
-	var est: String = DataBus.get_creature(player_combatant.creature_id).get("name", "")
-	var pst: String = (" [我方:" + player_combatant.status_name + "]") if player_combatant.status_name != "" else ""
-	var est2: String = ""
+	for c in _move_box.get_children():
+		c.queue_free()
+	var pc_name: String = DataBus.get_creature(player_combatant.creature_id).get("name", "我方")
+	var pst: String = ("  [我方:" + player_combatant.status_name + "]") if player_combatant.status_name != "" else ""
+	var enemy_type: String = ""
+	var enemy_name: String = ""
 	var estat: String = ""
-	if enemy_combatant:
-		est2 = DataBus.get_creature(enemy_combatant.creature_id).get("name", "")
+	if enemy_combatant and not enemy_combatant.defeated:
+		enemy_type = enemy_combatant.type
+		enemy_name = DataBus.get_creature(enemy_combatant.creature_id).get("name", "敌方")
 		if enemy_combatant.status_name != "":
 			estat = " [敌方:" + enemy_combatant.status_name + "]"
-	move_label.text = est + " Lv" + str(player_combatant.level) + pst + "  |  " + mtxt + "\n" + est2 + estat
+
+	var header := Label.new()
+	header.text = pc_name + " Lv" + str(player_combatant.level) + pst + ("  |  敌:" + enemy_name + " [" + enemy_type + "]" + estat if enemy_name != "" else "")
+	header.add_theme_font_size_override("font_size", 16)
+	header.add_theme_color_override("font_color", Color(1, 1, 1))
+	_move_box.add_child(header)
+
+	if player_combatant.moves.is_empty():
+		var none := Label.new()
+		none.text = "(无招式)"
+		none.add_theme_font_size_override("font_size", 16)
+		none.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+		_move_box.add_child(none)
+		return
+
+	for i in range(player_combatant.moves.size()):
+		var mv: Dictionary = DataBus.get_move(player_combatant.moves[i])
+		if mv.is_empty():
+			continue
+		var mv_name: String = mv.get("name", "???")
+		var mv_type: String = mv.get("type", "?")
+		var mult: float = 1.0
+		if enemy_type != "":
+			mult = DataBus.multiplier(mv_type, enemy_type)
+		var tier: String = DataBus.type_chart.tier_label(mult)
+		var col: Color = DataBus.type_chart.tier_color_value(mult)
+		var mark: String = "▶ " if i == player_combatant.active_move_index else "   "
+		var mult_txt: String = (" ×" + ("%.1f" % mult)) if enemy_type != "" else ""
+		var row := Label.new()
+		row.text = mark + mv_name + " [" + mv_type + "]" + mult_txt + "  " + tier
+		row.add_theme_font_size_override("font_size", 19)
+		row.add_theme_color_override("font_color", col)
+		_move_box.add_child(row)
 
 func _physics_process(delta: float) -> void:
 	if battle_over or _raid_pending:
@@ -333,7 +379,9 @@ func _physics_process(delta: float) -> void:
 		_try_capture()
 
 func _player_attack() -> void:
-	if player_combatant.moves.is_empty():
+	if player_combatant == null or player_combatant.moves.is_empty():
+		return
+	if enemy_combatant == null or enemy_combatant.defeated:
 		return
 	var move_id: String = player_combatant.moves[player_combatant.active_move_index]
 	var mv: Dictionary = DataBus.get_move(move_id)
@@ -342,18 +390,24 @@ func _player_attack() -> void:
 	var dist: float = player_combatant.global_position.distance_to(enemy_combatant.global_position)
 	if dist > attack_range + 1.0:
 		return
-	var mult: float = DataBus.multiplier(mv["type"], enemy_combatant.type)
+	var mult: float = DataBus.multiplier(mv.get("type", "炎"), enemy_combatant.type)
 	# 特性: 猛火/蓄水 低血量增伤
-	if (player_combatant.ability == "猛火" and mv["type"] == "炎") or (player_combatant.ability == "蓄水" and mv["type"] == "水"):
+	if (player_combatant.ability == "猛火" and mv.get("type", "") == "炎") or (player_combatant.ability == "蓄水" and mv.get("type", "") == "水"):
 		if player_combatant.hp < player_combatant.max_hp / 3.0:
 			mult *= 1.5
+	var ename: String = DataBus.get_creature(enemy_combatant.creature_id).get("name", "敌方")
+	# 没有效果: 完全不扣血、不施加状态(用户明确要求)
+	if mult == 0.0:
+		player_cooldown = float(mv.get("cooldown", 1.0))
+		_pop(ename + " 对 " + enemy_combatant.type + " 属性没有效果，不造成伤害！")
+		return
 	var power: float = float(mv.get("power", 0))
 	if power <= 0.0:
 		# 纯状态招式
 		if enemy_combatant.invulnerable <= 0.0 and mv.has("status"):
 			enemy_combatant.apply_status(mv["status"], 4.0)
-			_pop(DataBus.get_creature(enemy_combatant.creature_id)["name"] + " 陷入" + mv["status"])
-		player_cooldown = float(mv["cooldown"])
+			_pop(ename + " 陷入" + str(mv["status"]))
+		player_cooldown = float(mv.get("cooldown", 1.0))
 		return
 	if enemy_combatant.invulnerable > 0.0:
 		_pop("被闪避!")
@@ -361,13 +415,12 @@ func _player_attack() -> void:
 		var dmg: float = CombatScript.calc_damage(player_combatant.stats["atk"], enemy_combatant.stats["def"], power, mult, player_combatant.level, randf_range(0.85, 1.0)) * player_combatant.dmg_mult
 		var cat: String = mv.get("category", "物理")
 		enemy_combatant.take_damage(dmg, player_combatant, cat)
-		var ename: String = DataBus.get_creature(enemy_combatant.creature_id)["name"]
 		var eff: String = DataBus.type_chart.effectiveness_text(mult)
 		_pop(ename + " 受 " + str(int(dmg)) + " 伤害 " + eff)
 		if mv.has("status") and randf() < float(mv.get("status_chance", 0.0)):
 			enemy_combatant.apply_status(mv["status"], 4.0)
-			_pop(ename + " 陷入" + mv["status"])
-	player_cooldown = float(mv["cooldown"])
+			_pop(ename + " 陷入" + str(mv["status"]))
+	player_cooldown = float(mv.get("cooldown", 1.0))
 
 func _try_capture() -> void:
 	if _raid_mode:
@@ -387,7 +440,7 @@ func _try_capture() -> void:
 		return
 	GameState.consume_item(ball, 1)
 	_refresh_ball_btn()
-	var ename: String = DataBus.get_creature(enemy_combatant.creature_id)["name"]
+	var ename: String = DataBus.get_creature(enemy_combatant.creature_id).get("name", "敌方")
 	var base: float = DataBus.get_creature(enemy_combatant.creature_id).get("catch_rate", 0.4)
 	var chance: float = CombatScript.capture_chance(enemy_combatant.hp, enemy_combatant.max_hp, base, GameState.ball_mod(ball), 1.0)
 	if randf() < chance:
@@ -518,6 +571,10 @@ func _on_enemy_defeated() -> void:
 		_show_raid_result()
 		return
 	# 给队伍首位加经验
+	if GameState.team.is_empty():
+		_award_coins()
+		_end_battle(true, "胜利!")
+		return
 	var pdata: Dictionary = GameState.team[0]
 	var exp: int = GameState.wild_exp(enemy_combatant.level)
 	if _enemy_is_alpha:
@@ -538,27 +595,29 @@ func _on_enemy_defeated() -> void:
 	_pop(msg)
 	_award_coins()
 
-	# ---- 终局链: 凛 → 辉金龙 → 黯钢兽 → 结局 ----
+	# ---- 终局链: 凛(stage0) → 辉金龙(stage1) → 黯钢兽(stage2) → 结局 ----
+	# 注意: 三场都是 finale+alpha, 必须用 finale_stage 区分, 否则会卡在辉金龙无限循环
 	if _enemy_is_finale and _enemy_is_alpha:
-		# 第一阶段: 击败黯潮之主·凛
-		GameState.finale_stage = 1
-		GameState.pending_wild = {"id": "hui_jin_long", "level": 32, "alpha": true, "finale": true}
-		_end_battle(true, "凛倒下了！但辉金龙自黯潮中崛起——迎战！", "res://battle/BattleArena.tscn")
-		return
-	if GameState.finale_stage == 1:
-		# 第二阶段: 击败辉金龙
-		GameState.finale_stage = 2
-		GameState.pending_wild = {"id": "an_gang_shou", "level": 34, "alpha": true, "finale": true}
-		_end_battle(true, "辉金龙归服！黯钢兽咆哮着现身！", "res://battle/BattleArena.tscn")
-		return
-	if GameState.finale_stage == 2:
-		# 第三阶段: 击败黯钢兽 → 收服双神兽, 进入结局
-		GameState.obtain_legendary("hui_jin_long")
-		GameState.obtain_legendary("an_gang_shou")
-		GameState.ending_done = true
-		GameState.story_stage = 3
-		_end_battle(true, "双神兽归你所有！星澜大陆重归平衡。", "res://ui/EndingCutscene.tscn")
-		return
+		if GameState.finale_stage == 0:
+			# 第一阶段: 击败黯潮之主·凛
+			GameState.finale_stage = 1
+			GameState.pending_wild = {"id": "hui_jin_long", "level": 32, "alpha": true, "finale": true}
+			_end_battle(true, "凛倒下了！但辉金龙自黯潮中崛起——迎战！", "res://battle/BattleArena.tscn")
+			return
+		elif GameState.finale_stage == 1:
+			# 第二阶段: 击败辉金龙
+			GameState.finale_stage = 2
+			GameState.pending_wild = {"id": "an_gang_shou", "level": 34, "alpha": true, "finale": true}
+			_end_battle(true, "辉金龙归服！黯钢兽咆哮着现身！", "res://battle/BattleArena.tscn")
+			return
+		elif GameState.finale_stage == 2:
+			# 第三阶段: 击败黯钢兽 → 收服双神兽, 进入结局
+			GameState.obtain_legendary("hui_jin_long")
+			GameState.obtain_legendary("an_gang_shou")
+			GameState.ending_done = true
+			GameState.story_stage = 3
+			_end_battle(true, "双神兽归你所有！星澜大陆重归平衡。", "res://ui/EndingCutscene.tscn")
+			return
 	# 首领灵兽(终Boss, 非终局旗标)被击败 → 进入结局(兜底)
 	if _enemy_is_alpha:
 		GameState.ending_done = true

@@ -5,6 +5,9 @@ extends RefCounted
 ## 伤害 = floor( (2*Lv/5 + 2) * Power * Atk/Def / 50 + 2 ) * 克制 * 随机
 
 static func calc_damage(atk: float, def: float, power: float, type_mult: float, level: int, rng: float) -> float:
+	# 没有效果: 完全不扣血(用户明确要求)
+	if type_mult == 0.0:
+		return 0.0
 	var base: float = (2.0 * float(level) / 5.0 + 2.0) * power * (atk / max(def, 1.0)) / 50.0 + 2.0
 	return max(1.0, floor(base * type_mult * rng))
 

@@ -21,7 +21,7 @@ func _ready() -> void:
 	var bmat := StandardMaterial3D.new()
 	bmat.albedo_color = body_color
 	bmat.roughness = 0.55
-	bmat.metalness = 0.05
+	bmat.metallic = 0.05
 	body.material_override = bmat
 	add_child(body)
 	# 头(大)

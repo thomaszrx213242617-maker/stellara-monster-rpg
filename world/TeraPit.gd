@@ -35,7 +35,7 @@ func _ready() -> void:
 		cmat.albedo_color = Color(0.5, 0.7, 1.0)
 		cmat.emission = Color(0.4, 0.6, 1.0)
 		cmat.emission_energy = 0.7
-		cmat.metalness = 0.35
+		cmat.metallic = 0.35
 		cmat.roughness = 0.15
 		cr.material_override = cmat
 		add_child(cr)

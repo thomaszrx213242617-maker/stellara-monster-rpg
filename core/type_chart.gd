@@ -27,3 +27,33 @@ func effectiveness_text(mult: float) -> String:
 	if mult <= 0.5:
 		return "效果不太理想..."
 	return ""
+
+## 战斗 HUD 招式列表用的「四档」分类。实测倍率仅 0 / 0.5 / 1 / 2 四档,
+## 分别与用户要求的四档一一对应(从高到低):
+##   效果绝佳 (>=2x) > 有效果 (==1x, 正常生效) > 效果一般 (0<x<1, 被抵抗) > 没有效果 (==0x)
+func tier_label(mult: float) -> String:
+	if mult >= 2.0:
+		return "效果绝佳"
+	if mult > 1.0:   # 兼容未来可能出现的 1.5 倍
+		return "效果绝佳"
+	if mult == 1.0:
+		return "有效果"
+	if mult > 0.0:
+		return "效果一般"
+	return "没有效果"
+
+## 四档对应的文字颜色(浅色背景下可读)
+func tier_color(mult: float) -> String:
+	if mult >= 2.0:
+		return "#0a8a1a"   # 鲜绿: 效果绝佳
+	if mult > 1.0:
+		return "#0a8a1a"
+	if mult == 1.0:
+		return "#1b1b1b"   # 近黑: 正常生效
+	if mult > 0.0:
+		return "#b06a00"   # 琥珀: 被抵抗
+	return "#8a8a8a"       # 灰: 没有效果
+
+## 四档颜色(Color 对象, 便于直接赋给 Label 的 font_color)
+func tier_color_value(mult: float) -> Color:
+	return Color(tier_color(mult))

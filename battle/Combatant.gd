@@ -46,7 +46,7 @@ func _ready() -> void:
 	body.position = Vector3(0, 0.9, 0)
 	var bmat := StandardMaterial3D.new()
 	bmat.roughness = 0.5
-	bmat.metalness = 0.12
+	bmat.metallic = 0.12
 	body.material_override = bmat
 	add_child(body)
 	mesh = body
@@ -59,7 +59,7 @@ func _ready() -> void:
 	head.position = Vector3(0, 1.95, 0)
 	var hmat := StandardMaterial3D.new()
 	hmat.roughness = 0.5
-	hmat.metalness = 0.12
+	hmat.metallic = 0.12
 	head.material_override = hmat
 	body.add_child(head)
 	_head = head
@@ -136,13 +136,13 @@ func _apply_color() -> void:
 		var mat := StandardMaterial3D.new()
 		mat.albedo_color = c
 		mat.roughness = 0.5
-		mat.metalness = 0.12
+		mat.metallic = 0.12
 		mesh.material_override = mat
 	if _head:
 		var hmat := StandardMaterial3D.new()
 		hmat.albedo_color = c
 		hmat.roughness = 0.5
-		hmat.metalness = 0.12
+		hmat.metallic = 0.12
 		_head.material_override = hmat
 
 func _physics_process(delta: float) -> void:

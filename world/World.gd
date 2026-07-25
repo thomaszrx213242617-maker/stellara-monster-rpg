@@ -189,7 +189,6 @@ func build_world() -> void:
 	_env.ambient_light_color = Color(0.7, 0.8, 0.95)
 	_env.fog_enabled = true
 	_env.fog_density = 0.012
-	_env.fog_color = Color(0.65, 0.78, 0.95)
 	env_node.environment = _env
 
 	_light = DirectionalLight3D.new()
