@@ -18,7 +18,7 @@ func _ready() -> void:
 
 	# ---- 音效系统(SoundBus): 程序化合成 + 调用不报错 ----
 	_check(SoundBus != null, "SoundBus 自动加载存在")
-	var _sounds := ["select", "attack", "hit", "capture", "capture_success", "heal", "levelup", "faint", "error", "evolve"]
+	var _sounds := ["select", "attack", "hit", "capture", "capture_success", "heal", "levelup", "faint", "error", "evolve", "step", "grass"]
 	var _sfx_ok := true
 	for _s in _sounds:
 		SoundBus.play_sfx(_s)

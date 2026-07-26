@@ -6,6 +6,7 @@ class_name PlayerController
 @export var speed: float = 7.0
 @export var jump_velocity: float = 7.0
 var gravity: float = 22.0
+var _step_cd: float = 0.0   # 脚步声间隔计时(原创音效, 规避版权)
 
 func _ready() -> void:
 	# Q版角色: 大头小身(原创卡通形象, 非任何版权素材)
@@ -91,3 +92,15 @@ func _physics_process(delta: float) -> void:
 	if dir != Vector3.ZERO:
 		look_at(global_position + dir, Vector3.UP)
 	move_and_slide()
+
+	# ---- 脚步声(原创, 规避版权): 在地面移动时按节奏播放; 草丛中改用草丛沙沙 ----
+	if is_on_floor() and dir != Vector3.ZERO:
+		_step_cd -= delta
+		if _step_cd <= 0.0:
+			_step_cd = 0.34
+			if GameState.grass_zones > 0:
+				SoundBus.play_sfx("grass")
+			else:
+				SoundBus.play_sfx("step")
+	else:
+		_step_cd = 0.0
