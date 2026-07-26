@@ -27,6 +27,36 @@ func _ready() -> void:
 	SoundBus.set_sfx_enabled(true)
 	_check(_sfx_ok, "SoundBus: 全部音效 play_sfx 调用无异常")
 
+	# ---- 存储箱(盒子): 存取逻辑 ----
+	GameState.team = []
+	GameState.storage = []
+	GameState.add_to_team("flarefox", 5)
+	GameState.add_to_team("vinelop", 5)
+	GameState.add_to_team("aqualeap", 7)
+	_check(GameState.deposit_to_storage(0), "存储箱: 存入成功")
+	_check(GameState.team.size() == 2 and GameState.storage.size() == 1, "存储箱: 存入后 队伍2/存储1")
+	_check(GameState.withdraw_from_storage(0), "存储箱: 取出成功")
+	_check(GameState.team.size() == 3 and GameState.storage.size() == 0, "存储箱: 取出后 队伍3/存储0")
+	GameState.team = [GameState.team[0]]
+	_check(not GameState.deposit_to_storage(0), "存储箱: 队伍仅1只禁止存入")
+	GameState.team = []
+	for _i in range(6):
+		GameState.add_to_team("flarefox", 5)
+	GameState.storage = [GameState.team[0].duplicate()]
+	_check(not GameState.withdraw_from_storage(0), "存储箱: 队伍满6禁止取出")
+	GameState.reset_new_game()
+
+	# ---- 伤药数值(数据驱动, 与 items.json 一致) ----
+	_check(int(DataBus.get_item("potion").get("power", 0)) == 30, "伤药 power=30")
+	_check(int(DataBus.get_item("super_potion").get("power", 0)) == 60, "好伤药 power=60")
+
+	# ---- UI 场景 _ready 实例化(捕捉运行时错误) ----
+	for _sc in ["res://ui/PartyBag.gd", "res://ui/SettingsMenu.gd", "res://ui/EndingCutscene.gd", "res://ui/Pokedex.gd"]:
+		var _inst = load(_sc).new()
+		add_child(_inst)
+		_check(_inst != null, "UI 实例化无崩溃: " + _sc.get_file())
+		_inst.queue_free()
+
 	# ---- 普通战斗: 初始化 + 招式列表构建 ----
 	GameState.reset_new_game()
 	GameState.pending_wild = {}

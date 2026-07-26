@@ -557,22 +557,23 @@ func _on_use_potion() -> void:
 	if int(player_combatant.hp) >= int(player_combatant.max_hp):
 		_pop("HP 已满，无需伤药")
 		return
-	var has_super: bool = int(GameState.inventory.get("super_potion", 0)) > 0
-	var has_pot: bool = int(GameState.inventory.get("potion", 0)) > 0
-	if not has_super and not has_pot:
+	var item_id: String = ""
+	if int(GameState.inventory.get("super_potion", 0)) > 0:
+		item_id = "super_potion"
+	elif int(GameState.inventory.get("potion", 0)) > 0:
+		item_id = "potion"
+	if item_id == "":
 		_pop("没有伤药了!")
 		return
-	var use_super: bool = has_super
-	var heal: int = 50 if use_super else 20
-	var item_id: String = "super_potion" if use_super else "potion"
+	var it: Dictionary = DataBus.get_item(item_id)
+	var heal: int = int(it.get("power", 20))
 	GameState.consume_item(item_id, 1)
 	var before: int = int(player_combatant.hp)
 	player_combatant.hp = mini(player_combatant.max_hp, before + heal)
 	if not GameState.team.is_empty():
 		GameState.team[0]["hp"] = int(player_combatant.hp)
 	GameState.team_changed.emit()
-	var label: String = "超级伤药" if use_super else "伤药"
-	_pop("使用" + label + "！HP +" + str(int(player_combatant.hp) - before))
+	_pop("使用" + it.get("name", "伤药") + "！HP +" + str(int(player_combatant.hp) - before))
 	_update_bars()
 
 func _on_player_defeated() -> void:
@@ -603,6 +604,7 @@ func _on_enemy_defeated() -> void:
 		GameState.grant_badge(_badge_id)
 		if _badge_id == "badge_mid":
 			GameState.midboss_done = true
+			GameState.complete_milestone("击败暗潮使·玄")
 		msg += "\n获得徽章: " + _badge_id
 	if res["levels"] > 0:
 		msg += "\n升级! Lv" + str(pdata["level"])
@@ -634,6 +636,7 @@ func _on_enemy_defeated() -> void:
 			GameState.obtain_legendary("an_gang_shou")
 			GameState.ending_done = true
 			GameState.story_stage = 3
+			GameState.complete_milestone("击败黯潮之主·凛，救回伙伴并收服双神兽")
 			_end_battle(true, "双神兽归你所有！星澜大陆重归平衡。", "res://ui/EndingCutscene.tscn")
 			return
 	# 首领灵兽(终Boss, 非终局旗标)被击败 → 进入结局(兜底)

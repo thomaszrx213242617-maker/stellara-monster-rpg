@@ -15,6 +15,7 @@ const TYPE_COLORS := {
 var _team_list: VBoxContainer
 var _detail: Control
 var _bag_list: VBoxContainer
+var _storage_list: VBoxContainer
 var _info_label: Label
 var _selected_index: int = -1
 
@@ -100,11 +101,24 @@ func _build() -> void:
 	right.add_child(bag_title)
 
 	var bag_scroll := ScrollContainer.new()
-	bag_scroll.custom_minimum_size = Vector2(0, 150)
+	bag_scroll.custom_minimum_size = Vector2(0, 120)
 	right.add_child(bag_scroll)
 	_bag_list = VBoxContainer.new()
 	_bag_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bag_scroll.add_child(_bag_list)
+
+	var store_title := Label.new()
+	store_title.text = "存储箱 (点击取出到队伍)"
+	store_title.add_theme_font_size_override("font_size", 20)
+	store_title.modulate = Color(0.9, 0.92, 1.0)
+	right.add_child(store_title)
+
+	var store_scroll := ScrollContainer.new()
+	store_scroll.custom_minimum_size = Vector2(0, 120)
+	right.add_child(store_scroll)
+	_storage_list = VBoxContainer.new()
+	_storage_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	store_scroll.add_child(_storage_list)
 
 	_refresh()
 	if not GameState.team.is_empty():
@@ -116,9 +130,11 @@ func _refresh() -> void:
 		ch.queue_free()
 	for ch in _bag_list.get_children():
 		ch.queue_free()
+	for ch in _storage_list.get_children():
+		ch.queue_free()
 	_selected_index = -1
 
-	_info_label.text = "队伍 %d/6 · 存储 %d" % [GameState.team.size(), GameState.storage.size()]
+	_info_label.text = "队伍 %d/6 · 存储箱 %d" % [GameState.team.size(), GameState.storage.size()]
 
 	for i in range(GameState.team.size()):
 		var c: Dictionary = GameState.team[i]
@@ -126,12 +142,41 @@ func _refresh() -> void:
 		var nm: String = d.get("name", c["id"])
 		var hp: int = int(c["hp"])
 		var mhp: int = int(c["max_hp"])
+		var hb := HBoxContainer.new()
+		hb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var row := Button.new()
-		row.custom_minimum_size = Vector2(0, 44)
-		row.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		row.text = "%s  Lv%d  HP %d/%d" % [nm, int(c["level"]), hp, mhp]
+		row.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.pressed.connect(_on_row_pressed.bind(i))
-		_team_list.add_child(row)
+		hb.add_child(row)
+		var dep := Button.new()
+		dep.text = "存入"
+		dep.custom_minimum_size = Vector2(80, 32)
+		dep.disabled = GameState.team.size() <= 1
+		dep.pressed.connect(_on_deposit.bind(i))
+		hb.add_child(dep)
+		_team_list.add_child(hb)
+
+	for i in range(GameState.storage.size()):
+		var c: Dictionary = GameState.storage[i]
+		var d: Dictionary = DataBus.get_creature(c["id"])
+		var nm: String = d.get("name", c["id"])
+		var hp: int = int(c["hp"])
+		var mhp: int = int(c["max_hp"])
+		var hb := HBoxContainer.new()
+		hb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var lbl := Label.new()
+		lbl.text = "%s  Lv%d  HP %d/%d" % [nm, int(c["level"]), hp, mhp]
+		lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		hb.add_child(lbl)
+		var wd := Button.new()
+		wd.text = "取出"
+		wd.custom_minimum_size = Vector2(80, 32)
+		wd.disabled = GameState.team.size() >= 6
+		wd.pressed.connect(_on_withdraw.bind(i))
+		hb.add_child(wd)
+		_storage_list.add_child(hb)
 
 	# 背包
 	for id in GameState.inventory.keys():
@@ -256,7 +301,9 @@ func _on_use_item(id: String) -> void:
 	var c: Dictionary = GameState.team[_selected_index]
 	var mhp: int = int(c["max_hp"])
 	var before: int = int(c["hp"])
-	var after: int = mini(mhp, before + 20)
+	var it: Dictionary = DataBus.get_item(id)
+	var heal: int = int(it.get("power", 20)) if not it.is_empty() else 20
+	var after: int = mini(mhp, before + heal)
 	c["hp"] = after
 	GameState.consume_item(id, 1)
 	GameState.team_changed.emit()
@@ -265,3 +312,15 @@ func _on_use_item(id: String) -> void:
 
 func _on_back() -> void:
 	closed.emit()
+
+func _on_deposit(i: int) -> void:
+	if GameState.deposit_to_storage(i):
+		SoundBus.play_sfx("select")
+		_refresh()
+		if not GameState.team.is_empty():
+			_select(min(i, GameState.team.size() - 1))
+
+func _on_withdraw(i: int) -> void:
+	if GameState.withdraw_from_storage(i):
+		SoundBus.play_sfx("select")
+		_refresh()

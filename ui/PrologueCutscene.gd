@@ -113,6 +113,7 @@ func _finish() -> void:
 	_active = false
 	GameState.prologue_done = true
 	GameState.story_stage = 1
+	GameState.complete_milestone("落地星澜，开启旅途")
 	SaveManager.save_game()
 	await get_tree().create_timer(0.6).timeout
 	get_tree().change_scene_to_file("res://world/World.tscn")

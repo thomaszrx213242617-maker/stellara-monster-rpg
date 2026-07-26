@@ -37,6 +37,8 @@ var opening_done: bool = false
 var midboss_done: bool = false
 var ending_done: bool = false
 var prologue_done: bool = false
+## 剧情大事记(已完成里程碑, 供「剧情」面板展示): [{text, done}]
+var story_log: Array = []
 
 ## 三枚秘环(原创机制, 对应极巨/太晶/超演之力, 规避版权): 开局即拥有, 每场战斗各可用一次
 ## giant=巨灵环(巨大化) / crystal=晶变环(晶化增伤) / hyper=超衍环(超演增益)
@@ -126,6 +128,30 @@ func add_to_team(id: String, level: int) -> void:
 		storage.append(c)
 	team_changed.emit()
 
+## 把队伍第 i 只存入存储箱(队伍仅剩 1 只时禁止, 避免无灵兽可用)
+func deposit_to_storage(i: int) -> bool:
+	if i < 0 or i >= team.size():
+		return false
+	if team.size() <= 1:
+		return false
+	var c: Dictionary = team[i]
+	team.remove_at(i)
+	storage.append(c)
+	team_changed.emit()
+	return true
+
+## 把存储箱第 i 只取出放入队伍(队伍满 6 只时禁止)
+func withdraw_from_storage(i: int) -> bool:
+	if i < 0 or i >= storage.size():
+		return false
+	if team.size() >= 6:
+		return false
+	var c: Dictionary = storage[i]
+	storage.remove_at(i)
+	team.append(c)
+	team_changed.emit()
+	return true
+
 ## 给一只队伍灵兽加经验, 处理连续升级与进化。返回事件摘要。
 func grant_exp(c: Dictionary, amount: int) -> Dictionary:
 	var res := {"levels": 0, "evolved": false, "from": "", "to": ""}
@@ -201,6 +227,7 @@ func reset_new_game() -> void:
 	midboss_done = false
 	ending_done = false
 	prologue_done = false
+	story_log = []
 	transformation_bands = true
 	story_stage = 0
 	player_name = ""
@@ -240,6 +267,28 @@ func note_research(creature_type: String) -> void:
 func add_item(id: String, n: int) -> void:
 	inventory[id] = int(inventory.get(id, 0)) + n
 	inventory_changed.emit()
+
+## ---- 剧情大事记 / 当前目标(原创IP) ----
+func complete_milestone(text: String) -> void:
+	for e in story_log:
+		if e["text"] == text:
+			e["done"] = true
+			return
+	story_log.append({"text": text, "done": true})
+
+## 根据当前进度推导「当前目标」(供剧情面板展示)
+func current_objective() -> String:
+	if ending_done:
+		return "主线已完结：自由探索星澜大陆，收集图鉴、挑战晶变坑、培养灵兽"
+	if finale_stage >= 1:
+		return "终局：收服双生金属神兽「辉金龙」与「黯钢兽」，救回凛"
+	if midboss_done:
+		return "前往黯潮深渊，击败黯潮之主·凛（靠近后按 E 挑战）"
+	if story_stage >= 1 and dex_caught_count() < 2:
+		return "前往北之路，收服至少 2 只灵兽（野怪会主动扑来，按 B/E 迎战）"
+	if story_stage >= 1:
+		return "前往晨曦镇，挑战暗潮使·玄"
+	return "跟随向导·岚，熟悉星澜村与基本操作"
 
 func consume_item(id: String, n: int) -> bool:
 	if int(inventory.get(id, 0)) < n:
