@@ -11,6 +11,9 @@ var enemy: Node
 var attack_range: float = 3.0
 var attack_interval: float = 1.4
 
+## 敌方攻击被玩家无敌帧(闪避窗口)抵消时触发, 供 BattleArena 播放"完美闪避"反馈
+signal dodged
+
 func _physics_process(delta: float) -> void:
 	if not player or not enemy:
 		return
@@ -46,9 +49,12 @@ func _enemy_attack() -> void:
 		# 纯状态招式
 		if player.invulnerable <= 0.0 and mv.has("status"):
 			player.apply_status(mv["status"], 4.0)
+		elif player.invulnerable > 0.0:
+			dodged.emit()
 		return
 	var dmg: float = CombatScript.calc_damage(enemy.stats["atk"], player.stats["def"], power, mult, enemy.level, randf_range(0.85, 1.0))
 	if player.invulnerable > 0.0:
+		dodged.emit()
 		return
 	var cat: String = mv.get("category", "物理")
 	SoundBus.play_sfx("attack")

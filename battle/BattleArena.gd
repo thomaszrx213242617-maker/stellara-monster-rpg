@@ -37,6 +37,9 @@ var _giant_btn: Button
 var _crystal_btn: Button
 var _hyper_btn: Button
 var coin_label: Label
+var _flash: ColorRect          ## 完美闪避时全屏白闪叠层
+var _dodge_cd: float = 0.0     ## 完美闪避反馈冷却(防刷屏)
+var _flash_t: float = 0.0      ## 白闪衰减计时
 
 ## 晶变坑(太晶坑原创命名)讨伐: 三名训练家协助, 胜利后可选收服/放弃
 var _raid_mode: bool = false
@@ -96,6 +99,16 @@ func build_arena() -> void:
 func _build_hud() -> void:
 	hud_layer = CanvasLayer.new()
 	add_child(hud_layer)
+
+	# 完美闪避白闪叠层(置于最底, 不挡 HUD/弹字)
+	var flash := ColorRect.new()
+	flash.color = Color(1, 1, 1)
+	flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	flash.modulate = Color(1, 1, 1, 0.0)
+	hud_layer.add_child(flash)
+	_flash = flash
+
 	hint_label = Label.new()
 	hint_label.text = "WASD移动 | 空格攻击 | Shift闪避 | Q切技能 | C收服(夜晚禁用) | I/按钮 伤药 | 巨灵/晶变/超衍环 各一场一次"
 	hint_label.position = Vector2(20, 12)
@@ -285,6 +298,7 @@ func start_battle() -> void:
 	enemy_ai.enemy = enemy_combatant
 	enemy_ai.attack_range = attack_range
 	add_child(enemy_ai)
+	enemy_ai.dodged.connect(_on_perfect_dodge)
 	# 秘环每场重置(各可用一次)
 	_bands_used = {"giant": false, "crystal": false, "hyper": false}
 	_refresh_band_btns()
@@ -358,6 +372,14 @@ func _physics_process(delta: float) -> void:
 	if battle_over or _raid_pending:
 		return
 	player_cooldown = max(0.0, player_cooldown - delta)
+
+	# 完美闪避反馈: 冷却 + 白闪衰减
+	if _dodge_cd > 0.0:
+		_dodge_cd = max(0.0, _dodge_cd - delta)
+	if _flash != null:
+		if _flash_t > 0.0:
+			_flash_t = max(0.0, _flash_t - delta * 2.5)
+		_flash.modulate.a = clamp(_flash_t, 0.0, 0.6)
 
 	var input_dir := Vector3.ZERO
 	if Input.is_action_pressed("move_forward"): input_dir.z -= 1
@@ -550,6 +572,15 @@ func _pop(text: String) -> void:
 		popup_label.text = text
 		popup_timer.start()
 
+## 完美闪避: 敌方攻击撞上闪避无敌帧时触发(视觉白闪 + 音效 + 弹字)
+func _on_perfect_dodge() -> void:
+	if _dodge_cd > 0.0:
+		return
+	_dodge_cd = 0.6
+	_flash_t = 0.5
+	_pop("完美闪避!")
+	SoundBus.play_sfx("dodge")
+
 ## 战斗中给队伍首位使用伤药(原创: 普通伤药+20 / 超级伤药+50)
 func _on_use_potion() -> void:
 	if battle_over or not player_combatant:
@@ -675,6 +706,7 @@ func _enter_raid_mode() -> void:
 	enemy_ai.enemy = enemy_combatant
 	enemy_ai.attack_range = attack_range
 	add_child(enemy_ai)
+	enemy_ai.dodged.connect(_on_perfect_dodge)
 	_bands_used = {"giant": false, "crystal": false, "hyper": false}
 	_refresh_band_btns()
 	_refresh_move_label()
