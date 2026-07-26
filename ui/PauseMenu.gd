@@ -12,9 +12,9 @@ var _dex
 var _dex_open := false
 var _party
 var _party_open := false
-var _b_music: Button
-var _b_sfx: Button
-
+var _settings
+var _settings_open := false
+const SettingsMenuScript := preload("res://ui/SettingsMenu.gd")
 const PokedexScript := preload("res://ui/Pokedex.gd")
 const PartyScript := preload("res://ui/PartyBag.gd")
 
@@ -69,13 +69,9 @@ func _build() -> void:
 	b_party.pressed.connect(_open_party)
 	vb.add_child(b_party)
 
-	_b_music = _btn("音乐: " + ("开" if GameState.music_on else "关"))
-	_b_music.pressed.connect(_toggle_music)
-	vb.add_child(_b_music)
-
-	_b_sfx = _btn("音效: " + ("开" if GameState.sfx_on else "关"))
-	_b_sfx.pressed.connect(_toggle_sfx)
-	vb.add_child(_b_sfx)
+	var b_settings := _btn("设置")
+	b_settings.pressed.connect(_open_settings)
+	vb.add_child(b_settings)
 
 	_panel = vb
 
@@ -140,7 +136,9 @@ func _on_party_closed() -> void:
 
 func _unhandled_input(e: InputEvent) -> void:
 	if e.is_action_pressed("ui_cancel"):
-		if _dex_open:
+		if _settings_open:
+			_on_settings_closed()
+		elif _dex_open:
 			_on_dex_closed()
 		elif _party_open:
 			_on_party_closed()
@@ -158,19 +156,24 @@ func _save() -> void:
 	SoundBus.play_sfx("select")
 	SaveManager.save_game()
 
-func _toggle_music() -> void:
-	var on := not GameState.music_on
-	MusicBus.set_music_enabled(on)
-	_b_music.text = "音乐: " + ("开" if on else "关")
-	SaveManager.save_game()
+func _open_settings() -> void:
+	SoundBus.play_sfx("select")
+	if _settings == null:
+		_settings = SettingsMenuScript.new()
+		_settings.name = "SettingsMenu"
+		add_child(_settings)
+		_settings.closed.connect(_on_settings_closed)
+	_settings.visible = true
+	_settings.focus_first()
+	_settings_open = true
+	_panel.visible = false
 
-func _toggle_sfx() -> void:
-	var on := not GameState.sfx_on
-	SoundBus.set_sfx_enabled(on)
-	_b_sfx.text = "音效: " + ("开" if on else "关")
-	if on:
-		SoundBus.play_sfx("select")
-	SaveManager.save_game()
+func _on_settings_closed() -> void:
+	if _settings != null:
+		_settings.visible = false
+	_panel.visible = true
+	_settings_open = false
+	_resume_btn.grab_focus()
 
 func _to_title() -> void:
 	SoundBus.play_sfx("select")

@@ -15,6 +15,9 @@ var _gender: String = "少年"
 var _btn_boy: Button
 var _btn_girl: Button
 var _btn_continue: Button
+var _settings
+var _settings_open := false
+const SettingsMenuScript := preload("res://ui/SettingsMenu.gd")
 
 func _ready() -> void:
 	_build()
@@ -82,7 +85,7 @@ func _build() -> void:
 		_btn_continue.disabled = true
 	_menu.add_child(_btn_continue)
 
-	var b_settings := _make_button(_settings_label())
+	var b_settings := _make_button("设置")
 	b_settings.pressed.connect(_on_settings)
 	_menu.add_child(b_settings)
 
@@ -189,9 +192,29 @@ func _focus_default() -> void:
 				c.grab_focus()
 				break
 
-func _settings_label() -> String:
-	var full := DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN
-	return "设置: " + ("当前全屏 (点击切窗口)" if full else "当前窗口 (点击切全屏)")
+func _on_settings() -> void:
+	SoundBus.play_sfx("select")
+	if _settings == null:
+		_settings = SettingsMenuScript.new()
+		_settings.name = "SettingsMenu"
+		add_child(_settings)
+		_settings.closed.connect(_on_settings_closed)
+	_settings.visible = true
+	_settings.focus_first()
+	_settings_open = true
+	_menu.visible = false
+
+func _on_settings_closed() -> void:
+	if _settings != null:
+		_settings.visible = false
+	_menu.visible = true
+	_settings_open = false
+	_focus_default()
+
+func _unhandled_input(e: InputEvent) -> void:
+	if _settings_open and e.is_action_pressed("ui_cancel"):
+		_on_settings_closed()
+		get_viewport().set_input_as_handled()
 
 func _on_new() -> void:
 	SoundBus.play_sfx("select")
@@ -214,15 +237,6 @@ func _on_setup_confirm() -> void:
 func _on_continue() -> void:
 	SoundBus.play_sfx("select")
 	get_tree().change_scene_to_file(WORLD_SCENE)
-
-func _on_settings() -> void:
-	SoundBus.play_sfx("select")
-	var full := DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN
-	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED if full else DisplayServer.WINDOW_MODE_FULLSCREEN)
-	for c in _menu.get_children():
-		if c is Button and c.text.begins_with("设置"):
-			c.text = _settings_label()
-			c.grab_focus()
 
 func _on_quit() -> void:
 	SoundBus.play_sfx("select")

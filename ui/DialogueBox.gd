@@ -8,6 +8,14 @@ var lines: Array = []
 var idx: int = 0
 var active: bool = false
 var _label: Label
+## 打字机状态
+var _full_text: String = ""
+var _shown: int = 0
+var _typing: bool = false
+var _char_acc: float = 0.0
+
+## 文字速度 → 每字间隔秒(0=瞬间显示); 对应 GameState.text_speed 0/1/2
+const _SPEED_DELAY := [0.05, 0.022, 0.0]
 
 func _ready() -> void:
 	visible = false
@@ -35,16 +43,42 @@ func _show() -> void:
 	if idx >= lines.size():
 		_end()
 		return
-	_label.text = str(lines[idx])
+	_full_text = str(lines[idx])
+	_shown = 0
+	_typing = true
+	_char_acc = 0.0
+	_label.text = ""
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if not active:
 		return
+	if _typing:
+		var spd := GameState.text_speed
+		if spd < 0 or spd > 2:
+			spd = 1
+		var delay: float = _SPEED_DELAY[spd]
+		if delay <= 0.0:
+			_label.text = _full_text
+			_typing = false
+		else:
+			_char_acc += delta
+			while _typing and _char_acc >= delay and _shown < _full_text.length():
+				_char_acc -= delay
+				_shown += 1
+				_label.text = _full_text.substr(0, _shown)
+			if _shown >= _full_text.length():
+				_typing = false
 	if Input.is_action_just_pressed("interact") or Input.is_action_just_pressed("attack"):
-		idx += 1
-		SoundBus.play_sfx("select")
-		_show()
+		if _typing:
+			# 正在打字: 立即补全本句(不推进)
+			_typing = false
+			_label.text = _full_text
+		else:
+			idx += 1
+			SoundBus.play_sfx("select")
+			_show()
 
 func _end() -> void:
 	active = false
+	_typing = false
 	visible = false

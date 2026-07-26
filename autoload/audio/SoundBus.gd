@@ -4,7 +4,9 @@ extends Node
 ## 与 MusicBus 互补: 这里是一发即止的「音效」(攻击/命中/收服/治疗/升级/濒死/菜单...),
 ## 用一次性 AudioStreamWAV 合成 + 4 路播放池(简单复音), 不占用 BGM 的连续 push 循环。
 ## 对外 API: play_sfx(name) / set_sfx_enabled(bool) / set_sfx_volume(0..1)。
-## 全部音高/波形为程序生成, 无任何外部版权素材。headless(无音频设备)下安全: 仅不发声。
+## 取用策略: 优先 load res://audio/<name>.wav|ogg|mp3(用户可丢入自有音效替换),
+## 找不到才用下方 _sounds 程序化合成(兜底)。全部音高/波形为原创, 无任何外部版权素材。
+## headless(无音频设备)下安全: 仅不发声。
 
 const BUS_NAME := "SFX"
 const POOL := 4
@@ -51,7 +53,7 @@ func _ensure_bus() -> void:
 func play_sfx(name: String) -> void:
 	if not GameState.sfx_on:
 		return
-	var wav: AudioStreamWAV = _get_wav(name)
+	var wav: AudioStream = _get_wav(name)
 	if wav == null:
 		return
 	var p: AudioStreamPlayer = _free_player()
@@ -80,9 +82,18 @@ func _build_all() -> void:
 	for name in _sounds.keys():
 		_get_wav(name)
 
-func _get_wav(name: String) -> AudioStreamWAV:
+func _get_wav(name: String) -> AudioStream:
 	if _wav_cache.has(name):
 		return _wav_cache[name]
+	# 优先: 用户提供的真实音效文件(res://audio/<name>.wav|ogg|mp3)
+	for ext in ["wav", "ogg", "mp3"]:
+		var p: String = "res://audio/" + name + "." + str(ext)
+		if FileAccess.file_exists(p):
+			var res = load(p)
+			if res is AudioStream:
+				_wav_cache[name] = res
+				return res
+	# 兜底: 程序化合成(原创波形, 规避版权)
 	var segs: Array = _sounds.get(name, [])
 	if segs.is_empty():
 		return null

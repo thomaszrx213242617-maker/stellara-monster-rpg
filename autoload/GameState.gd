@@ -57,6 +57,9 @@ var music_volume: float = 0.6
 var sfx_on: bool = true
 var sfx_volume: float = 0.7
 
+## 文字速度(对话打字机): 0=慢 1=中 2=快(快=瞬间显示); 全局偏好
+var text_speed: int = 1
+
 ## 设置玩家名字与性别(名字空则回退为"旅人")
 func set_player_identity(name: String, gender: String) -> void:
 	player_name = name.strip_edges()
