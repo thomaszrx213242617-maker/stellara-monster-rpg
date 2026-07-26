@@ -59,6 +59,14 @@ var _coins_label: Label
 var _toast: Label
 var _toast_t: float = 0.0
 
+# 常驻 HUD: 当前目标 / 首发灵兽 / 存档点
+var _objective: Label
+var _objective_bg: ColorRect
+var _lead_label: Label
+var _lead_hp_bar: ProgressBar
+var _savepoint_label: Label
+var _last_save_name: String = "星澜村·宝可梦中心"
+
 func _ready() -> void:
 	build_world()
 	_build_ui()
@@ -93,7 +101,11 @@ func _build_ui() -> void:
 	add_child(layer)
 	var hint := Label.new()
 	hint.text = "WASD移动 | 右键转视角 | 空格跳/攻击 | Shift闪避 | E交互/迎战 | B随机遭遇/迎战 | C收服(夜禁) | I/按钮 伤药 | 发光首领(黯潮深渊)按E挑战 | 紫裂隙激活靠近触发 | Esc暂停"
-	hint.position = Vector2(12, 12)
+	hint.position = Vector2(360, 1012)
+	hint.size = Vector2(1200, 40)
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint.add_theme_font_size_override("font_size", 16)
+	hint.modulate = Color(0.85, 0.9, 0.95)
 	layer.add_child(hint)
 	var t := Label.new()
 	t.name = "TimeLabel"
@@ -122,7 +134,9 @@ func _build_ui() -> void:
 	layer.add_child(_midboss_label)
 
 	_research_label = Label.new()
-	_research_label.position = Vector2(420, 12)
+	_research_label.position = Vector2(1480, 14)
+	_research_label.add_theme_font_size_override("font_size", 18)
+	_research_label.modulate = Color(0.8, 0.95, 1.0)
 	layer.add_child(_research_label)
 
 	_alpha_label = Label.new()
@@ -162,6 +176,53 @@ func _build_ui() -> void:
 	_tera_label.text = ""
 	layer.add_child(_tera_label)
 
+	# ---- 当前目标(主线指引, 常驻顶部居中) ----
+	_objective_bg = ColorRect.new()
+	_objective_bg.color = Color(0.05, 0.07, 0.12, 0.65)
+	_objective_bg.position = Vector2(560, 10)
+	_objective_bg.size = Vector2(800, 46)
+	layer.add_child(_objective_bg)
+	_objective = Label.new()
+	_objective.name = "ObjectiveHUD"
+	_objective.position = Vector2(560, 16)
+	_objective.size = Vector2(800, 36)
+	_objective.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_objective.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_objective.add_theme_font_size_override("font_size", 22)
+	_objective.modulate = Color(0.85, 1.0, 0.8)
+	layer.add_child(_objective)
+
+	# ---- 首发灵兽面板(队伍首位, 右上) ----
+	var lead_box := ColorRect.new()
+	lead_box.color = Color(0.05, 0.07, 0.12, 0.6)
+	lead_box.position = Vector2(1500, 56)
+	lead_box.size = Vector2(400, 120)
+	layer.add_child(lead_box)
+	var lead_title := Label.new()
+	lead_title.text = "首发灵兽"
+	lead_title.position = Vector2(1512, 62)
+	lead_title.add_theme_font_size_override("font_size", 16)
+	lead_title.modulate = Color(0.9, 0.95, 1.0)
+	layer.add_child(lead_title)
+	_lead_label = Label.new()
+	_lead_label.position = Vector2(1512, 88)
+	_lead_label.size = Vector2(376, 28)
+	_lead_label.add_theme_font_size_override("font_size", 20)
+	layer.add_child(_lead_label)
+	_lead_hp_bar = ProgressBar.new()
+	_lead_hp_bar.position = Vector2(1512, 122)
+	_lead_hp_bar.size = Vector2(376, 16)
+	_lead_hp_bar.max_value = 1.0
+	layer.add_child(_lead_hp_bar)
+
+	# ---- 存档点提示(右下) ----
+	_savepoint_label = Label.new()
+	_savepoint_label.position = Vector2(1500, 980)
+	_savepoint_label.size = Vector2(400, 60)
+	_savepoint_label.add_theme_font_size_override("font_size", 16)
+	_savepoint_label.modulate = Color(0.8, 0.95, 1.0)
+	layer.add_child(_savepoint_label)
+
 	_toast = Label.new()
 	_toast.position = Vector2(440, 200)
 	_toast.scale = Vector2(1.4, 1.4)
@@ -171,7 +232,11 @@ func _build_ui() -> void:
 
 func _on_time(_t: float) -> void:
 	if _time_label:
-		_time_label.text = "时间: " + DayNight.phase_label() + (" (禁止收服)" if DayNight.is_night else "")
+		var frac: float = DayNight.day_fraction()
+		var h := int(frac * 24.0)
+		var m := int(fmod(frac * 24.0 * 60.0, 60.0))
+		var clock := "%02d:%02d" % [h, m]
+		_time_label.text = "时间: " + DayNight.phase_label() + " " + clock + (" (禁止收服)" if DayNight.is_night else "")
 
 func build_world() -> void:
 	# 对话框(CanvasLayer), 供所有 NPC 共用
@@ -627,6 +692,7 @@ func _process(delta: float) -> void:
 		GameState.heal_team()
 		GameState.heal_player()
 		_last_save_point = _player.global_position
+		_last_save_name = "星澜村·宝可梦中心"
 		SaveManager.save_game()
 		SoundBus.play_sfx("heal")
 		if _dialogue and _dialogue.has_method("start"):
@@ -636,6 +702,7 @@ func _process(delta: float) -> void:
 		GameState.heal_team()
 		GameState.heal_player()
 		_last_save_point = _player.global_position
+		_last_save_name = "路旁营地（休整点）"
 		SaveManager.save_game()
 		SoundBus.play_sfx("heal")
 		if _dialogue and _dialogue.has_method("start"):
@@ -733,6 +800,9 @@ func _process(delta: float) -> void:
 	_update_team_label()
 	_update_research_label()
 	_update_player_hud()
+	_update_objective()
+	_update_lead_panel()
+	_update_savepoint()
 
 func _update_player_hud() -> void:
 	if _player_hp_bar:
@@ -765,3 +835,34 @@ func _update_research_label() -> void:
 		_research_label.text = "图鉴研究(金属性): 已完成! 获得远古球"
 	else:
 		_research_label.text = "图鉴研究(金属性): 收服/击败 " + str(r.get("progress", 0)) + "/" + str(r.get("need", 0))
+
+## 常驻 HUD: 当前目标(主线指引)
+func _update_objective() -> void:
+	if not _objective:
+		return
+	_objective.text = "▶ 当前目标：" + GameState.current_objective()
+
+## 常驻 HUD: 首发灵兽(队伍首位) 名称/等级/状态/HP
+func _update_lead_panel() -> void:
+	if not _lead_label or not _lead_hp_bar:
+		return
+	if GameState.team.is_empty():
+		_lead_label.text = "（暂无灵兽）"
+		_lead_hp_bar.value = 0.0
+		return
+	var c: Dictionary = GameState.team[0]
+	var d: Dictionary = DataBus.get_creature(c["id"])
+	var nm: String = d.get("name", c["id"])
+	var st: String = ("  [" + str(c.get("status", {}).get("name", "")) + "]") if (c.get("status") != null) else ""
+	_lead_label.text = nm + "  Lv" + str(c["level"]) + st
+	var ratio: float = float(c["hp"]) / float(max(int(c["max_hp"]), 1))
+	_lead_hp_bar.value = ratio
+	_lead_hp_bar.modulate = Color(0.4, 1.0, 0.5) if ratio > 0.5 else (Color(1.0, 0.85, 0.3) if ratio > 0.2 else Color(1.0, 0.4, 0.4))
+
+## 常驻 HUD: 存档点 / 复活点提示
+func _update_savepoint() -> void:
+	if not _savepoint_label:
+		return
+	var in_zone: bool = _in_center or _in_camp
+	var z: String = "⛺ 当前为存档点 · 按 E 休整并自动存档" if in_zone else ""
+	_savepoint_label.text = "复活点：" + _last_save_name + ("\n" + z if z != "" else "")
