@@ -633,9 +633,9 @@ func _on_enemy_defeated() -> void:
 		GameState.note_research(enemy_combatant.type)
 	if not enemy_is_wild and _badge_id != "":
 		GameState.grant_badge(_badge_id)
+		GameState.complete_milestone("获得徽章：" + _badge_id)
 		if _badge_id == "badge_mid":
 			GameState.midboss_done = true
-			GameState.complete_milestone("击败暗潮使·玄")
 		msg += "\n获得徽章: " + _badge_id
 	if res["levels"] > 0:
 		msg += "\n升级! Lv" + str(pdata["level"])

@@ -33,6 +33,8 @@ var _in_center: bool = false
 var _center_label: Label
 var _in_gym: bool = false
 var _gym_label: Label
+var _in_gym2: bool = false
+var _gym2_label: Label
 var _in_midboss: bool = false
 var _midboss
 var _midboss_label: Label
@@ -135,6 +137,11 @@ func _build_ui() -> void:
 	_gym_label.position = Vector2(12, 354)
 	_gym_label.text = ""
 	layer.add_child(_gym_label)
+
+	_gym2_label = Label.new()
+	_gym2_label.position = Vector2(12, 476)
+	_gym2_label.text = ""
+	layer.add_child(_gym2_label)
 
 	_midboss_label = Label.new()
 	_midboss_label.position = Vector2(12, 378)
@@ -401,6 +408,13 @@ func build_world() -> void:
 	gym.body_entered.connect(_on_gym_enter)
 	gym.body_exited.connect(_on_gym_exit)
 	add_child(gym)
+	# 第二座道馆: 清风道馆(星澜村西), 馆主·清, 清风徽章
+	var gym2 := GymScript.new()
+	gym2.position = Vector3(-30, 0, 0)
+	gym2.body_entered.connect(_on_gym2_enter)
+	gym2.body_exited.connect(_on_gym2_exit)
+	add_child(gym2)
+	_add_sign("清风道馆 · 馆主·清", Vector3(-30, 0, 8))
 	# 中期小Boss(训练家), 需序章后且已收服≥2种
 	var midboss := GymScript.new()
 	midboss.position = Vector3(72, 0, 16)
@@ -752,6 +766,14 @@ func _on_gym_exit(b: Node) -> void:
 	if b == _player:
 		_in_gym = false
 
+func _on_gym2_enter(b: Node) -> void:
+	if b == _player:
+		_in_gym2 = true
+
+func _on_gym2_exit(b: Node) -> void:
+	if b == _player:
+		_in_gym2 = false
+
 func _on_midboss_enter(b: Node) -> void:
 	if b == _player:
 		_in_midboss = true
@@ -892,12 +914,24 @@ func _process(delta: float) -> void:
 	if _gym_label:
 		_gym_label.text = "道馆·岩心 (按 E 挑战)" if _in_gym else ""
 
+	if _in_gym2 and Input.is_action_just_pressed("interact"):
+		GameState.pending_trainer = {
+			"enemy_id": "windpip",
+			"enemy_level": 10,
+			"trainer_name": "馆主·清",
+			"badge_id": "badge_wave"
+		}
+		get_tree().change_scene_to_file("res://battle/BattleArena.tscn")
+
+	if _gym2_label:
+		_gym2_label.text = "清风道馆·清 (按 E 挑战)" if _in_gym2 else ""
+
 	# 中期小Boss(暗潮使·玄): 需序章后且已收服≥2种
 	if _in_midboss and Input.is_action_just_pressed("interact"):
-		var ready: bool = GameState.story_stage >= 1 and GameState.dex_caught_count() >= 2
+		var ready: bool = GameState.story_stage >= 1 and GameState.dex_caught_count() >= 2 and GameState.has_badge("badge_stone") and GameState.has_badge("badge_wave")
 		if not ready:
 			if _dialogue and _dialogue.has_method("start"):
-				_dialogue.start(["暗潮使·玄：「你还太稚嫩。先去北之路收服至少两只灵兽，再来寻我。」"])
+				_dialogue.start(["暗潮使·玄：「集齐两枚道馆徽章，再来寻我。岩石与清风，皆需你亲手赢下。」"])
 		else:
 			GameState.pending_trainer = {
 				"enemy_id": "shadepup",
@@ -909,7 +943,7 @@ func _process(delta: float) -> void:
 
 	if _midboss_label:
 		if not GameState.midboss_done:
-			_midboss_label.text = "暗潮使·玄 (按 E 挑战, 需收服≥2种)" if _in_midboss else ""
+			_midboss_label.text = "暗潮使·玄 (按 E 挑战, 需两枚徽章)" if _in_midboss else ""
 		else:
 			_midboss_label.text = ""
 

@@ -101,6 +101,17 @@ func _ready() -> void:
 	_check(r._raid_pending == true, "晶变坑: 击败后进入收服/放弃选择")
 	r.queue_free()
 
+	# ---- 道馆战(馆主·清, badge_wave): 训练家模式 + 徽章发放 ----
+	GameState.reset_new_game()
+	GameState.pending_trainer = {"enemy_id": "windpip", "enemy_level": 10, "trainer_name": "馆主·清", "badge_id": "badge_wave"}
+	var g := load("res://battle/BattleArena.tscn").instantiate() as BattleArena
+	add_child(g)
+	await get_tree().create_timer(0.4).timeout
+	g.battle_over = true
+	_defeat(g)
+	_check(GameState.has_badge("badge_wave"), "道馆战: 击败馆主·清后获得 badge_wave")
+	g.queue_free()
+
 	# ---- 终局链: stage0 凛 -> stage1 辉金龙 ----
 	GameState.reset_new_game()
 	GameState.finale_stage = 0
