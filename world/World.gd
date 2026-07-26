@@ -50,6 +50,14 @@ var _in_tera: bool = false
 var _tera_label: Label
 var _tera_pit
 
+# 可探索点: 辉光晶簇(一次性奖励) / 古老封印(小谜题, 需收服≥3种)
+var _in_crystal: bool = false
+var _crystal
+var _crystal_label: Label
+var _in_seal: bool = false
+var _seal
+var _seal_label: Label
+
 # 野外突袭 / 玩家体力 / 存档点
 var _ambush = null
 var _last_save_point: Vector3 = Vector3(0, 1, 0)
@@ -176,6 +184,16 @@ func _build_ui() -> void:
 	_tera_label.text = ""
 	layer.add_child(_tera_label)
 
+	_crystal_label = Label.new()
+	_crystal_label.position = Vector2(12, 428)
+	_crystal_label.text = ""
+	layer.add_child(_crystal_label)
+
+	_seal_label = Label.new()
+	_seal_label.position = Vector2(12, 452)
+	_seal_label.text = ""
+	layer.add_child(_seal_label)
+
 	# ---- 当前目标(主线指引, 常驻顶部居中) ----
 	_objective_bg = ColorRect.new()
 	_objective_bg.color = Color(0.05, 0.07, 0.12, 0.65)
@@ -300,6 +318,7 @@ func build_world() -> void:
 	_add_house(Vector3(-8, 0, 18),  Vector3(4, 3.5, 4), Color(0.9, 0.85, 0.6))
 	_add_house(Vector3(22, 0, 4),   Vector3(5, 4, 5), Color(0.75, 0.65, 0.8))
 	_add_sign("星澜村 · 旅途的起点", Vector3(0, 0, 14))
+	_add_sign("方向牌：北之路↑(野怪)  晨曦镇→(道馆)  黯潮深渊↓(首领)", Vector3(0, 0, -10))
 
 	var center := CenterScript.new()
 	center.position = Vector3(0, 0, -22)
@@ -342,6 +361,12 @@ func build_world() -> void:
 		"我是阿砂。虽然咱俩是竞争关系，但找回凛这事上，咱是一条船。",
 		"等你击败晨曦镇的暗潮使·玄，黯潮深渊的大门才会开。",
 	], _player)
+	# 说书人·墨: 世界观与支线线索
+	_add_npc(Vector3(16, 1, -16), "说书人·墨", Color(0.8, 0.7, 0.9), [
+		"星澜大陆的传说里，曾有双生金属神兽守护这片土地——直到黯潮降临。",
+		"听说北之路藏着会发光的『辉光晶簇』，靠近按 E 就能采得；还有一道『古老封印』，需集齐三种灵兽方能唤醒。",
+		"夜幕降临后，黯潮翻涌，那时是收服不了的——记得白天再出手。",
+	], _player)
 
 	# ---- 北之路: 草丛野怪 + 裂隙 + 警告NPC + 营地 ----
 	_add_sign("北之路 · 野生灵兽出没", Vector3(0, 0, -40))
@@ -356,6 +381,12 @@ func build_world() -> void:
 		"草丛里每走一步都可能窜出野怪，而且它们会直接扑向你——不派出灵兽就会掉体力！",
 		"紫色的『时空裂隙』会周期性开启，激活时靠近会遇到稀有金属灵兽。",
 		"路旁有帐篷营地，按 E 扎营能回满体力和灵兽，也会成为你倒下后的复活点。",
+	], _player)
+	# 守林人·霜: 支线提示 + 草丛生存建议
+	_add_npc(Vector3(-26, 1, -52), "守林人·霜", Color(0.6, 0.8, 0.7), [
+		"这片林子我守了二十年。野怪虽凶，却也藏着稀有的金属灵兽——收服它们能推进图鉴研究。",
+		"若你见到发着蓝光的『辉光晶簇』，别错过，那是天地灵气凝结的宝物。",
+		"受伤别硬撑，回村中心或扎营都能回满，还能自动存档。",
 	], _player)
 	# 营地(北之路中途)
 	_add_camp(Vector3(-2, 0, -32))
@@ -395,6 +426,10 @@ func build_world() -> void:
 	pit.body_exited.connect(_on_tera_exit)
 	add_child(pit)
 	_tera_pit = pit
+
+	# 可探索点: 辉光晶簇(北之路西北角) + 古老封印(时空裂隙旁)
+	_add_crystal(Vector3(-24, 0, -64))
+	_add_seal(Vector3(18, 0, -72))
 
 	# ---- 黯潮深渊(南): 终Boss(黯潮之主·凛), 需中期Boss后 ----
 	_add_sign("黯潮深渊 · 首领出没", Vector3(0, 0, 50))
@@ -508,6 +543,93 @@ func _add_shop(pos: Vector3) -> void:
 	zone.body_exited.connect(_on_shop_exit)
 	zone.position = pos
 	add_child(zone)
+
+## 可探索点: 辉光晶簇(发光, 首次交互赠 远古球 ×1)
+func _add_crystal(pos: Vector3) -> void:
+	var c := Area3D.new()
+	var col := CollisionShape3D.new()
+	var sh := SphereShape3D.new()
+	sh.radius = 2.4
+	col.shape = sh
+	c.add_child(col)
+	c.body_entered.connect(_on_crystal_enter)
+	c.body_exited.connect(_on_crystal_exit)
+	c.position = pos
+	add_child(c)
+	_crystal = c
+	var shard := MeshInstance3D.new()
+	var sm := CylinderMesh.new()
+	sm.top_radius = 0.0
+	sm.bottom_radius = 0.5
+	sm.height = 1.8
+	shard.mesh = sm
+	shard.position = Vector3(0, 0.9, 0)
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.45, 0.9, 1.0)
+	mat.emission = Color(0.3, 0.8, 1.0)
+	mat.emission_energy = 1.8
+	mat.roughness = 0.25
+	shard.material_override = mat
+	c.add_child(shard)
+	var glow := OmniLight3D.new()
+	glow.position = Vector3(0, 1.2, 0)
+	glow.light_color = Color(0.4, 0.9, 1.0)
+	glow.light_energy = 2.2
+	glow.omni_range = 7.0
+	c.add_child(glow)
+	var tag := Label3D.new()
+	tag.text = "辉光晶簇"
+	tag.position = Vector3(0, 2.3, 0)
+	tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	tag.font_size = 26
+	c.add_child(tag)
+
+## 小谜题: 古老封印(需收服≥3种灵兽方可唤醒, 赠 好伤药 ×2 + 线索)
+func _add_seal(pos: Vector3) -> void:
+	var s := Area3D.new()
+	var col := CollisionShape3D.new()
+	var sh := BoxShape3D.new()
+	sh.size = Vector3(4, 4, 4)
+	col.shape = sh
+	col.position = Vector3(0, 2, 0)
+	s.add_child(col)
+	s.body_entered.connect(_on_seal_enter)
+	s.body_exited.connect(_on_seal_exit)
+	s.position = pos
+	add_child(s)
+	_seal = s
+	var stone := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = Vector3(1.2, 3.0, 0.5)
+	stone.mesh = bm
+	stone.position = Vector3(0, 1.5, 0)
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.4, 0.4, 0.5)
+	mat.roughness = 0.8
+	stone.material_override = mat
+	s.add_child(stone)
+	var tag := Label3D.new()
+	tag.text = "古老封印"
+	tag.position = Vector3(0, 3.4, 0)
+	tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	tag.font_size = 30
+	s.add_child(tag)
+
+func _on_crystal_enter(b: Node) -> void:
+	if b == _player:
+		_in_crystal = true
+
+func _on_crystal_exit(b: Node) -> void:
+	if b == _player:
+		_in_crystal = false
+
+func _on_seal_enter(b: Node) -> void:
+	if b == _player:
+		_in_seal = true
+
+func _on_seal_exit(b: Node) -> void:
+	if b == _player:
+		_in_seal = false
 
 func _on_tera_enter(b: Node) -> void:
 	if b == _player:
@@ -727,6 +849,34 @@ func _process(delta: float) -> void:
 				}
 				get_tree().change_scene_to_file("res://battle/BattleArena.tscn")
 
+	# 可探索点: 辉光晶簇(一次性奖励)
+	if _in_crystal and Input.is_action_just_pressed("interact"):
+		if not GameState.flags.get("crystal_north", false):
+			GameState.flags["crystal_north"] = true
+			GameState.add_item("ancient_ball", 1)
+			SoundBus.play_sfx("capture_success")
+			SaveManager.save_game()
+			_show_toast("你采得一枚辉光晶簇，获赠 远古球 ×1！")
+		else:
+			_show_toast("这枚辉光晶簇已被你采走了。")
+
+	# 小谜题: 古老封印(需收服≥3种灵兽方能唤醒)
+	if _in_seal and Input.is_action_just_pressed("interact"):
+		if not GameState.flags.get("seal_opened", false):
+			if GameState.dex_caught_count() >= 3:
+				GameState.flags["seal_opened"] = true
+				GameState.add_item("super_potion", 2)
+				SoundBus.play_sfx("levelup")
+				SaveManager.save_game()
+				if _dialogue and _dialogue.has_method("start"):
+					_dialogue.start(["封印低语：『当三相之灵归于你手，深渊之门将为你而开。』",
+						"你领悟了封印之力，获得 好伤药 ×2！"])
+			else:
+				if _dialogue and _dialogue.has_method("start"):
+					_dialogue.start(["封印纹丝不动……似乎需要收服至少 3 种灵兽，才能唤醒其中的力量。"])
+		else:
+			_show_toast("封印已被你唤醒过了。")
+
 	if _center_label:
 		_center_label.text = "宝可梦中心(按 E 治疗)" if _in_center else ""
 
@@ -815,6 +965,10 @@ func _update_player_hud() -> void:
 		_camp_label.text = "营地 (按 E 扎营休息)" if _in_camp else ""
 	if _tera_label:
 		_tera_label.text = "晶变坑 (按 E 三人协力讨伐)" if _in_tera else ""
+	if _crystal_label:
+		_crystal_label.text = "辉光晶簇 (按 E 采集)" if _in_crystal else ""
+	if _seal_label:
+		_seal_label.text = "古老封印 (按 E 探查)" if _in_seal else ""
 
 func _update_team_label() -> void:
 	if not _team_label:

@@ -55,6 +55,9 @@ var pending_raid: Dictionary = {}
 ## 玩家当前身处草丛区的数量(引用计数): 进入 +1、离开 -1；>0 表示在草丛中(脚步声换草丛版)
 var grass_zones: int = 0
 
+## 一次性探索事件标记(辉光晶簇 / 古老封印等), 由 World 读写, 随存档持久化
+var flags: Dictionary = {}
+
 ## 音频设置(背景音乐/音效 开关与音量; 全局偏好, 不随「新游戏」重置)
 var music_on: bool = true
 var music_volume: float = 0.6
@@ -242,6 +245,7 @@ func reset_new_game() -> void:
 	current_scene = ""
 	pending_raid = {}
 	grass_zones = 0
+	flags = {}
 	player_gender = "少年"
 	finale_stage = 0
 	coins = 300
