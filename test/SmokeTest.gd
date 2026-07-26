@@ -27,6 +27,18 @@ func _ready() -> void:
 	SoundBus.set_sfx_enabled(true)
 	_check(_sfx_ok, "SoundBus: 全部音效 play_sfx 调用无异常")
 
+	# ---- 音乐系统(MusicBus): 自定义音乐接口 + 原创曲目存在 ----
+	_check(MusicBus != null, "MusicBus 自动加载存在")
+	GameState.custom_music = ""
+	var _files := MusicBus.list_music_files()
+	_check(typeof(_files) == TYPE_ARRAY, "MusicBus.list_music_files 返回数组")
+	_check("title" in MusicBus._tracks and "overworld" in MusicBus._tracks and "battle" in MusicBus._tracks, "MusicBus: 原创曲目(title/overworld/battle)已重编")
+	MusicBus.set_custom_music("res://audio/__nonexistent_test__.wav")  # 不存在文件应安全回退
+	_check(MusicBus.mode == "procedural", "set_custom_music 异常文件安全回退为程序化")
+	GameState.custom_music = ""
+	MusicBus.play_track("overworld")
+	_check(MusicBus.current_track == "overworld", "play_track(overworld) 生效")
+
 	# ---- 存储箱(盒子): 存取逻辑 ----
 	GameState.team = []
 	GameState.storage = []

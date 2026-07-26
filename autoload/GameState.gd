@@ -64,6 +64,10 @@ var sfx_volume: float = 0.7
 ## 文字速度(对话打字机): 0=慢 1=中 2=快(快=瞬间显示); 全局偏好
 var text_speed: int = 1
 
+## 自定义背景音乐文件路径(res://audio/...); 空字符串=使用内置原创合成。
+## 在「设置→背景音乐」里切换并持久化; 属全局偏好, 不随「新游戏」重置。
+var custom_music: String = ""
+
 ## 设置玩家名字与性别(名字空则回退为"旅人")
 func set_player_identity(name: String, gender: String) -> void:
 	player_name = name.strip_edges()

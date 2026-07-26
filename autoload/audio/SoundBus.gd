@@ -75,6 +75,10 @@ func set_sfx_volume(v: float) -> void:
 	if "sfx_volume" in GameState:
 		GameState.sfx_volume = v
 
+## 返回全部音效名(供 MusicBus 扫描用户音乐文件时排除音效, 避免把音效当 BGM)。
+func sfx_names() -> Array:
+	return _sounds.keys()
+
 ## ---------- 内部 ----------
 
 func _free_player() -> AudioStreamPlayer:

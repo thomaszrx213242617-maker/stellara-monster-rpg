@@ -17,42 +17,52 @@ var is_playing := false
 
 # 曲目定义: bpm / wave(0正弦 1方波 2三角 3锯齿) / gain / 旋律 / 低音
 # 音高用 MIDI 编号(60=C4, 0=休止), 时长用拍数。
+## 全部曲目均为原创编曲(大调、明亮、英雄感, 借鉴「冒险/旷野」风格走向,
+## 但旋律/和声/音高均独立创作, 不复制任何任天堂/塞尔达素材)。
 var _tracks: Dictionary = {
 	"title": {
-		"bpm": 100, "wave": 2, "gain": 0.30,
-		"melody": [[72,1],[76,1],[79,1],[76,1],[69,1],[72,1],[76,1],[72,1],[74,2],[72,2]],
+		# 温柔的大调序曲(96bpm, C 大调 I-vi-IV-V), 三角波主旋律 + 正弦铺底
+		"bpm": 96, "wave": 2, "gain": 0.30,
+		"melody": [[72,1],[76,1],[79,1],[76,1],[72,1],[74,1],[76,1],[72,1],[69,1],[72,1],[76,1],[74,1],[72,2],[67,2]],
 		"bass":   [[48,4],[45,4],[41,4],[43,4]],
 	},
 	"overworld": {
-		"bpm": 122, "wave": 1, "gain": 0.26,
-		"melody": [[72,1],[74,1],[76,1],[72,1],[77,1],[76,1],[74,1],[72,1],[79,2],[76,2]],
+		# 轻快行走的主题(120bpm, C 大调), 跳跃四分音符, 明亮开阔
+		"bpm": 120, "wave": 2, "gain": 0.26,
+		"melody": [[72,1],[76,1],[79,1],[76,1],[74,1],[76,1],[72,1],[74,1],[69,1],[72,1],[74,1],[76,1],[77,1],[76,1],[74,1],[72,1]],
 		"bass":   [[48,4],[55,4],[53,4],[48,4]],
 	},
 	"battle": {
-		"bpm": 152, "wave": 3, "gain": 0.30,
-		"melody": [[69,1],[72,1],[76,1],[72,1],[74,1],[77,1],[81,1],[77,1],[76,2],[72,2]],
+		# 激昂战斗曲(150bpm, a 小调张力), 方波主旋律保持棱角
+		"bpm": 150, "wave": 1, "gain": 0.28,
+		"melody": [[69,1],[72,1],[76,1],[72,1],[74,1],[76,1],[79,1],[76,1],[77,1],[76,1],[74,1],[72,1],[74,1],[76,1],[79,1],[76,1]],
 		"bass":   [[45,4],[45,4],[41,4],[43,4]],
 	},
 	"raid": {
-		"bpm": 144, "wave": 1, "gain": 0.30,
-		"melody": [[76,1],[79,1],[83,1],[79,1],[81,1],[84,1],[88,1],[84,1],[83,2],[79,2]],
-		"bass":   [[52,4],[52,4],[47,4],[48,4]],
+		# 高强度讨伐曲(144bpm, d 小调), 锯齿波铺张力
+		"bpm": 144, "wave": 3, "gain": 0.28,
+		"melody": [[74,1],[78,1],[81,1],[78,1],[77,1],[78,1],[81,1],[83,1],[84,1],[83,1],[81,1],[78,1],[81,1],[83,1],[86,1],[83,1]],
+		"bass":   [[50,4],[50,4],[45,4],[47,4]],
 	},
 	"finale": {
-		"bpm": 130, "wave": 3, "gain": 0.32,
-		"melody": [[69,1],[72,1],[76,2],[74,1],[77,1],[81,2],[79,1],[76,1],[72,2],[67,2]],
-		"bass":   [[45,4],[43,4],[41,4],[43,4]],
+		# 凯旋终章(130bpm, C 大调), 上行号角式动机
+		"bpm": 130, "wave": 2, "gain": 0.32,
+		"melody": [[72,1],[76,1],[79,1],[84,1],[83,1],[79,1],[76,1],[72,1],[74,1],[76,1],[79,1],[81,1],[79,2],[72,2]],
+		"bass":   [[48,4],[43,4],[45,4],[43,4]],
 	},
 	"ending": {
-		"bpm": 92, "wave": 2, "gain": 0.30,
-		"melody": [[72,2],[76,2],[79,2],[76,1],[72,1],[69,2],[67,2],[69,2]],
+		# 平和尾声(92bpm, C 大调), 正弦主旋律如安眠曲
+		"bpm": 92, "wave": 0, "gain": 0.30,
+		"melody": [[72,2],[76,2],[79,2],[76,1],[72,1],[69,2],[67,2],[69,2],[64,2]],
 		"bass":   [[48,4],[43,4],[45,4],[41,4]],
 	},
 }
 
 var _mix_rate: float = 44100.0
 var _melody := Voice.new()
+var _harmony := Voice.new()   # pad/和声铺底(正弦, 低增益)
 var _bass := Voice.new()
+var _last_track := "title"    # 记忆场景曲目, 供自定义音乐关闭后恢复
 
 func _ready() -> void:
 	_ensure_bus()
@@ -66,7 +76,7 @@ func _ready() -> void:
 	player.play()
 	playback = player.get_stream_playback()
 	_apply_volume()
-	_apply_track("title")
+	play_track("title")   # 经 play_track: 若已设置自定义音乐则优先播放
 	is_playing = true
 
 func _ensure_bus() -> void:
@@ -80,14 +90,49 @@ func _ensure_bus() -> void:
 ## ---------- 对外 API ----------
 
 func play_track(name: String) -> void:
-	if name == current_track and is_playing:
+	# 自定义音乐优先: 一旦玩家在设置里指定了背景音乐文件, 全场景统一播放该文件
+	if GameState.custom_music != "":
+		current_track = name
+		_last_track = name
+		_play_file(GameState.custom_music)
 		return
+	if name == current_track and is_playing and mode == "procedural":
+		return
+	_last_track = name
 	current_track = name
 	var path := _find_file(name)
 	if path != "":
 		_play_file(path)
 	else:
 		_apply_track(name)
+
+## 设置/取消自定义背景音乐。path="" 表示恢复内置原创合成。
+func set_custom_music(path: String) -> void:
+	if "custom_music" in GameState:
+		GameState.custom_music = path
+	current_track = ""
+	if path == "":
+		play_track(_last_track)
+	else:
+		_play_file(path)
+
+## 扫描 res://audio/ 下可作为 BGM 的用户文件(排除音效名), 返回 [{name, path}]。
+func list_music_files() -> Array:
+	var out: Array = []
+	var names: Array = SoundBus.sfx_names()
+	var dir := DirAccess.open("res://audio/")
+	if dir == null:
+		return out
+	for fname in dir.get_files():
+		var ext: String = fname.get_extension().to_lower()
+		if ext != "ogg" and ext != "mp3" and ext != "wav" and ext != "oga":
+			continue
+		var base: String = fname.get_basename()
+		if base in names:
+			continue
+		var disp: String = base.replace("_", " ").capitalize()
+		out.append({"name": disp, "path": "res://audio/" + fname})
+	return out
 
 func stop() -> void:
 	is_playing = false
@@ -116,6 +161,14 @@ func _apply_track(name: String) -> void:
 	var gain: float = float(t.get("gain", 0.3))
 	_melody.set_seq(t.get("melody", []), bpm, _mix_rate, wave, gain)
 	_bass.set_seq(t.get("bass", []), bpm, _mix_rate, 0, gain * 0.6)
+	# 和声铺底(pad): 取低音根音上移八度 + 纯五度, 正弦波, 低增益, 营造厚实冒险质感
+	var pad_seq := []
+	for bn in t.get("bass", []):
+		var r: int = int(bn[0]) if bn.size() >= 1 else 48
+		var b: float = float(bn[1]) if bn.size() >= 2 else 4.0
+		pad_seq.append([r + 12, b * 0.5])
+		pad_seq.append([r + 19, b * 0.5])
+	_harmony.set_seq(pad_seq, bpm, _mix_rate, 0, gain * 0.30)
 	if player.stream != generator:
 		player.stream = generator
 		player.play()
@@ -168,7 +221,7 @@ func _process(_delta: float) -> void:
 	var buf := PackedVector2Array()
 	buf.resize(frames)
 	for i in frames:
-		var s := _melody.sample() + _bass.sample()
+		var s := _melody.sample() + _harmony.sample() + _bass.sample()
 		s = clamp(s, -0.95, 0.95)
 		buf[i] = Vector2(s, s)
 	playback.push_buffer(buf)

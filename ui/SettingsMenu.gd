@@ -11,11 +11,14 @@ var _b_music: Button
 var _b_sfx: Button
 var _b_speed: Button
 var _b_full: Button
+var _b_musicfile: Button
 var _s_music: HSlider
 var _s_sfx: HSlider
 var _v_music: Label
 var _v_sfx: Label
 var _first: Button
+var _music_options: Array = []
+var _music_idx: int = 0
 
 const _SPEED_LABEL := ["慢", "中", "快"]
 
@@ -64,6 +67,20 @@ func _build() -> void:
 	hm.add_child(lm); hm.add_child(_s_music); hm.add_child(_v_music)
 	vb.add_child(hm)
 	_s_music.value_changed.connect(_on_music_vol)
+
+	# 背景音乐文件(自定义 BGM): 在「原创合成」与用户放入 res://audio/ 的文件间循环
+	var opts: Array = [{"name": "原创合成", "path": ""}]
+	for m in MusicBus.list_music_files():
+		opts.append(m)
+	_music_options = opts
+	_music_idx = 0
+	for i in opts.size():
+		if opts[i]["path"] == GameState.custom_music:
+			_music_idx = i
+			break
+	_b_musicfile = _btn("背景音乐: " + opts[_music_idx]["name"])
+	_b_musicfile.pressed.connect(_cycle_music_file)
+	vb.add_child(_b_musicfile)
 
 	# 音效 开/关
 	_b_sfx = _btn("音效: " + ("开" if GameState.sfx_on else "关"))
@@ -131,6 +148,18 @@ func _toggle_music() -> void:
 	_b_music.text = "音乐: " + ("开" if on else "关")
 	SaveManager.save_game()
 	SoundBus.play_sfx("select")
+
+## 循环切换背景音乐: 原创合成 ↔ 用户放入 res://audio/ 的音乐文件, 即时试听并保存。
+func _cycle_music_file() -> void:
+	if _music_options.is_empty():
+		return
+	_music_idx = (_music_idx + 1) % _music_options.size()
+	var opt: Dictionary = _music_options[_music_idx]
+	GameState.custom_music = opt["path"]
+	MusicBus.set_custom_music(opt["path"])
+	_b_musicfile.text = "背景音乐: " + opt["name"]
+	SoundBus.play_sfx("select")
+	SaveManager.save_game()
 
 func _on_music_vol(v: float) -> void:
 	MusicBus.set_music_volume(v / 100.0)
