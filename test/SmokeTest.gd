@@ -75,7 +75,7 @@ func _ready() -> void:
 	_check("hypno" in mon3["moves"], "升级学招: lumiadeer 习得 hypno")
 
 	# ---- UI 场景 _ready 实例化(捕捉运行时错误) ----
-	for _sc in ["res://ui/PartyBag.gd", "res://ui/SettingsMenu.gd", "res://ui/EndingCutscene.gd", "res://ui/Pokedex.gd", "res://ui/NarrationBox.gd", "res://ui/OpeningCollapse.gd"]:
+	for _sc in ["res://ui/PartyBag.gd", "res://ui/SettingsMenu.gd", "res://ui/EndingCutscene.gd", "res://ui/Pokedex.gd", "res://ui/NarrationBox.gd", "res://ui/OpeningCollapse.gd", "res://ui/StarterSelect.gd", "res://ui/EvolutionSequence.gd"]:
 		var _inst = load(_sc).new()
 		add_child(_inst)
 		_check(_inst != null, "UI 实例化无崩溃: " + _sc.get_file())

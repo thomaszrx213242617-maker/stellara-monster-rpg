@@ -240,7 +240,7 @@ func _on_setup_confirm() -> void:
 	SoundBus.play_sfx("select")
 	GameState.reset_new_game()
 	GameState.set_player_identity(_name_edit.text, _gender)
-	get_tree().change_scene_to_file(INTRO_SCENE)
+	get_tree().change_scene_to_file("res://ui/StarterSelect.tscn")
 
 func _on_continue() -> void:
 	SoundBus.play_sfx("select")

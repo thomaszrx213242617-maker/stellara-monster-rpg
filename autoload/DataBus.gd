@@ -51,6 +51,23 @@ func get_move(id: String) -> Dictionary:
 func get_item(id: String) -> Dictionary:
 	return items.get(id, {})
 
+## 属性对应的主题色(与 Combatant._apply_color 保持一致), 供 UI(御三家/进化演出)复用
+func type_color(type: String) -> Color:
+	var colors := {
+		"炎": Color(0.9, 0.3, 0.2), "水": Color(0.2, 0.4, 0.9), "木": Color(0.3, 0.7, 0.3),
+		"雷": Color(0.9, 0.9, 0.2), "岩": Color(0.6, 0.5, 0.4), "风": Color(0.7, 0.9, 0.8),
+		"光": Color(1.0, 0.95, 0.6), "暗": Color(0.3, 0.2, 0.4), "械": Color(0.7, 0.7, 0.75),
+		"灵": Color(0.8, 0.6, 0.9), "金": Color(0.72, 0.75, 0.82), "冰": Color(0.6, 0.85, 0.95)
+	}
+	return colors.get(type, Color(0.8, 0.8, 0.8))
+
+## 由灵兽名反查 id(用于进化演出按名定位数据)
+func creature_id_by_name(name: String) -> String:
+	for cid in creatures.keys():
+		if creatures[cid].get("name", "") == name:
+			return cid
+	return ""
+
 ## 攻击属性对防御属性的克制倍率
 func multiplier(atk_type: String, def_type: String) -> float:
 	return type_chart.multiplier(atk_type, def_type)

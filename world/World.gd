@@ -423,8 +423,8 @@ func build_world() -> void:
 
 	# ---- 北之路: 草丛野怪 + 裂隙 + 警告NPC + 营地 ----
 	_add_sign("北之路 · 野生灵兽出没", Vector3(0, 0, -40))
-	_add_encounter_zone(Vector3(-20, 0, -50), ["flarefox", "vinelop", "windpip"], 2, 6)
-	_add_encounter_zone(Vector3(20, 0, -55), ["aqualeap", "bouldon", "shadepup", "ironhide"], 3, 7)
+	_add_encounter_zone(Vector3(-20, 0, -50), ["windpip", "voltmink", "lumiadeer"], 2, 6)
+	_add_encounter_zone(Vector3(20, 0, -55), ["tidecup", "bouldon", "shadepup", "ironhide"], 3, 7)
 	_add_encounter_zone(Vector3(-5, 0, -78), ["voltmink", "spiritbud", "lumiadeer"], 3, 8)
 	# 时空裂隙: 周期激活, 激活时靠近触发稀有金属遭遇
 	_rift = RiftScript.new()
@@ -479,7 +479,7 @@ func build_world() -> void:
 	_add_sign("霜原 · 馆主·霜音", Vector3(-100, 0, 63))
 	# 主题区: 熔岩谷(烈焰道馆氛围) —— 发光熔岩晶簇 + 野怪表
 	_add_glow_cluster(Vector3(100, 0, 46), Color(1.0, 0.45, 0.2), Color(1.0, 0.5, 0.2))
-	_add_encounter_zone(Vector3(100, 0, 38), ["emberat", "ashfang", "flarefox"], 4, 9)
+	_add_encounter_zone(Vector3(100, 0, 38), ["emberat", "ashfang", "ironhide"], 4, 9)
 	# 主题区: 霜原(寒冰道馆氛围) —— 发光冰晶簇 + 野怪表
 	_add_glow_cluster(Vector3(-100, 0, 46), Color(0.6, 0.85, 1.0), Color(0.7, 0.9, 1.0))
 	_add_encounter_zone(Vector3(-100, 0, 38), ["snowkit", "snowmane", "windpip"], 4, 9)
@@ -982,7 +982,7 @@ func _process(delta: float) -> void:
 			if d.get("wild", false):
 				wild_ids.append(cid)
 		if wild_ids.is_empty():
-			wild_ids = ["aqualeap"]
+			wild_ids = ["windpip"]
 		var id: String = wild_ids[randi() % wild_ids.size()]
 		var d: Dictionary = DataBus.get_creature(id)
 		var lv: int = randi_range(int(d.get("min_level", 2)), int(d.get("max_level", 6)))

@@ -32,6 +32,7 @@ var research: Dictionary = {"type": "金", "need": 3, "progress": 0, "done": fal
 ## 玩家身份与剧情进度(原创IP)
 var player_name: String = ""
 var player_gender: String = "少年"   # 少年 / 少女
+var chosen_starter: String = ""     # 御三家选择结果(空=尚未选择)
 var story_stage: int = 0             # 0 序章前 / 1 落地星澜 / 2 中期Boss后 / 3 结局后
 var opening_done: bool = false
 var midboss_done: bool = false
@@ -138,6 +139,18 @@ func add_to_team(id: String, level: int) -> void:
 	else:
 		storage.append(c)
 	team_changed.emit()
+
+## 御三家: 玩家从三只初始灵兽中择一。仅在尚未选择时生效, 自动入队首位。
+func choose_starter(id: String) -> bool:
+	if chosen_starter != "":
+		return false
+	var data: Dictionary = DataBus.get_creature(id)
+	if data.is_empty() or not data.get("starter", false):
+		return false
+	chosen_starter = id
+	add_to_team(id, 5)
+	note_dex_seen(id)
+	return true
 
 ## 把队伍第 i 只存入存储箱(队伍仅剩 1 只时禁止, 避免无灵兽可用)
 func deposit_to_storage(i: int) -> bool:
@@ -277,7 +290,7 @@ func reset_new_game() -> void:
 	if "time" in DayNight:
 		DayNight.time = 0.0
 	SaveManager.delete_save()
-	add_to_team("flarefox", 5)
+	chosen_starter = ""
 	inventory = {"ball": 5, "potion": 3}
 	team_changed.emit()
 	inventory_changed.emit()

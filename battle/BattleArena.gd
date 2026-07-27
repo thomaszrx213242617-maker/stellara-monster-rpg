@@ -10,6 +10,7 @@ class_name BattleArena
 const CombatantScript := preload("res://battle/Combatant.gd")
 const EnemyAIScript := preload("res://battle/EnemyAI.gd")
 const CombatScript := preload("res://core/combat.gd")
+const EvolutionSequenceScript := preload("res://ui/EvolutionSequence.gd")
 
 var player_combatant
 var enemy_combatant
@@ -736,10 +737,12 @@ func _on_enemy_defeated() -> void:
 		_end_battle(true, "胜利!")
 		return
 	var pdata: Dictionary = GameState.team[0]
+	var before_id: String = pdata["id"]
 	var exp: int = GameState.wild_exp(enemy_combatant.level)
 	if _enemy_is_alpha:
 		exp = int(exp * 1.5)
 	var res: Dictionary = GameState.grant_exp(pdata, exp)
+	var after_id: String = pdata["id"]
 	var msg: String = "胜利! 获得 " + str(exp) + " 经验"
 	if enemy_is_wild:
 		GameState.note_research(enemy_combatant.type)
@@ -761,6 +764,14 @@ func _on_enemy_defeated() -> void:
 		for mid in res["learned"]:
 			lnames.append(DataBus.get_move(mid).get("name", mid))
 		msg += "\n习得新招式: " + ", ".join(lnames)
+	# 进化时先播放庆祝演出, 结束后再弹出结算对话; 否则直接结算
+	if res["evolved"]:
+		_play_evolution(before_id, after_id, func(): _after_grant(res, msg))
+	else:
+		_after_grant(res, msg)
+
+## 进化演出结束后继续的结算逻辑(与原有胜利结算一致)
+func _after_grant(res: Dictionary, msg: String) -> void:
 	_pop(msg)
 	_award_coins()
 
@@ -795,6 +806,15 @@ func _on_enemy_defeated() -> void:
 		_end_battle(true, "首领灵兽倒下……星辉重燃！", "res://ui/EndingCutscene.tscn")
 		return
 	_end_battle(true, "胜利!")
+
+## 进化庆祝演出: 叠加覆盖层, 结束后回调 on_done
+func _play_evolution(before_id: String, after_id: String, on_done: Callable) -> void:
+	var seq := EvolutionSequenceScript.new()
+	seq.from_id = before_id
+	seq.to_id = after_id
+	seq.finished.connect(on_done, CONNECT_ONE_SHOT)
+	add_child(seq)
+	SoundBus.play_sfx("levelup")
 
 ## ---- 晶变坑讨伐(太晶坑原创) ----
 func _enter_raid_mode() -> void:
