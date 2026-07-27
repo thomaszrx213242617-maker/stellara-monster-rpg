@@ -1,121 +1,202 @@
-extends Control
+extends Node3D
 
-## 原创序章(借鉴《王国之泪》"自星海降临/引路者低语/封印灾厄"的结构, 文案全原创)。
-## 剧情: 你是星辉冠军(拥有全灵兽)→与伙伴凛探山洞→遇双封面神兽(辉金龙/黯钢兽)→失败、山洞崩毁→在家苏醒、伙伴与神兽失踪。
-## 由 TitleScreen「开始新游戏」后进入; 播完衔接 PrologueCutscene(新序章), 再进世界。
+## 原创开场(借鉴《王国之泪》"在神秘之地苏醒→伙伴在场开口引导→探索环境→向前进入"的进入方式, 文案全原创, 与任天堂无关)。
+## 玩法: 玩家直接在 3D 洞厅中醒来并可操控; 伙伴·凛开口交代背景(无旁白); 可走近碑文按 E 查看线索;
+##       向前(走入洞口)即进入 PrologueExplore(洞中探险/对话/战斗)。
+## 由 TitleScreen「开始新游戏」后进入; 走完衔接 PrologueExplore → OpeningCollapse → PrologueCutscene → World。
 
-var _lines: Array = []
-var _idx: int = 0
-var _active: bool = true
-var _label: Label
-var _orb: Label
-var _t: float = 0.0
-var _finished: bool = false
+const PlayerScript := preload("res://world/PlayerController.gd")
+const CameraScript := preload("res://world/CameraRig.gd")
+const DialogueScript := preload("res://ui/DialogueBox.gd")
+const NpcScript := preload("res://world/Npc.gd")
+
+var _player
+var _camera
+var _dialogue: Node
+var _rin: Node
+var _hint: Label
+var _toast: Label
+var _toast_t: float = 0.0
+var _inscription: Node3D
+var _near_inscription: bool = false
+var _inscription_done: bool = false
+var _exiting: bool = false
 
 func _ready() -> void:
-	_build()
-	_assemble_lines()
-	_show()
+	GameState.current_scene = "res://ui/OpeningCutscene.tscn"
+	_build_world()
+	_build_ui()
+	# 苏醒即由伙伴·凛开口交代背景(代替旁白)
+	if _dialogue and _dialogue.has_method("start"):
+		_dialogue.start(_rin.lines)
+	MusicBus.play_track("overworld")
 
-func _build() -> void:
-	var bg := ColorRect.new()
-	bg.color = Color(0.02, 0.03, 0.09)
-	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	bg.mouse_filter = Control.MOUSE_FILTER_STOP
-	add_child(bg)
+func _build_world() -> void:
+	var env_node := WorldEnvironment.new()
+	add_child(env_node)
+	var env := Environment.new()
+	env.background_mode = Environment.BG_COLOR
+	env.background_color = Color(0.03, 0.04, 0.09)
+	env.ambient_light_energy = 0.55
+	env.ambient_light_color = Color(0.5, 0.6, 0.9)
+	env_node.environment = env
 
-	# 星点(装饰)
-	for i in range(40):
-		var s := Control.new()
-		s.position = Vector2(randf() * 1280.0, randf() * 600.0)
-		s.custom_minimum_size = Vector2(2, 2)
-		var c := ColorRect.new()
-		c.color = Color(1, 1, 1, randf() * 0.6 + 0.2)
-		c.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		s.add_child(c)
-		add_child(s)
+	# 冷色「星光」自上方洒下
+	var moon := DirectionalLight3D.new()
+	moon.position = Vector3(3, 16, 4)
+	moon.rotation = Vector3(deg_to_rad(-60), 0, 0)
+	moon.light_color = Color(0.7, 0.8, 1.0)
+	moon.light_energy = 0.9
+	add_child(moon)
+	var glow := OmniLight3D.new()
+	glow.position = Vector3(0, 7, 0)
+	glow.light_color = Color(0.6, 0.8, 1.0)
+	glow.light_energy = 1.2
+	glow.omni_range = 22.0
+	add_child(glow)
 
-	# 降临的光之球
-	_orb = Label.new()
-	_orb.text = "✦"
-	_orb.add_theme_font_size_override("font_size", 120)
-	_orb.modulate = Color(1.0, 0.95, 0.7)
-	_orb.position = Vector2(600, -120)
-	_orb.size = Vector2(120, 120)
-	add_child(_orb)
+	# 地面
+	var ground := MeshInstance3D.new()
+	var pm := PlaneMesh.new()
+	pm.size = Vector2(40, 50)
+	ground.mesh = pm
+	ground.rotate_x(deg_to_rad(-90))
+	add_child(ground)
+	var sb := StaticBody3D.new()
+	var col := CollisionShape3D.new()
+	var sh := BoxShape3D.new()
+	sh.size = Vector3(40, 0.2, 50)
+	col.shape = sh
+	col.position = Vector3(0, -0.1, 0)
+	sb.add_child(col)
+	add_child(sb)
 
-	# 标题卡
-	var title := Label.new()
-	title.text = "序章 · 星辉冠军与沉眠之洞"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 34)
-	title.modulate = Color(0.85, 0.9, 1.0)
-	title.position = Vector2(0, 60)
-	title.size = Vector2(1280, 50)
-	title.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
-	title.offset_left = 0
-	title.offset_right = 0
-	add_child(title)
+	# 三面石壁(后方 + 两侧), 前方留作洞口
+	var wmat := StandardMaterial3D.new()
+	wmat.albedo_color = Color(0.16, 0.17, 0.22)
+	wmat.roughness = 0.9
+	for spec in [Vector3(0, 4, 14), Vector3(-9, 4, 0), Vector3(9, 4, 0)]:
+		var wall := MeshInstance3D.new()
+		var wm := BoxMesh.new()
+		if spec.z == 0:
+			wm.size = Vector3(2, 8, 50)
+		else:
+			wm.size = Vector3(40, 8, 2)
+		wall.mesh = wm
+		wall.position = spec
+		wall.material_override = wmat
+		add_child(wall)
 
-	# 字幕面板
-	var panel := Panel.new()
-	panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
-	panel.offset_left = 120
-	panel.offset_right = -120
-	panel.offset_top = -160
-	panel.offset_bottom = -40
-	add_child(panel)
+	# 洞口(前方)的微光, 提示前进方向
+	var exit_glow := OmniLight3D.new()
+	exit_glow.position = Vector3(0, 2, -8)
+	exit_glow.light_color = Color(0.9, 0.85, 0.6)
+	exit_glow.light_energy = 1.4
+	exit_glow.omni_range = 10.0
+	add_child(exit_glow)
 
-	_label = Label.new()
-	_label.position = Vector2(140, get_viewport_rect().size.y - 150 if false else 520)
-	_label.size = Vector2(1000, 110)
-	_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_label.add_theme_font_size_override("font_size", 24)
-	_label.modulate = Color(0.95, 0.97, 1.0)
-	add_child(_label)
+	# 碑文(可探索线索)
+	_inscription = Node3D.new()
+	_inscription.position = Vector3(-4, 0, 0)
+	var stele := MeshInstance3D.new()
+	var sm := BoxMesh.new()
+	sm.size = Vector3(0.8, 2.2, 0.4)
+	stele.mesh = sm
+	stele.position = Vector3(0, 1.1, 0)
+	var smat := StandardMaterial3D.new()
+	smat.albedo_color = Color(0.2, 0.35, 0.5)
+	smat.emission_enabled = true
+	smat.emission = Color(0.2, 0.7, 1.0)
+	smat.emission_energy_multiplier = 0.8
+	stele.material_override = smat
+	_inscription.add_child(stele)
+	var slab_light := OmniLight3D.new()
+	slab_light.position = Vector3(0, 1.6, 0)
+	slab_light.light_color = Color(0.4, 0.9, 1.0)
+	slab_light.light_energy = 1.6
+	slab_light.omni_range = 6.0
+	_inscription.add_child(slab_light)
+	var tag := Label3D.new()
+	tag.text = "碑文"
+	tag.position = Vector3(0, 2.6, 0)
+	tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	tag.font_size = 28
+	_inscription.add_child(tag)
+	add_child(_inscription)
 
-	var hint := Label.new()
-	hint.text = "按 E / 空格 继续"
-	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hint.add_theme_font_size_override("font_size", 14)
-	hint.modulate = Color(0.6, 0.65, 0.75)
-	hint.position = Vector2(0, 700)
-	hint.size = Vector2(1280, 30)
-	hint.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
-	add_child(hint)
+	# 玩家
+	_player = PlayerScript.new()
+	_player.position = Vector3(0, 1, 6)
+	add_child(_player)
 
-func _assemble_lines() -> void:
-	var nm: String = GameState.player_name if GameState.player_name != "" else "旅人"
-	_lines = [
-		nm + "，你是星澜大陆的星辉冠军——历代最强的灵兽训练家。",
-		"伙伴『凛』拍了拍你的肩：「山脊后面新发现了一道沉眠之洞，传说是双生神兽的封印。一起去看看？」",
-		"你腕上的三枚秘环微微发烫——巨灵、晶变、超衍，每种力量在一场战斗中只能施展一次。",
-		"你们举着火把走入洞中。岩壁上映着两道古老的刻痕——一龙，一兽，皆泛着金属的光泽。",
-		"（洞的更深处，似乎有什么东西在等待……）"
+	_camera = CameraScript.new()
+	add_child(_camera)
+	_camera.follow_target = _camera.get_path_to(_player)
+
+	# 对话 UI + 伙伴·凛(开口引导, 代替旁白)
+	var dlayer := CanvasLayer.new()
+	add_child(dlayer)
+	_dialogue = DialogueScript.new()
+	_dialogue.name = "DialogueBox"
+	dlayer.add_child(_dialogue)
+	_rin = NpcScript.new()
+	_rin.position = Vector3(3, 1, 2)
+	_rin.display_name = "伙伴·凛"
+	_rin.npc_color = Color(0.6, 0.8, 1.0)
+	_rin.lines = [
+		"凛：「你醒了？我们就在这『沉眠之洞』的入口。昨夜你一直念着那两头金属神兽的名字。」",
+		"凛：「你腕上这三枚秘环——巨灵、晶变、超衍，每种力量在一场战斗里只能用一次，关键时刻别浪费。」",
+		"凛：「洞厅里有野灵兽游荡，派灵兽迎战，别让它们伤着你。准备好了，我们就往里走。」"
 	]
+	_rin.player_ref = _player
+	_rin.dialogue_box = _dialogue
+	add_child(_rin)
 
-func _show() -> void:
-	if _idx >= _lines.size():
-		_finish()
-		return
-	_label.text = _lines[_idx]
+func _build_ui() -> void:
+	var layer := CanvasLayer.new()
+	add_child(layer)
+	_hint = Label.new()
+	_hint.text = "WASD移动 | 右键转视角 | 空格跳 | E 与凛对话 / 查看碑文 | 向前(洞口微光处)走入沉眠之洞"
+	_hint.position = Vector2(12, 12)
+	layer.add_child(_hint)
+	_toast = Label.new()
+	_toast.position = Vector2(360, 200)
+	_toast.scale = Vector2(1.3, 1.3)
+	_toast.modulate = Color(1.0, 0.7, 0.4)
+	_toast.text = ""
+	layer.add_child(_toast)
+
+func _show_toast(text: String) -> void:
+	if _toast:
+		_toast.text = text
+		_toast_t = 3.0
 
 func _process(delta: float) -> void:
-	if not _active:
+	if _toast_t > 0.0:
+		_toast_t -= delta
+		if _toast_t <= 0.0 and _toast:
+			_toast.text = ""
+	if _player == null or _exiting:
 		return
-	_t += delta
-	# 光球缓缓下降并轻微浮动
-	_orb.position.y = lerp(_orb.position.y, 280.0, delta * 0.6) + sin(_t * 2.0) * 0.4
-	if Input.is_action_just_pressed("interact") or Input.is_action_just_pressed("attack"):
-		_idx += 1
-		_show()
-
-func _finish() -> void:
-	if _finished:
-		return
-	_finished = true
-	_active = false
-	GameState.opening_done = true
-	SaveManager.save_game()
-	await get_tree().create_timer(0.6).timeout
-	get_tree().change_scene_to_file("res://world/PrologueExplore.tscn")
+	# 碑文: 靠近按 E 查看线索(凛口述, 无旁白)
+	var d: float = _inscription.global_position.distance_to(_player.global_position)
+	_near_inscription = d < 3.2
+	if _near_inscription:
+		_hint.text = "按 E 查看碑文"
+		if not _inscription_done and Input.is_action_just_pressed("interact") and (_dialogue == null or not _dialogue.active):
+			_inscription_done = true
+			if _dialogue and _dialogue.has_method("start"):
+				_dialogue.start([
+					"凛（望着碑文）：「一龙，一兽，都泛着金属的光泽……传说，这就是双生神兽的封印。」",
+					"凛：「可你看——石缝里正渗出暗紫色的雾气。黯潮，已经渗进来了。」"
+				])
+	else:
+		_hint.text = "WASD移动 | 右键转视角 | 空格跳 | E 与凛对话 / 查看碑文 | 向前(洞口微光处)走入沉眠之洞"
+	# 向前走入洞口 → 进入洞中探险
+	if _player.global_position.z < -3.0:
+		_exiting = true
+		_show_toast("你步入沉眠之洞……")
+		GameState.opening_done = true
+		SaveManager.save_game()
+		await get_tree().create_timer(0.7).timeout
+		get_tree().change_scene_to_file("res://world/PrologueExplore.tscn")
