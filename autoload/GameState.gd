@@ -164,6 +164,19 @@ func withdraw_from_storage(i: int) -> bool:
 	return true
 
 ## 给一只队伍灵兽加经验, 处理连续升级与进化。返回事件摘要。
+## 升级习得招式表: 灵兽id -> [[等级, 招式id], ...] (仅当未满4招且未学过才学)
+const LEVEL_MOVES := {
+	"snowmane": [[18, "blizzard"], [22, "frost"]],
+	"ashfang": [[18, "inferno"], [24, "blaze"]],
+	"tidecup": [[6, "torrent"], [11, "aqua"], [15, "beam"]],
+	"breezewing": [[6, "gust"], [12, "hurricane"]],
+	"lumiadeer": [[10, "beam"], [15, "shadow"], [18, "hypno"]],
+	"windpip": [[8, "gust"], [13, "hurricane"]],
+	"vinelop": [[9, "leaf"], [14, "vine"]],
+	"voltmink": [[9, "spark"], [14, "thunderwave"]],
+	"shadepup": [[9, "shadowclaw"], [14, "darkpulse"]]
+}
+
 func grant_exp(c: Dictionary, amount: int) -> Dictionary:
 	var res := {"levels": 0, "evolved": false, "from": "", "to": ""}
 	if c.has("status") and c["status"] != null and c["status"].get("name", "") == "睡眠":
@@ -193,6 +206,13 @@ func grant_exp(c: Dictionary, amount: int) -> Dictionary:
 				res["from"] = from_name
 				res["to"] = to_data["name"]
 				evolved.emit(c, from_name, to_data["name"])
+		# 升级习得新招式(每跨越一个阈值学一次, 满4招或已学会则跳过)
+		for entry in LEVEL_MOVES.get(c["id"], []):
+			if int(entry[0]) <= int(c["level"]) and not (entry[1] in c["moves"]) and c["moves"].size() < 4:
+				c["moves"].append(entry[1])
+				if not res.has("learned"):
+					res["learned"] = []
+				res["learned"].append(entry[1])
 	return res
 
 func _on_level_up(c: Dictionary) -> void:
@@ -304,7 +324,7 @@ func current_objective() -> String:
 		return "前往晨曦镇，挑战馆主·岩心，赢取岩石徽章"
 	if not has_badge("badge_wave"):
 		return "前往星澜村西，挑战馆主·清，赢取清风徽章"
-	if not has_badge("badge_blaze"):
+	if not has_badge("badge_flame"):
 		return "前往熔岩谷，挑战馆主·炎心，赢取烈焰徽章"
 	if not has_badge("badge_frost"):
 		return "前往霜原，挑战馆主·霜音，赢取寒冰徽章"

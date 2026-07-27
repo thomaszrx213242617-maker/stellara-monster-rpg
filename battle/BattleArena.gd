@@ -748,6 +748,7 @@ func _on_enemy_defeated() -> void:
 		GameState.complete_milestone("获得徽章：" + _badge_id)
 		if _badge_id == "badge_mid":
 			GameState.midboss_done = true
+			GameState.flags["xuan_revealed"] = true
 		msg += "\n获得徽章: " + _badge_id
 	if res["levels"] > 0:
 		msg += "\n升级! Lv" + str(pdata["level"])
@@ -755,6 +756,11 @@ func _on_enemy_defeated() -> void:
 		msg += "\n进化: " + res["from"] + " → " + res["to"] + "!"
 	if res["levels"] > 0 or res["evolved"]:
 		SoundBus.play_sfx("levelup")
+	if res.has("learned") and res["learned"].size() > 0:
+		var lnames := []
+		for mid in res["learned"]:
+			lnames.append(DataBus.get_move(mid).get("name", mid))
+		msg += "\n习得新招式: " + ", ".join(lnames)
 	_pop(msg)
 	_award_coins()
 

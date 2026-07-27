@@ -477,6 +477,18 @@ func build_world() -> void:
 	gym4.body_exited.connect(_on_gym4_exit)
 	add_child(gym4)
 	_add_sign("霜原 · 馆主·霜音", Vector3(-100, 0, 63))
+	# 主题区: 熔岩谷(烈焰道馆氛围) —— 发光熔岩晶簇 + 野怪表
+	_add_glow_cluster(Vector3(100, 0, 46), Color(1.0, 0.45, 0.2), Color(1.0, 0.5, 0.2))
+	_add_encounter_zone(Vector3(100, 0, 38), ["emberat", "ashfang", "flarefox"], 4, 9)
+	# 主题区: 霜原(寒冰道馆氛围) —— 发光冰晶簇 + 野怪表
+	_add_glow_cluster(Vector3(-100, 0, 46), Color(0.6, 0.85, 1.0), Color(0.7, 0.9, 1.0))
+	_add_encounter_zone(Vector3(-100, 0, 38), ["snowkit", "snowmane", "windpip"], 4, 9)
+	# 连接两主题区的守界人(剧情线索)
+	_add_npc(Vector3(0, 1, 50), "守界人·烬", Color(0.9, 0.7, 0.4), [
+		"熔岩谷的炎心、霜原的霜音，是新近崛起的两位馆主。",
+		"他们的徽章，是开启黯潮深渊封印的关键。",
+		"（主线：集齐岩石·清风·烈焰·寒冰四徽章，再去找暗潮使·玄。）"
+	], _player)
 
 	# 支线任务: 祈愿石碑(集齐≥2枚徽章可领取一次补给)
 	var wish := Area3D.new()
@@ -681,6 +693,35 @@ func _add_crystal(pos: Vector3) -> void:
 	tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	tag.font_size = 26
 	c.add_child(tag)
+
+## 主题区发光晶簇(纯装饰): 在 pos 处生成若干发光晶体 + 一盏点光, 烘托熔岩谷/霜原氛围
+func _add_glow_cluster(pos: Vector3, base: Color, glow: Color) -> void:
+	var root := Node3D.new()
+	root.position = pos
+	add_child(root)
+	var offsets := [Vector3(0, 0, 0), Vector3(1.6, 0, 0.8), Vector3(-1.4, 0, -0.6)]
+	var heights := [2.2, 1.6, 1.9]
+	for i in offsets.size():
+		var shard := MeshInstance3D.new()
+		var sm := CylinderMesh.new()
+		sm.top_radius = 0.0
+		sm.bottom_radius = 0.45
+		sm.height = heights[i]
+		shard.mesh = sm
+		shard.position = offsets[i] + Vector3(0, heights[i] / 2.0, 0)
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = base
+		mat.emission = glow
+		mat.emission_energy = 2.0
+		mat.roughness = 0.25
+		shard.material_override = mat
+		root.add_child(shard)
+	var light := OmniLight3D.new()
+	light.position = Vector3(0, 2.0, 0)
+	light.light_color = glow
+	light.light_energy = 3.0
+	light.omni_range = 10.0
+	root.add_child(light)
 
 ## 小谜题: 古老封印(需收服≥3种灵兽方可唤醒, 赠 好伤药 ×2 + 线索)
 func _add_seal(pos: Vector3) -> void:
@@ -1066,20 +1107,28 @@ func _process(delta: float) -> void:
 	if _gym4_label:
 		_gym4_label.text = "寒冰道馆·霜音 (按 E 挑战)" if _in_gym4 else ""
 
-	# 中期小Boss(暗潮使·玄): 需集齐四枚徽章
+	# 中期小Boss(暗潮使·玄): 需集齐四枚徽章; 战后可再次对话获取剧情指引
 	if _in_midboss and Input.is_action_just_pressed("interact"):
-		var ready: bool = GameState.story_stage >= 1 and GameState.has_badge("badge_stone") and GameState.has_badge("badge_wave") and GameState.has_badge("badge_flame") and GameState.has_badge("badge_frost")
-		if not ready:
+		if GameState.midboss_done:
 			if _dialogue and _dialogue.has_method("start"):
-				_dialogue.start(["暗潮使·玄：「集齐四枚道馆徽章，再来寻我。岩石、清风、烈焰、寒冰，皆需你亲手赢下。」"])
+				_dialogue.start([
+					"暗潮使·玄：「四徽章已齐，封印之钥已在你手。」",
+					"「前往北境的黯潮深渊——黯潮之主·凛正守着双生神兽的裂隙。」",
+					"「救回你的伙伴凛，让星澜大陆重归平衡。去吧。」"
+				])
 		else:
-			GameState.pending_trainer = {
-				"enemy_id": "shadepup",
-				"enemy_level": 18,
-				"trainer_name": "暗潮使·玄",
-				"badge_id": "badge_mid"
-			}
-			get_tree().change_scene_to_file("res://battle/BattleArena.tscn")
+			var ready: bool = GameState.story_stage >= 1 and GameState.has_badge("badge_stone") and GameState.has_badge("badge_wave") and GameState.has_badge("badge_flame") and GameState.has_badge("badge_frost")
+			if not ready:
+				if _dialogue and _dialogue.has_method("start"):
+					_dialogue.start(["暗潮使·玄：「集齐四枚道馆徽章，再来寻我。岩石、清风、烈焰、寒冰，皆需你亲手赢下。」"])
+			else:
+				GameState.pending_trainer = {
+					"enemy_id": "shadepup",
+					"enemy_level": 18,
+					"trainer_name": "暗潮使·玄",
+					"badge_id": "badge_mid"
+				}
+				get_tree().change_scene_to_file("res://battle/BattleArena.tscn")
 
 	if _midboss_label:
 		if not GameState.midboss_done:

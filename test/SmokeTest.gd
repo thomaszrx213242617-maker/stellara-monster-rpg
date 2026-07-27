@@ -62,6 +62,18 @@ func _ready() -> void:
 	_check(int(DataBus.get_item("potion").get("power", 0)) == 30, "伤药 power=30")
 	_check(int(DataBus.get_item("super_potion").get("power", 0)) == 60, "好伤药 power=60")
 
+	# ---- 升级习得招式(LEVEL_MOVES) ----
+	GameState.reset_new_game()
+	var tc := DataBus.get_creature("tidecup")
+	var mon2 := {"id": "tidecup", "level": 5, "exp": 0, "moves": tc.get("moves", []).duplicate(), "max_hp": 10, "hp": 10}
+	var r2 := GameState.grant_exp(mon2, 5000)
+	_check("beam" in mon2["moves"], "升级学招: tidecup 习得 beam")
+	_check(r2.has("learned") and "beam" in r2["learned"], "升级学招: res.learned 含 beam")
+	var lc := DataBus.get_creature("lumiadeer")
+	var mon3 := {"id": "lumiadeer", "level": 5, "exp": 0, "moves": lc.get("moves", []).duplicate(), "max_hp": 10, "hp": 10}
+	var r3 := GameState.grant_exp(mon3, 5000)
+	_check("hypno" in mon3["moves"], "升级学招: lumiadeer 习得 hypno")
+
 	# ---- UI 场景 _ready 实例化(捕捉运行时错误) ----
 	for _sc in ["res://ui/PartyBag.gd", "res://ui/SettingsMenu.gd", "res://ui/EndingCutscene.gd", "res://ui/Pokedex.gd", "res://ui/NarrationBox.gd", "res://ui/OpeningCollapse.gd"]:
 		var _inst = load(_sc).new()
