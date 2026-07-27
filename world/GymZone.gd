@@ -4,6 +4,9 @@ class_name GymZone
 ## 道馆区域: 玩家进入后 World 监听 body_entered/body_exited 管理 _in_gym,
 ## 在区域内按 E 触发道馆战(训练家模式, 胜利获得徽章)。
 
+## 屋顶标识颜色(由各道馆在加入场景前设置, 用于区分主题: 蓝=清风/红=烈焰/青=寒冰)
+var roof_color: Color = Color(0.3, 0.5, 0.95)
+
 func _ready() -> void:
 	var m := MeshInstance3D.new()
 	var bm := BoxMesh.new()
@@ -41,6 +44,6 @@ func _ready() -> void:
 	roof.mesh = rm
 	roof.position = Vector3(0, 5.5, 0)
 	var rmat := StandardMaterial3D.new()
-	rmat.albedo_color = Color(0.3, 0.5, 0.95)
+	rmat.albedo_color = roof_color
 	roof.material_override = rmat
 	add_child(roof)

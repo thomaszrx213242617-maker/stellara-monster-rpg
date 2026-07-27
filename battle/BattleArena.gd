@@ -33,13 +33,20 @@ var result_label: Label
 var popup_timer: Timer
 var item_btn: Button
 var ball_btn: Button
+var _throwing: bool = false
 var _giant_btn: Button
 var _crystal_btn: Button
 var _hyper_btn: Button
 var coin_label: Label
-var _flash: ColorRect          ## 完美闪避时全屏白闪叠层
+var _flash: ColorRect          ## 完美闪避/命中白闪叠层
 var _dodge_cd: float = 0.0     ## 完美闪避反馈冷却(防刷屏)
 var _flash_t: float = 0.0      ## 白闪衰减计时
+var _red_flash: ColorRect      ## 玩家受击红闪叠层
+var _shake_t: float = 0.0      ## 镜头抖动计时
+var _cam: Camera3D             ## 战斗摄像机(用于抖动)
+var _cam_base: Vector3         ## 摄像机基准位置
+var _combo: int = 0            ## 连击计数
+var _combo_t: float = 0.0      ## 连击窗口计时
 
 ## 晶变坑(太晶坑原创命名)讨伐: 三名训练家协助, 胜利后可选收服/放弃
 var _raid_mode: bool = false
@@ -96,6 +103,8 @@ func build_arena() -> void:
 	cam.position = Vector3(0, 13, 17)
 	add_child(cam)
 	cam.look_at(Vector3.ZERO, Vector3.UP)
+	_cam = cam
+	_cam_base = cam.position
 
 func _build_hud() -> void:
 	hud_layer = CanvasLayer.new()
@@ -109,6 +118,15 @@ func _build_hud() -> void:
 	flash.modulate = Color(1, 1, 1, 0.0)
 	hud_layer.add_child(flash)
 	_flash = flash
+
+	# 玩家受击红闪叠层
+	var rflash := ColorRect.new()
+	rflash.color = Color(1, 0.2, 0.2)
+	rflash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	rflash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rflash.modulate = Color(1, 1, 1, 0.0)
+	hud_layer.add_child(rflash)
+	_red_flash = rflash
 
 	hint_label = Label.new()
 	hint_label.text = "WASD移动 | 空格攻击 | Shift闪避 | Q切技能 | C收服(夜晚禁用) | I/按钮 伤药 | 巨灵/晶变/超衍环 各一场一次"
@@ -252,7 +270,7 @@ func start_battle() -> void:
 	add_child(player_combatant)
 	player_combatant.hp_changed.connect(_on_hp)
 	player_combatant.defeated_signal.connect(_on_player_defeated)
-	player_combatant.damaged.connect(_on_combatant_damaged)
+	player_combatant.damaged.connect(_on_player_hurt)
 
 	var enemy_id: String = "aqualeap"
 	var enemy_level: int = 5
@@ -288,7 +306,7 @@ func start_battle() -> void:
 	add_child(enemy_combatant)
 	enemy_combatant.hp_changed.connect(_on_hp)
 	enemy_combatant.defeated_signal.connect(_on_enemy_defeated)
-	enemy_combatant.damaged.connect(_on_combatant_damaged)
+	enemy_combatant.damaged.connect(_on_enemy_hurt)
 	# 图鉴: 遭遇即记为「已见」
 	GameState.note_dex_seen(enemy_combatant.creature_id)
 	if coin_label:
@@ -309,9 +327,30 @@ func start_battle() -> void:
 func _on_hp(_c: int, _m: int) -> void:
 	_update_bars()
 
-func _on_combatant_damaged(amount: int) -> void:
+## 玩家受击: 红闪 + 镜头抖动, 并打断连击
+func _on_player_hurt(amount: int) -> void:
 	if amount > 0:
 		SoundBus.play_sfx("hit")
+		if _red_flash != null:
+			_red_flash.modulate.a = 0.45
+		_shake_t = 0.18
+		_combo = 0
+		_combo_t = 0.0
+
+## 敌方受击(含盟友攻击): 白闪冲击 + 连击累计
+func _on_enemy_hurt(amount: int) -> void:
+	if amount > 0:
+		SoundBus.play_sfx("hit")
+		if _flash_t < 0.18:
+			_flash_t = 0.18
+		_combo += 1
+		_combo_t = 2.5
+		if _combo >= 3 and _combo % 3 == 0:
+			_pop("连击 x" + str(_combo) + "!")
+
+## 连击伤害加成(封顶 +40%)
+func _combo_mult() -> float:
+	return 1.0 + min(_combo, 10) * 0.04
 
 func _update_bars() -> void:
 	if player_combatant and player_hp_bar:
@@ -386,7 +425,22 @@ func _physics_process(delta: float) -> void:
 	if _flash != null:
 		if _flash_t > 0.0:
 			_flash_t = max(0.0, _flash_t - delta * 2.5)
-		_flash.modulate.a = clamp(_flash_t, 0.0, 0.6)
+			_flash.modulate.a = clamp(_flash_t, 0.0, 0.6)
+	# 玩家受击红闪衰减
+	if _red_flash != null and _red_flash.modulate.a > 0.0:
+		_red_flash.modulate.a = max(0.0, _red_flash.modulate.a - delta * 2.2)
+	# 镜头抖动(受击时偏移, 平时归位)
+	if _cam != null:
+		if _shake_t > 0.0:
+			_shake_t = max(0.0, _shake_t - delta)
+			_cam.position = _cam_base + Vector3(randf_range(-0.45, 0.45), randf_range(-0.3, 0.3), 0)
+		else:
+			_cam.position = _cam_base
+	# 连击窗口衰减
+	if _combo_t > 0.0:
+		_combo_t = max(0.0, _combo_t - delta)
+		if _combo_t == 0.0:
+			_combo = 0
 
 	var input_dir := Vector3.ZERO
 	if Input.is_action_pressed("move_forward"): input_dir.z -= 1
@@ -454,7 +508,7 @@ func _player_attack() -> void:
 		_pop("被闪避!")
 	else:
 		SoundBus.play_sfx("attack")
-		var dmg: float = CombatScript.calc_damage(player_combatant.stats["atk"], enemy_combatant.stats["def"], power, mult, player_combatant.level, randf_range(0.85, 1.0)) * player_combatant.dmg_mult
+		var dmg: float = CombatScript.calc_damage(player_combatant.stats["atk"], enemy_combatant.stats["def"], power, mult, player_combatant.level, randf_range(0.85, 1.0)) * player_combatant.dmg_mult * _combo_mult()
 		var cat: String = mv.get("category", "物理")
 		enemy_combatant.take_damage(dmg, player_combatant, cat)
 		var eff: String = DataBus.type_chart.effectiveness_text(mult)
@@ -486,12 +540,46 @@ func _try_capture() -> void:
 	var ename: String = DataBus.get_creature(enemy_combatant.creature_id).get("name", "敌方")
 	var base: float = DataBus.get_creature(enemy_combatant.creature_id).get("catch_rate", 0.4)
 	var chance: float = CombatScript.capture_chance(enemy_combatant.hp, enemy_combatant.max_hp, base, GameState.ball_mod(ball), 1.0)
+	_throw_ball(ball, ename, chance)
+
+## 投球动画: 灵球从玩家位置抛物线飞向敌方, 落地后判定收服
+func _throw_ball(ball_id: String, ename: String, chance: float) -> void:
+	_throwing = true
+	var ball_mesh := MeshInstance3D.new()
+	var sm := SphereMesh.new()
+	sm.radius = 0.32
+	sm.height = 0.64
+	ball_mesh.mesh = sm
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.92, 0.95, 1.0)
+	mat.emission = Color(0.55, 0.8, 1.0)
+	mat.emission_enabled = true
+	mat.metallic = 0.3
+	mat.roughness = 0.4
+	ball_mesh.material_override = mat
+	var start: Vector3 = player_combatant.global_position + Vector3(0, 1.1, 0)
+	ball_mesh.position = start
+	add_child(ball_mesh)
+	var end: Vector3 = enemy_combatant.global_position + Vector3(0, 1.2, 0)
+	var tween := create_tween()
+	tween.tween_method(func(t: float) -> void:
+		ball_mesh.position = start.lerp(end, t) + Vector3(0, sin(t * PI) * 3.2, 0)
+		ball_mesh.rotate_z(22.0 * t)
+	, 0.0, 1.0, 0.5)
+	tween.finished.connect(func() -> void:
+		ball_mesh.queue_free()
+		_throwing = false
+		_resolve_capture(ball_id, ename, chance)
+	)
+
+## 投球落地后的收服判定
+func _resolve_capture(ball_id: String, ename: String, chance: float) -> void:
 	if randf() < chance:
 		GameState.add_to_team(enemy_combatant.creature_id, enemy_combatant.level)
 		GameState.caught_count += 1
 		GameState.note_dex_caught(enemy_combatant.creature_id)
 		GameState.note_research(DataBus.get_creature(enemy_combatant.creature_id).get("type", ""))
-		_pop("用" + DataBus.get_item(ball).get("name", "灵球") + "收服成功! " + ename)
+		_pop("用" + DataBus.get_item(ball_id).get("name", "灵球") + "收服成功! " + ename)
 		SoundBus.play_sfx("capture_success")
 		_end_battle(true)
 	else:
@@ -579,7 +667,7 @@ func _pop(text: String) -> void:
 		popup_label.text = text
 		popup_timer.start()
 
-## 完美闪避: 敌方攻击撞上闪避无敌帧时触发(视觉白闪 + 音效 + 弹字)
+## 完美闪避: 敌方攻击撞上闪避无敌帧时触发(视觉白闪 + 音效 + 弹字 + 短暂子弹时间)
 func _on_perfect_dodge() -> void:
 	if _dodge_cd > 0.0:
 		return
@@ -587,6 +675,11 @@ func _on_perfect_dodge() -> void:
 	_flash_t = 0.5
 	_pop("完美闪避!")
 	SoundBus.play_sfx("dodge")
+	# 安全子弹时间: 用树级真实计时器恢复, 即便战斗结束也不残留慢动作
+	if Engine.time_scale == 1.0:
+		Engine.time_scale = 0.4
+		var t := get_tree().create_timer(0.14, true)
+		t.timeout.connect(func(): Engine.time_scale = 1.0)
 
 ## 战斗中给队伍首位使用伤药(原创: 普通伤药+20 / 超级伤药+50)
 func _on_use_potion() -> void:
@@ -716,7 +809,7 @@ func _enter_raid_mode() -> void:
 	add_child(enemy_combatant)
 	enemy_combatant.hp_changed.connect(_on_hp)
 	enemy_combatant.defeated_signal.connect(_on_enemy_defeated)
-	enemy_combatant.damaged.connect(_on_combatant_damaged)
+	enemy_combatant.damaged.connect(_on_enemy_hurt)
 	GameState.note_dex_seen(enemy_combatant.creature_id)
 	_pop("晶变坑讨伐！" + DataBus.get_creature(boss_id).get("name", "") + " 现身！三名训练家前来协助！")
 	# 协助训练家(视觉 + 自动攻击)

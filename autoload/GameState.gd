@@ -304,9 +304,13 @@ func current_objective() -> String:
 		return "前往晨曦镇，挑战馆主·岩心，赢取岩石徽章"
 	if not has_badge("badge_wave"):
 		return "前往星澜村西，挑战馆主·清，赢取清风徽章"
+	if not has_badge("badge_blaze"):
+		return "前往熔岩谷，挑战馆主·炎心，赢取烈焰徽章"
+	if not has_badge("badge_frost"):
+		return "前往霜原，挑战馆主·霜音，赢取寒冰徽章"
 	if dex_caught_count() < 2:
 		return "前往北之路，收服至少 2 只灵兽（野怪会主动扑来，按 B/E 迎战）"
-	return "前往晨曦镇，挑战暗潮使·玄（需集齐两枚徽章）"
+	return "前往晨曦镇，挑战暗潮使·玄（需集齐四枚徽章）"
 
 func consume_item(id: String, n: int) -> bool:
 	if int(inventory.get(id, 0)) < n:

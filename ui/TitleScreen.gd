@@ -18,6 +18,7 @@ var _btn_girl: Button
 var _btn_continue: Button
 var _settings
 var _settings_open := false
+var _big_title: Label
 const SettingsMenuScript := preload("res://ui/SettingsMenu.gd")
 
 func _ready() -> void:
@@ -53,6 +54,7 @@ func _build() -> void:
 	big_title.offset_left = -320
 	big_title.offset_right = 320
 	add_child(big_title)
+	_big_title = big_title
 
 	# ---- 主菜单(位于标题下方) ----
 	_menu = VBoxContainer.new()
@@ -95,7 +97,7 @@ func _build() -> void:
 	_menu.add_child(b_quit)
 
 	var hint := Label.new()
-	hint.text = "WASD 移动 · 鼠标右键转视角 · 空格攻击/跳 · Shift 闪避 · E 交互 · B 遭遇 · C 收服 · Q 换人 · Esc 暂停"
+	hint.text = "WASD 移动 · 鼠标右键转视角 · 空格攻击/跳 · Shift 闪避 · E 交互 · B 遭遇 · C 收服 · Q 换人 · I 背包 · Esc 暂停"
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.add_theme_font_size_override("font_size", 13)
 	hint.modulate = Color(0.7, 0.7, 0.75)
@@ -221,12 +223,17 @@ func _on_new() -> void:
 	SoundBus.play_sfx("select")
 	_menu.visible = false
 	_setup.visible = true
+	# 让"创建角色"面板标题与首页大标题处于同一垂直位置(视觉连贯)
+	_big_title.visible = false
+	_setup.offset_top = -170
+	_setup.offset_bottom = -170 + _setup.size.y
 	_name_edit.grab_focus()
 
 func _on_back_to_menu() -> void:
 	SoundBus.play_sfx("select")
 	_setup.visible = false
 	_menu.visible = true
+	_big_title.visible = true
 	_focus_default()
 
 func _on_setup_confirm() -> void:

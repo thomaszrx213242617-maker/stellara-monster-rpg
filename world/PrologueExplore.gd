@@ -20,6 +20,8 @@ var _toast_t: float = 0.0
 var _scout_triggered: bool = false
 var _in_depth: bool = false
 var _motes: Array = []
+var _pickups: Array = []
+var _page_flags: Array = ["page_1", "page_2", "page_3"]
 var _t: float = 0.0
 
 func _ready() -> void:
@@ -139,6 +141,14 @@ func _build_world() -> void:
 	# 封印之地(深处): 强紫光拱门, 提示神兽所在
 	_add_seal_arch(Vector3(0, 0, -156))
 
+	# 可探索拾取: 辉光结晶(补给) + 封印残页(小谜题)
+	_add_crystal_pickup(Vector3(-9, 0, -28), "crystal_1", "potion", 1, "伤药")
+	_add_crystal_pickup(Vector3(9, 0, -78), "crystal_2", "super_potion", 1, "好伤药")
+	_add_crystal_pickup(Vector3(-9, 0, -128), "crystal_3", "ancient_ball", 1, "远古球")
+	_add_page(Vector3(8, 0, -45), "page_1")
+	_add_page(Vector3(-8, 0, -95), "page_2")
+	_add_page(Vector3(8, 0, -135), "page_3")
+
 	# 玩家
 	_player = PlayerScript.new()
 	_player.position = Vector3(0, 1, 18)
@@ -148,25 +158,29 @@ func _build_world() -> void:
 	add_child(_camera)
 	_camera.follow_target = _camera.get_path_to(_player)
 
-	# 对话 UI(CanvasLayer) + 伙伴·凛(跟随玩家)
+	# 对话 UI(CanvasLayer) + 三名伙伴(均跟随玩家, 与神兽战盟友一致)
 	var dlayer := CanvasLayer.new()
 	add_child(dlayer)
 	_dialogue = DialogueScript.new()
 	_dialogue.name = "DialogueBox"
 	dlayer.add_child(_dialogue)
-	_rin = NpcScript.new()
-	_rin.position = Vector3(3, 1, 14)
-	_rin.display_name = "伙伴·凛"
-	_rin.npc_color = Color(0.6, 0.8, 1.0)
-	_rin.lines = [
+	_add_companion("伙伴·凛", Color(0.6, 0.8, 1.0), Vector3(3, 1, 14), [
 		"凛：「你腕上的三枚秘环——巨灵、晶变、超衍，每种一场战斗只能用一次，关键时刻别浪费。」",
-		"凛：「前面似乎有野灵兽在游荡。把灵兽派出来迎战，别让它们伤到你。」",
-		"凛：「越往里走，岩壁里的光越亮……传说，这里是双生神兽的封印之地。」"
-	]
-	_rin.player_ref = _player
-	_rin.dialogue_box = _dialogue
-	_rin.follow_target = _player
-	add_child(_rin)
+		"凛：「前面似乎有野灵兽在游荡。把灵兽派出来迎战，别让它们伤着你。」",
+		"凛：「越往里走，岩壁里的光越亮……传说，这里是双生神兽的封印之地。」",
+		"凛：「放心，小岚和阿砂都在后面跟着呢。咱们四个，一起闯过去。」",
+		"凛：(压低声音) 「其实我也有点怕……但只要你在我身边，就没什么好怕的。」"
+	])
+	_add_companion("伙伴·小岚", Color(0.7, 0.9, 0.6), Vector3(-3, 1, 16), [
+		"小岚：「我是巡林人，最熟悉这些洞窟。踩稳脚下的晶石，别滑倒。」",
+		"小岚：「野灵兽怕光。要是它们围上来，你就往发光晶柱旁边靠。」",
+		"小岚：「别看阿砂老是跟你较劲，真到危险时，他比谁都靠得住。」"
+	])
+	_add_companion("伙伴·阿砂", Color(0.95, 0.6, 0.5), Vector3(0, 1, 18), [
+		"阿砂：「哼，这次就当陪你练练手。等收拾了那两头神兽，咱俩再好好比一场。」",
+		"阿砂：「这封印之地的气息不对劲……黯潮，比传说里更浓。」",
+		"阿砂：「走前面点！要挡刀也是我先上。」"
+	])
 
 func _add_crystal_pillar(pos: Vector3, cyan: bool) -> void:
 	var p := MeshInstance3D.new()
@@ -260,6 +274,112 @@ func _add_seal_arch(pos: Vector3) -> void:
 	gl.omni_range = 18.0
 	add_child(gl)
 
+## 创建一名跟随伙伴(玩家走动时自动尾随, 靠近按 E 对话)
+func _add_companion(name: String, color: Color, pos: Vector3, lines: Array) -> void:
+	var n := NpcScript.new()
+	n.position = pos
+	n.display_name = name
+	n.npc_color = color
+	n.lines = lines
+	n.player_ref = _player
+	n.dialogue_box = _dialogue
+	n.follow_target = _player
+	add_child(n)
+
+## 辉光结晶拾取(一次性, flags 记录): 走近按 E 获得补给
+func _add_crystal_pickup(pos: Vector3, flag: String, item: String, qty: int, hint: String) -> void:
+	var n := Node3D.new()
+	n.position = pos
+	var cm := MeshInstance3D.new()
+	var cym := CylinderMesh.new()
+	cym.top_radius = 0.35
+	cym.bottom_radius = 0.35
+	cym.height = 1.6
+	cm.mesh = cym
+	cm.position = Vector3(0, 0.8, 0)
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.3, 0.7, 0.9)
+	mat.metallic = 0.3
+	mat.emission_enabled = true
+	mat.emission = Color(0.4, 0.9, 1.0)
+	mat.emission_energy_multiplier = 1.2
+	cm.material_override = mat
+	n.add_child(cm)
+	var gl := OmniLight3D.new()
+	gl.position = Vector3(0, 1.2, 0)
+	gl.light_color = Color(0.4, 0.9, 1.0)
+	gl.light_energy = 1.6
+	gl.omni_range = 7.0
+	n.add_child(gl)
+	var tag := Label3D.new()
+	tag.text = "辉光结晶"
+	tag.position = Vector3(0, 2.0, 0)
+	tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	tag.font_size = 28
+	n.add_child(tag)
+	add_child(n)
+	_pickups.append({"node": n, "flag": flag, "item": item, "qty": qty, "hint": hint, "kind": "crystal"})
+
+## 封印残页(小谜题: 集齐 2/3 解锁线索 + 奖励)
+func _add_page(pos: Vector3, flag: String) -> void:
+	var n := Node3D.new()
+	n.position = pos
+	var pm := MeshInstance3D.new()
+	var pbm := BoxMesh.new()
+	pbm.size = Vector3(0.5, 0.7, 0.05)
+	pm.mesh = pbm
+	pm.position = Vector3(0, 1.0, 0)
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.9, 0.85, 0.6)
+	mat.emission_enabled = true
+	mat.emission = Color(0.9, 0.8, 0.5)
+	mat.emission_energy_multiplier = 0.8
+	pm.material_override = mat
+	n.add_child(pm)
+	var gl := OmniLight3D.new()
+	gl.position = Vector3(0, 1.2, 0)
+	gl.light_color = Color(1.0, 0.85, 0.5)
+	gl.light_energy = 1.2
+	gl.omni_range = 5.0
+	n.add_child(gl)
+	var tag := Label3D.new()
+	tag.text = "封印残页"
+	tag.position = Vector3(0, 1.7, 0)
+	tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	tag.font_size = 26
+	n.add_child(tag)
+	add_child(n)
+	_pickups.append({"node": n, "flag": flag, "item": "", "qty": 0, "hint": "封印残页", "kind": "page"})
+
+func _collect_pickup(pk: Dictionary) -> void:
+	if pk["node"] != null:
+		pk["node"].visible = false
+	GameState.flags[pk["flag"]] = true
+	if pk["kind"] == "crystal":
+		GameState.add_item(pk["item"], pk["qty"])
+		_show_toast("获得 " + pk["hint"] + " ×" + str(pk["qty"]))
+	else:
+		_show_toast("拾得 " + pk["hint"])
+	SoundBus.play_sfx("levelup")
+	if pk["kind"] == "page":
+		_check_page_puzzle()
+
+## 封印残页小谜题: 集齐 2/3 → 凛解读线索 + 好伤药 ×2
+func _check_page_puzzle() -> void:
+	var got: int = 0
+	for f in _page_flags:
+		if GameState.flags.get(f, false):
+			got += 1
+	if got >= 2 and not GameState.flags.get("page_reward", false):
+		GameState.flags["page_reward"] = true
+		GameState.add_item("super_potion", 2)
+		_show_toast("集齐封印残页！凛解读线索，获好伤药 ×2")
+		if _dialogue and _dialogue.has_method("start"):
+			_dialogue.start([
+				"凛：「残页上写着：『双生神兽，一金一暗。金者镇于东岭，暗者沉于深渊。』」",
+				"凛：「原来它们的封印是分开的……封印之地只是入口，真正的深处还在下面。」"
+			])
+
 func _build_ui() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
@@ -291,6 +411,15 @@ func _process(delta: float) -> void:
 			_toast.text = ""
 	if _player == null:
 		return
+	# 拾取物: 晶簇 / 封印残页(靠近按 E)
+	for pk in _pickups:
+		if pk["node"] == null or not pk["node"].visible:
+			continue
+		if pk["node"].global_position.distance_to(_player.global_position) < 2.6:
+			_hint.text = "按 E 拾取：" + pk["hint"]
+			if Input.is_action_just_pressed("interact"):
+				_collect_pickup(pk)
+			return
 	# 洞厅野怪侦查战(走入 z < -15 触发, 给一点热身距离)
 	if not GameState.prologue_scout_done and not _scout_triggered:
 		if _player.global_position.z < -15.0:

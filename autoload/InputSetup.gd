@@ -14,6 +14,8 @@ func _ready() -> void:
 	_ensure("start_battle", [KEY_B])
 	_ensure("capture", [KEY_C])
 	_ensure("switch_move", [KEY_Q])
+	# 打开背包/队伍面板(野外直接呼出)
+	_ensure("open_bag", [KEY_I])
 	# 显式确保 ui_cancel(默认绑定 Esc) 存在, 保证暂停菜单的 Esc 开关可靠工作
 	_ensure("ui_cancel", [KEY_ESCAPE])
 

@@ -63,7 +63,7 @@ func _ready() -> void:
 	_check(int(DataBus.get_item("super_potion").get("power", 0)) == 60, "好伤药 power=60")
 
 	# ---- UI 场景 _ready 实例化(捕捉运行时错误) ----
-	for _sc in ["res://ui/PartyBag.gd", "res://ui/SettingsMenu.gd", "res://ui/EndingCutscene.gd", "res://ui/Pokedex.gd"]:
+	for _sc in ["res://ui/PartyBag.gd", "res://ui/SettingsMenu.gd", "res://ui/EndingCutscene.gd", "res://ui/Pokedex.gd", "res://ui/NarrationBox.gd", "res://ui/OpeningCollapse.gd"]:
 		var _inst = load(_sc).new()
 		add_child(_inst)
 		_check(_inst != null, "UI 实例化无崩溃: " + _sc.get_file())

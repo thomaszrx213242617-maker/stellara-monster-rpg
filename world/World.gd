@@ -35,6 +35,13 @@ var _in_gym: bool = false
 var _gym_label: Label
 var _in_gym2: bool = false
 var _gym2_label: Label
+var _in_gym3: bool = false
+var _gym3_label: Label
+var _in_gym4: bool = false
+var _gym4_label: Label
+var _in_wish: bool = false
+var _wish
+var _wish_label: Label
 var _in_midboss: bool = false
 var _midboss
 var _midboss_label: Label
@@ -46,6 +53,9 @@ var _pause_menu
 var _shop
 var _in_shop: bool = false
 var _shop_label: Label
+var _bag_layer: CanvasLayer = null
+var _bag_open: bool = false
+const _bag_script := preload("res://ui/PartyBag.gd")
 var _in_camp: bool = false
 var _camp_label: Label
 var _in_tera: bool = false
@@ -106,11 +116,32 @@ func resume_from_pause() -> void:
 	get_tree().paused = false
 	_pause_menu.close()
 
+## 野外按 I 直接打开背包/队伍面板(覆盖层; 不暂停, 冻结世界处理直到关闭)
+func _open_bag() -> void:
+	if _bag_open or _pause_menu == null or get_tree().paused:
+		return
+	_bag_open = true
+	_bag_layer = CanvasLayer.new()
+	_bag_layer.name = "BagLayer"
+	_bag_layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(_bag_layer)
+	var party = _bag_script.new()
+	party.name = "PartyBag"
+	_bag_layer.add_child(party)
+	party.closed.connect(_close_bag)
+	SoundBus.play_sfx("select")
+
+func _close_bag() -> void:
+	if _bag_layer != null:
+		_bag_layer.queue_free()
+		_bag_layer = null
+	_bag_open = false
+
 func _build_ui() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
 	var hint := Label.new()
-	hint.text = "WASD移动 | 右键转视角 | 空格跳/攻击 | Shift闪避 | E交互/迎战 | B随机遭遇/迎战 | C收服(夜禁) | I/按钮 伤药 | 发光首领(黯潮深渊)按E挑战 | 紫裂隙激活靠近触发 | Esc暂停"
+	hint.text = "WASD移动 | 右键转视角 | 空格跳/攻击 | Shift闪避 | E交互/迎战 | B随机遭遇/迎战 | C收服(夜禁) | I背包 | 发光首领(黯潮深渊)按E挑战 | 紫裂隙激活靠近触发 | Esc暂停"
 	hint.position = Vector2(360, 1012)
 	hint.size = Vector2(1200, 40)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -142,6 +173,21 @@ func _build_ui() -> void:
 	_gym2_label.position = Vector2(12, 476)
 	_gym2_label.text = ""
 	layer.add_child(_gym2_label)
+
+	_gym3_label = Label.new()
+	_gym3_label.position = Vector2(12, 500)
+	_gym3_label.text = ""
+	layer.add_child(_gym3_label)
+
+	_gym4_label = Label.new()
+	_gym4_label.position = Vector2(12, 524)
+	_gym4_label.text = ""
+	layer.add_child(_gym4_label)
+
+	_wish_label = Label.new()
+	_wish_label.position = Vector2(12, 548)
+	_wish_label.text = ""
+	layer.add_child(_wish_label)
 
 	_midboss_label = Label.new()
 	_midboss_label.position = Vector2(12, 378)
@@ -415,6 +461,44 @@ func build_world() -> void:
 	gym2.body_exited.connect(_on_gym2_exit)
 	add_child(gym2)
 	_add_sign("清风道馆 · 馆主·清", Vector3(-30, 0, 8))
+	# 第三座道馆: 烈焰道馆(熔岩谷), 馆主·炎心, 烈焰徽章
+	var gym3 := GymScript.new()
+	gym3.position = Vector3(100, 0, 55)
+	gym3.roof_color = Color(0.9, 0.3, 0.2)
+	gym3.body_entered.connect(_on_gym3_enter)
+	gym3.body_exited.connect(_on_gym3_exit)
+	add_child(gym3)
+	_add_sign("熔岩谷 · 馆主·炎心", Vector3(100, 0, 63))
+	# 第四座道馆: 寒冰道馆(霜原), 馆主·霜音, 寒冰徽章
+	var gym4 := GymScript.new()
+	gym4.position = Vector3(-100, 0, 55)
+	gym4.roof_color = Color(0.6, 0.85, 0.95)
+	gym4.body_entered.connect(_on_gym4_enter)
+	gym4.body_exited.connect(_on_gym4_exit)
+	add_child(gym4)
+	_add_sign("霜原 · 馆主·霜音", Vector3(-100, 0, 63))
+
+	# 支线任务: 祈愿石碑(集齐≥2枚徽章可领取一次补给)
+	var wish := Area3D.new()
+	var wcol := CollisionShape3D.new()
+	var wsh := SphereShape3D.new()
+	wsh.radius = 2.6
+	wcol.shape = wsh
+	wish.add_child(wcol)
+	wish.body_entered.connect(_on_wish_enter)
+	wish.body_exited.connect(_on_wish_exit)
+	wish.position = Vector3(0, 0, 70)
+	add_child(wish)
+	_wish = wish
+	_add_sign("祈愿石碑", Vector3(0, 0, 73))
+
+	# 支线NPC: 老探险家(线索)——提示烈焰/寒冰道馆与暗潮使·玄的要求
+	_add_npc(Vector3(8, 1, 64), "老探险家·岩叔", Color(0.7, 0.6, 0.4), [
+		"听说熔岩谷的炎心、霜原的霜音，都收着崭新的徽章。",
+		"想去会暗潮使·玄？得把岩石、清风、烈焰、寒冰四枚徽章全凑齐才行。",
+		"（支线：集齐四枚徽章后，去镇东找玄，他会指点你封印双神兽的路。）"
+	], _player)
+
 	# 中期小Boss(训练家), 需序章后且已收服≥2种
 	var midboss := GymScript.new()
 	midboss.position = Vector3(72, 0, 16)
@@ -774,6 +858,30 @@ func _on_gym2_exit(b: Node) -> void:
 	if b == _player:
 		_in_gym2 = false
 
+func _on_gym3_enter(b: Node) -> void:
+	if b == _player:
+		_in_gym3 = true
+
+func _on_gym3_exit(b: Node) -> void:
+	if b == _player:
+		_in_gym3 = false
+
+func _on_gym4_enter(b: Node) -> void:
+	if b == _player:
+		_in_gym4 = true
+
+func _on_gym4_exit(b: Node) -> void:
+	if b == _player:
+		_in_gym4 = false
+
+func _on_wish_enter(b: Node) -> void:
+	if b == _player:
+		_in_wish = true
+
+func _on_wish_exit(b: Node) -> void:
+	if b == _player:
+		_in_wish = false
+
 func _on_midboss_enter(b: Node) -> void:
 	if b == _player:
 		_in_midboss = true
@@ -805,6 +913,14 @@ func _setup_shop() -> void:
 	add_child(_shop)
 
 func _process(delta: float) -> void:
+	# 背包打开时: Esc 关闭, 其余世界处理冻结
+	if _bag_open:
+		if Input.is_action_just_pressed("ui_cancel"):
+			_close_bag()
+		return
+	if Input.is_action_just_pressed("open_bag") and not get_tree().paused:
+		_open_bag()
+		return
 	if _encounter_cd > 0.0:
 		_encounter_cd = max(0.0, _encounter_cd - delta)
 	if _toast_t > 0.0:
@@ -926,12 +1042,36 @@ func _process(delta: float) -> void:
 	if _gym2_label:
 		_gym2_label.text = "清风道馆·清 (按 E 挑战)" if _in_gym2 else ""
 
-	# 中期小Boss(暗潮使·玄): 需序章后且已收服≥2种
+	if _in_gym3 and Input.is_action_just_pressed("interact"):
+		GameState.pending_trainer = {
+			"enemy_id": "magmaw",
+			"enemy_level": 15,
+			"trainer_name": "馆主·炎心",
+			"badge_id": "badge_flame"
+		}
+		get_tree().change_scene_to_file("res://battle/BattleArena.tscn")
+
+	if _gym3_label:
+		_gym3_label.text = "烈焰道馆·炎心 (按 E 挑战)" if _in_gym3 else ""
+
+	if _in_gym4 and Input.is_action_just_pressed("interact"):
+		GameState.pending_trainer = {
+			"enemy_id": "frostpard",
+			"enemy_level": 15,
+			"trainer_name": "馆主·霜音",
+			"badge_id": "badge_frost"
+		}
+		get_tree().change_scene_to_file("res://battle/BattleArena.tscn")
+
+	if _gym4_label:
+		_gym4_label.text = "寒冰道馆·霜音 (按 E 挑战)" if _in_gym4 else ""
+
+	# 中期小Boss(暗潮使·玄): 需集齐四枚徽章
 	if _in_midboss and Input.is_action_just_pressed("interact"):
-		var ready: bool = GameState.story_stage >= 1 and GameState.dex_caught_count() >= 2 and GameState.has_badge("badge_stone") and GameState.has_badge("badge_wave")
+		var ready: bool = GameState.story_stage >= 1 and GameState.has_badge("badge_stone") and GameState.has_badge("badge_wave") and GameState.has_badge("badge_flame") and GameState.has_badge("badge_frost")
 		if not ready:
 			if _dialogue and _dialogue.has_method("start"):
-				_dialogue.start(["暗潮使·玄：「集齐两枚道馆徽章，再来寻我。岩石与清风，皆需你亲手赢下。」"])
+				_dialogue.start(["暗潮使·玄：「集齐四枚道馆徽章，再来寻我。岩石、清风、烈焰、寒冰，皆需你亲手赢下。」"])
 		else:
 			GameState.pending_trainer = {
 				"enemy_id": "shadepup",
@@ -943,7 +1083,7 @@ func _process(delta: float) -> void:
 
 	if _midboss_label:
 		if not GameState.midboss_done:
-			_midboss_label.text = "暗潮使·玄 (按 E 挑战, 需两枚徽章)" if _in_midboss else ""
+			_midboss_label.text = "暗潮使·玄 (按 E 挑战, 需四枚徽章)" if _in_midboss else ""
 		else:
 			_midboss_label.text = ""
 
