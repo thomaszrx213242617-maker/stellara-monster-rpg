@@ -71,21 +71,42 @@ func _build_world() -> void:
 	sb.add_child(col)
 	add_child(sb)
 
-	# 三面石壁(后方 + 两侧), 前方留作洞口
+	# 三面石壁(后方 + 两侧), 前方留作洞口; 缝隙透冷光, 与「深处」风格一致
 	var wmat := StandardMaterial3D.new()
 	wmat.albedo_color = Color(0.16, 0.17, 0.22)
 	wmat.roughness = 0.9
-	for spec in [Vector3(0, 4, 14), Vector3(-9, 4, 0), Vector3(9, 4, 0)]:
+	wmat.emission_enabled = true
+	wmat.emission = Color(0.2, 0.5, 0.8)
+	wmat.emission_energy_multiplier = 0.3
+	for spec in [Vector3(0, 4, 16), Vector3(-9, 4, 0), Vector3(9, 4, 0)]:
 		var wall := MeshInstance3D.new()
 		var wm := BoxMesh.new()
 		if spec.z == 0:
-			wm.size = Vector3(2, 8, 50)
+			wm.size = Vector3(2, 8, 54)
 		else:
 			wm.size = Vector3(40, 8, 2)
 		wall.mesh = wm
 		wall.position = spec
 		wall.material_override = wmat
 		add_child(wall)
+
+	# 入口处的发光晶簇(深处质感)
+	for cx in [-6, 6]:
+		var cp := MeshInstance3D.new()
+		var cpm := CylinderMesh.new()
+		cpm.top_radius = 0.4
+		cpm.bottom_radius = 0.4
+		cpm.height = 3.2
+		cp.mesh = cpm
+		cp.position = Vector3(cx, 1.6, 4)
+		var cmat := StandardMaterial3D.new()
+		cmat.albedo_color = Color(0.2, 0.4, 0.5)
+		cmat.metallic = 0.3
+		cmat.emission_enabled = true
+		cmat.emission = Color(0.4, 0.85, 1.0)
+		cmat.emission_energy_multiplier = 0.9
+		cp.material_override = cmat
+		add_child(cp)
 
 	# 洞口(前方)的微光, 提示前进方向
 	var exit_glow := OmniLight3D.new()
@@ -126,7 +147,7 @@ func _build_world() -> void:
 
 	# 玩家
 	_player = PlayerScript.new()
-	_player.position = Vector3(0, 1, 6)
+	_player.position = Vector3(0, 1, 8)
 	add_child(_player)
 
 	_camera = CameraScript.new()
@@ -150,6 +171,7 @@ func _build_world() -> void:
 	]
 	_rin.player_ref = _player
 	_rin.dialogue_box = _dialogue
+	_rin.follow_target = _player
 	add_child(_rin)
 
 func _build_ui() -> void:
@@ -192,8 +214,8 @@ func _process(delta: float) -> void:
 				])
 	else:
 		_hint.text = "WASD移动 | 右键转视角 | 空格跳 | E 与凛对话 / 查看碑文 | 向前(洞口微光处)走入沉眠之洞"
-	# 向前走入洞口 → 进入洞中探险
-	if _player.global_position.z < -3.0:
+	# 向前走入洞口 → 进入洞中探险(加长入口, 走得更远才到洞口)
+	if _player.global_position.z < -8.0:
 		_exiting = true
 		_show_toast("你步入沉眠之洞……")
 		GameState.opening_done = true

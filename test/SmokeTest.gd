@@ -149,6 +149,25 @@ func _ready() -> void:
 	_check(GameState.dex_caught.has("hui_jin_long") and GameState.dex_caught.has("an_gang_shou"), "终局: 双神兽已收服入图鉴")
 	f2.queue_free()
 
+	# ---- 序章·双生神兽战: 真实对战(盟友协同) + 战败转旁白分支 ----
+	GameState.reset_new_game()
+	GameState.add_to_team("flarefox", 5)
+	GameState.prologue_beast_mode = true
+	GameState.pending_raid = {"boss_id": "hui_jin_long", "boss_level": 42, "allies": ["伙伴·凛", "伙伴·小岚", "伙伴·阿砂"]}
+	var pb := load("res://battle/BattleArena.tscn").instantiate() as BattleArena
+	add_child(pb)
+	await get_tree().create_timer(0.5).timeout
+	pb.battle_over = true   # 阻止真实切场景, 仅校验逻辑
+	_check(pb._raid_mode == true, "序章神兽战: 进入讨伐(盟友协同)模式")
+	_check(pb.enemy_combatant != null, "序章神兽战: 辉金龙 Boss 存在")
+	_check(pb._raid_allies.size() == 3, "序章神兽战: 三名伙伴协同(凛/小岚/阿砂)")
+	# 模拟「被击败 → 转旁白」分支(清空队伍/复位标记, 不真正切场景)
+	pb._on_player_defeated()
+	_check(GameState.team == [], "序章神兽战: 战败后队伍清空(灵兽全失)")
+	_check(GameState.pending_raid == {}, "序章神兽战: 战败后 pending_raid 清理")
+	_check(GameState.prologue_beast_mode == false, "序章神兽战: 战败后标记复位")
+	pb.queue_free()
+
 	# ---- 世界场景运行(捕捉大地图运行时崩溃) ----
 	GameState.reset_new_game()
 	var world := load("res://world/World.tscn").instantiate() as World

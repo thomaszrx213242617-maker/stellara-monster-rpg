@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://cintrocinematic0"]
+
+[ext_resource type="Script" path="res://ui/IntroCinematic.gd" id="1_Intro"]
+
+[node name="IntroCinematic" type="Node3D"]
+script = ExtResource("1_Intro")

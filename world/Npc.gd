@@ -10,6 +10,13 @@ var dialogue_box: Node = null
 var npc_color: Color = Color(0.9, 0.8, 0.3)
 var display_name: String = "居民"
 
+## 伙伴跟随: 设置 follow_target 后, 玩家走动时本节点自动跟随(保持 follow_distance)。
+## 用于序章伙伴·凛; 普通 NPC 不设置即保持原地不动。
+var follow_target: Node3D = null
+var follow_distance: float = 2.8
+var _follow_speed: float = 6.2
+var _npc_gravity: float = 22.0
+
 func _ready() -> void:
 	# Q版身体(小)
 	var body := MeshInstance3D.new()
@@ -65,7 +72,29 @@ func _ready() -> void:
 		tag.font_size = 32
 		add_child(tag)
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
+	# 伙伴跟随: 玩家走动时贴近并保持一定距离
+	if follow_target != null and is_instance_valid(follow_target):
+		var to: Vector3 = follow_target.global_position - global_position
+		to.y = 0.0
+		var dist: float = to.length()
+		if dist > follow_distance:
+			var dir: Vector3 = to.normalized()
+			velocity.x = dir.x * _follow_speed
+			velocity.z = dir.z * _follow_speed
+			if not is_on_floor():
+				velocity.y -= _npc_gravity * delta
+			else:
+				velocity.y = 0.0
+			look_at(global_position + dir, Vector3.UP)
+			move_and_slide()
+		else:
+			velocity = Vector3.ZERO
+			if not is_on_floor():
+				velocity.y -= _npc_gravity * delta
+				move_and_slide()
+			else:
+				move_and_slide()
 	if player_ref == null or dialogue_box == null:
 		return
 	if global_position.distance_to(player_ref.global_position) < 4.0:

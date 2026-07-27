@@ -7,6 +7,7 @@ extends Control
 
 const WORLD_SCENE := "res://world/World.tscn"
 const OPENING_SCENE := "res://ui/OpeningCutscene.tscn"
+const INTRO_SCENE := "res://ui/IntroCinematic.tscn"
 
 var _menu: VBoxContainer
 var _setup: VBoxContainer
@@ -232,7 +233,7 @@ func _on_setup_confirm() -> void:
 	SoundBus.play_sfx("select")
 	GameState.reset_new_game()
 	GameState.set_player_identity(_name_edit.text, _gender)
-	get_tree().change_scene_to_file(OPENING_SCENE)
+	get_tree().change_scene_to_file(INTRO_SCENE)
 
 func _on_continue() -> void:
 	SoundBus.play_sfx("select")

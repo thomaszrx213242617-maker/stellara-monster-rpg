@@ -48,6 +48,8 @@ var transformation_bands: bool = true
 var battle_return_scene: String = ""
 ## 序章探险: 洞中野怪侦查战是否已完成(用于场景重建后跳过)
 var prologue_scout_done: bool = false
+## 序章·双生神兽战: 是否处于「真实神兽战」模式(战败才播旁白, 非普通胜负)
+var prologue_beast_mode: bool = false
 ## 退出游戏前所在的场景路径; 重进时若有存档则自动回到此处(续玩)
 var current_scene: String = ""
 ## 晶变坑(太晶坑原创命名)讨伐配置: {boss_id, boss_level, allies:[训练家名]}
@@ -242,6 +244,7 @@ func reset_new_game() -> void:
 	player_name = ""
 	battle_return_scene = ""
 	prologue_scout_done = false
+	prologue_beast_mode = false
 	current_scene = ""
 	pending_raid = {}
 	grass_zones = 0

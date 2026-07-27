@@ -47,6 +47,7 @@ var _raid_pending: bool = false
 var _raid_allies: Array = []
 var _ally_t: float = 0.0
 var _raid_panel: Panel
+var _prologue_t: float = 0.0   ## 序章神兽战: 限时强制战败计时(保证「战败后才用旁白」)
 
 ## 三秘环: 每场战斗各可用一次(巨灵环/晶变环/超衍环)
 var _bands_used: Dictionary = {"giant": false, "crystal": false, "hyper": false}
@@ -372,6 +373,12 @@ func _physics_process(delta: float) -> void:
 	if battle_over or _raid_pending:
 		return
 	player_cooldown = max(0.0, player_cooldown - delta)
+	# 序章神兽战: 限时强制战败, 保证「被打败后才用旁白」的叙事(玩家本就弱, 通常更早被击败)
+	if GameState.prologue_beast_mode:
+		_prologue_t += delta
+		if _prologue_t > 26.0:
+			_on_player_defeated()
+			return
 
 	# 完美闪避反馈: 冷却 + 白闪衰减
 	if _dodge_cd > 0.0:
@@ -608,10 +615,22 @@ func _on_use_potion() -> void:
 	_update_bars()
 
 func _on_player_defeated() -> void:
+	# 序章·双生神兽战战败: 清空白队伍(叙事"灵兽全数消失"), 转入旁白 OpeningCollapse
+	if GameState.prologue_beast_mode:
+		GameState.prologue_beast_mode = false
+		GameState.team = []
+		GameState.team_changed.emit()
+		GameState.pending_raid = {}
+		_end_battle(false, "双生神兽的怒吼将你淹没……", "res://ui/OpeningCollapse.tscn")
+		return
 	_end_battle(false, "你输了……")
 
 func _on_enemy_defeated() -> void:
 	SoundBus.play_sfx("faint")
+	# 序章中即便将神兽打到濒死, 其潜伏之力也会反噬——转向玩家战败叙事(之后才播旁白)
+	if GameState.prologue_beast_mode:
+		_on_player_defeated()
+		return
 	# 晶变坑讨伐: 击败后让玩家选择收服或放弃
 	if _raid_mode and not _raid_pending:
 		_raid_pending = true
@@ -681,6 +700,10 @@ func _on_enemy_defeated() -> void:
 ## ---- 晶变坑讨伐(太晶坑原创) ----
 func _enter_raid_mode() -> void:
 	_raid_mode = true
+	# 序章·双生神兽战: 标记限时强制战败, 保证「被打败后才用旁白」的叙事
+	if GameState.prologue_beast_mode:
+		_prologue_t = 0.0
+		_pop("双生神兽·辉金龙 现身！凛、小岚、阿砂与你并肩迎战！")
 	var cfg: Dictionary = GameState.pending_raid
 	var boss_id: String = cfg.get("boss_id", "crystal_guardian")
 	var boss_level: int = int(cfg.get("boss_level", 28))
