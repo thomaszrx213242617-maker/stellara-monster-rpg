@@ -207,6 +207,25 @@ func _ready() -> void:
 	_check(GameState.prologue_beast_mode == false, "序章神兽战: 战败后标记复位")
 	pb.queue_free()
 
+	# ---- 目标罗盘坐标映射(current_objective_target) ----
+	GameState.reset_new_game()
+	var t0: Vector3 = GameState.current_objective_target()
+	_check(t0 == Vector3(4, 0, -19), "罗盘目标: 新手教程指向向导·岚 (实际 %s)" % str(t0))
+	GameState.story_stage = 1
+	_check(GameState.current_objective_target() == Vector3(60, 0, -10), "罗盘目标: 无徽章→岩石道馆(岩心)")
+	GameState.grant_badge("badge_stone")
+	_check(GameState.current_objective_target() == Vector3(-30, 0, 0), "罗盘目标: 已得岩石→清风道馆(清)")
+	GameState.grant_badge("badge_wave")
+	GameState.grant_badge("badge_flame")
+	GameState.grant_badge("badge_frost")
+	GameState.note_dex_caught("flarefox")
+	GameState.note_dex_caught("aqualeap")
+	_check(GameState.current_objective_target() == Vector3(72, 0, 16), "罗盘目标: 四徽章+图鉴≥2→暗潮使·玄")
+	GameState.midboss_done = true
+	_check(GameState.current_objective_target() == Vector3(0, 0, 60), "罗盘目标: 玄已败→黯潮深渊(凛)")
+	GameState.ending_done = true
+	_check(GameState.current_objective_target() == Vector3.ZERO, "罗盘目标: 主线完结→隐藏(零向量)")
+
 	# ---- 世界场景运行(捕捉大地图运行时崩溃) ----
 	GameState.reset_new_game()
 	var world := load("res://world/World.tscn").instantiate() as World

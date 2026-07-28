@@ -344,10 +344,42 @@ func complete_milestone(text: String) -> void:
 
 ## 方向指引: 玩家世界坐标 + 当前目标世界坐标(供目标罗盘 HUD 计算方位)
 var player_position: Vector3 = Vector3.ZERO
-var objective_target: Vector3 = Vector3.ZERO
+var objective_target: Vector3 = Vector3.ZERO   # 手动覆盖目标(序章等); 为零时由 current_objective_target() 推导
 
 func set_objective_target(p: Vector3) -> void:
 	objective_target = p
+
+## 各主线阶段对应的世界坐标(供目标罗盘指向): 与 current_objective() 的判定一致
+const OBJECTIVE_TARGETS: Dictionary = {
+	"tutorial":   Vector3(4, 0, -19),     # 跟随向导·岚
+	"stone":      Vector3(60, 0, -10),    # 晨曦镇·岩石道馆(岩心)
+	"wave":       Vector3(-30, 0, 0),     # 星澜村西·清风道馆(清)
+	"flame":      Vector3(100, 0, 55),    # 熔岩谷·烈焰道馆(炎心)
+	"frost":      Vector3(-100, 0, 55),   # 霜原·寒冰道馆(霜音)
+	"catch":      Vector3(0, 0, -60),     # 北之路(收服灵兽)
+	"midboss":    Vector3(72, 0, 16),     # 暗潮使·玄(晨曦镇东)
+	"finale":     Vector3(0, 0, 60)       # 黯潮深渊(凛)
+}
+
+## 根据当前进度返回「目标世界坐标」(供罗盘); 主线完结返回零向量(罗盘隐藏)
+func current_objective_target() -> Vector3:
+	if ending_done:
+		return Vector3.ZERO
+	if finale_stage >= 1 or midboss_done:
+		return OBJECTIVE_TARGETS["finale"]
+	if story_stage < 1:
+		return OBJECTIVE_TARGETS["tutorial"]
+	if not has_badge("badge_stone"):
+		return OBJECTIVE_TARGETS["stone"]
+	if not has_badge("badge_wave"):
+		return OBJECTIVE_TARGETS["wave"]
+	if not has_badge("badge_flame"):
+		return OBJECTIVE_TARGETS["flame"]
+	if not has_badge("badge_frost"):
+		return OBJECTIVE_TARGETS["frost"]
+	if dex_caught_count() < 2:
+		return OBJECTIVE_TARGETS["catch"]
+	return OBJECTIVE_TARGETS["midboss"]
 
 ## 根据当前进度推导「当前目标」(供剧情面板/常驻HUD展示): 集齐两枚道馆徽章 → 挑战暗潮使·玄 → 冠军之路
 func current_objective() -> String:

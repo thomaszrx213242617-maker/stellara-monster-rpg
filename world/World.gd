@@ -93,6 +93,11 @@ func _ready() -> void:
 	_setup_pause_menu()
 	_setup_shop()
 	GameState.current_scene = "res://world/World.tscn"
+	# 目标罗盘 HUD: 清除序章遗留的手动目标, 改由 current_objective_target() 驱动
+	GameState.objective_target = Vector3.ZERO
+	var CompassScript := preload("res://ui/ObjectiveCompass.gd")
+	var compass = CompassScript.new()
+	add_child(compass)
 	DayNight.time_changed.connect(_on_time)
 	_on_time(0.0)
 	MusicBus.play_track("overworld")
@@ -954,6 +959,9 @@ func _setup_shop() -> void:
 	add_child(_shop)
 
 func _process(delta: float) -> void:
+	# 每帧同步玩家世界坐标给目标罗盘
+	if _player != null:
+		GameState.player_position = _player.position
 	# 背包打开时: Esc 关闭, 其余世界处理冻结
 	if _bag_open:
 		if Input.is_action_just_pressed("ui_cancel"):
