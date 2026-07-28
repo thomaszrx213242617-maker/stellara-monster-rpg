@@ -342,6 +342,13 @@ func complete_milestone(text: String) -> void:
 			return
 	story_log.append({"text": text, "done": true})
 
+## 方向指引: 玩家世界坐标 + 当前目标世界坐标(供目标罗盘 HUD 计算方位)
+var player_position: Vector3 = Vector3.ZERO
+var objective_target: Vector3 = Vector3.ZERO
+
+func set_objective_target(p: Vector3) -> void:
+	objective_target = p
+
 ## 根据当前进度推导「当前目标」(供剧情面板/常驻HUD展示): 集齐两枚道馆徽章 → 挑战暗潮使·玄 → 冠军之路
 func current_objective() -> String:
 	if ending_done:

@@ -26,6 +26,7 @@ var _t: float = 0.0
 
 func _ready() -> void:
 	GameState.current_scene = "res://world/PrologueExplore.tscn"
+	GameState.set_objective_target(Vector3(0, 0, -150))   # 序章目标: 洞穴深处封印之地
 	_build_world()
 	_build_ui()
 	if GameState.prologue_scout_done:
@@ -393,6 +394,9 @@ func _build_ui() -> void:
 	_toast.modulate = Color(1.0, 0.7, 0.4)
 	_toast.text = ""
 	layer.add_child(_toast)
+	# 目标方向罗盘(指向洞穴深处封印之地)
+	var compass = load("res://ui/ObjectiveCompass.gd").new()
+	add_child(compass)
 
 func _show_toast(text: String) -> void:
 	if _toast:
@@ -411,6 +415,7 @@ func _process(delta: float) -> void:
 			_toast.text = ""
 	if _player == null:
 		return
+	GameState.player_position = _player.global_position
 	# 拾取物: 晶簇 / 封印残页(靠近按 E)
 	for pk in _pickups:
 		if pk["node"] == null or not pk["node"].visible:

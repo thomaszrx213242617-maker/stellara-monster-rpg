@@ -85,9 +85,25 @@ func _ready() -> void:
 	_check("flarehowl" in mon4["moves"], "进化: 炎狼习得专属招式 炎狼啸")
 	_check(r4.has("learned") and "flarehowl" in r4["learned"], "进化: res.learned 含 炎狼啸")
 
+	# ---- 目标方向罗盘: 方位角计算 ----
+	GameState.player_position = Vector3(0, 0, 0)
+	GameState.objective_target = Vector3(0, 0, -100)   # 正北
+	var cmp: Object = load("res://ui/ObjectiveCompass.gd").new()
+	_check(abs(cmp.get_bearing_deg() - 0.0) < 0.001, "罗盘: 正北方位角=0")
+	GameState.objective_target = Vector3(100, 0, 0)     # 正东
+	_check(abs(cmp.get_bearing_deg() - 90.0) < 0.001, "罗盘: 正东方位角=90")
+	GameState.objective_target = Vector3.ZERO           # 复位(避免影响后续)
+
 	# ---- UI 场景 _ready 实例化(捕捉运行时错误) ----
-	for _sc in ["res://ui/PartyBag.gd", "res://ui/SettingsMenu.gd", "res://ui/EndingCutscene.gd", "res://ui/Pokedex.gd", "res://ui/NarrationBox.gd", "res://ui/OpeningCollapse.gd", "res://ui/StarterSelect.gd", "res://ui/EvolutionSequence.gd"]:
+	# 纯代码构建的场景(无 .tscn): 用 .gd + new()
+	for _sc in ["res://ui/PartyBag.gd", "res://ui/SettingsMenu.gd", "res://ui/EndingCutscene.gd", "res://ui/Pokedex.gd", "res://ui/NarrationBox.gd", "res://ui/OpeningCollapse.gd", "res://ui/StarterSelect.gd", "res://ui/EvolutionSequence.gd", "res://ui/ObjectiveCompass.gd"]:
 		var _inst = load(_sc).new()
+		add_child(_inst)
+		_check(_inst != null, "UI 实例化无崩溃: " + _sc.get_file())
+		_inst.queue_free()
+	# 真实开局链路场景(有 .tscn): 用 .tscn + instantiate() 捕捉 _ready 运行时错误
+	for _sc in ["res://ui/IntroCinematic.tscn", "res://ui/OpeningCutscene.tscn", "res://ui/PrologueCutscene.tscn", "res://world/PrologueExplore.tscn"]:
+		var _inst = load(_sc).instantiate()
 		add_child(_inst)
 		_check(_inst != null, "UI 实例化无崩溃: " + _sc.get_file())
 		_inst.queue_free()
