@@ -64,7 +64,7 @@ func _build() -> void:
 	# 底部提示
 	var hint := Label.new()
 	hint.name = "Hint"
-	hint.text = "← → / A D 选择    空格 / 回车 / E 确定    也可直接点击卡片"
+	hint.text = "← → / A D 选择卡片    点击已选中的卡片(或按 空格 / E)再次确认开始"
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.add_theme_font_size_override("font_size", 16)
 	hint.modulate = Color(0.78, 0.82, 0.9)
@@ -72,6 +72,18 @@ func _build() -> void:
 	hint.offset_bottom = -28
 	hint.custom_minimum_size = Vector2(0, 30)
 	add_child(hint)
+
+	# 确认按钮(也可直接点击已选中的卡片来确认)
+	var btn := Button.new()
+	btn.name = "ConfirmBtn"
+	btn.text = "开始冒险 ▶"
+	btn.add_theme_font_size_override("font_size", 22)
+	btn.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	btn.offset_bottom = -70
+	btn.custom_minimum_size = Vector2(240, 50)
+	btn.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	btn.pressed.connect(_on_confirm_pressed)
+	add_child(btn)
 
 func _make_card(id: String) -> Panel:
 	var data: Dictionary = DataBus.get_creature(id)
@@ -150,15 +162,30 @@ func _make_card(id: String) -> Panel:
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox.add_child(desc)
 
-	# 点击: 选中并确认
+	# 让整张卡片(含子控件)的点击都归 panel 处理, 避免点到文字/进度条时第一次点击无效
+	_ignore_mouse(vbox)
+
+	# 点击: 未选中→仅选中; 已选中→确认开始(即\"点两下再开始\"的确定流程)
 	panel.gui_input.connect(func(e: InputEvent):
+		if _confirming:
+			return
 		if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT and e.pressed:
 			var i: int = _card_meta.find(id)
-			if i >= 0:
-				_select(i)
+			if i < 0:
+				return
+			if i == _idx:
 				_confirm()
+			else:
+				_select(i)
 	)
 	return panel
+
+## 递归把节点及其子节点的鼠标过滤设为 IGNORE, 使点击穿透到父 Panel
+func _ignore_mouse(n: Node) -> void:
+	if n is Control:
+		n.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for c in n.get_children():
+		_ignore_mouse(c)
 
 func _stat_row(label: String, value: int, maxv: int, color: Color) -> HBoxContainer:
 	var hb := HBoxContainer.new()
@@ -204,6 +231,9 @@ func _select(i: int) -> void:
 		panel.add_theme_stylebox_override("panel", sb)
 	if _idx != i and not _confirming:
 		SoundBus.play_sfx("select")
+
+func _on_confirm_pressed() -> void:
+	_confirm()
 
 func _unhandled_input(e: InputEvent) -> void:
 	if _confirming:

@@ -190,6 +190,13 @@ const LEVEL_MOVES := {
 	"shadepup": [[9, "shadowclaw"], [14, "darkpulse"]]
 }
 
+## 进化专属招式: 进化形态id -> 该形态获得的招牌技(进化时必定习得, 哪怕招式已满)
+const SIGNATURE_MOVES := {
+	"flarewolf": "flarehowl",
+	"aquaknight": "tidalcrash",
+	"vinelord": "vinegrip"
+}
+
 func grant_exp(c: Dictionary, amount: int) -> Dictionary:
 	var res := {"levels": 0, "evolved": false, "from": "", "to": ""}
 	if c.has("status") and c["status"] != null and c["status"].get("name", "") == "睡眠":
@@ -211,6 +218,18 @@ func grant_exp(c: Dictionary, amount: int) -> Dictionary:
 			if not to_data.is_empty():
 				c["id"] = evo_to
 				c["moves"] = to_data.get("moves", []).duplicate()
+				# 进化专属招式(招牌技): 进化时必定习得, 招式已满则替换最后一招
+				var sig: String = SIGNATURE_MOVES.get(evo_to, "")
+				if sig != "":
+					if not (sig in c["moves"]):
+						if c["moves"].size() < 4:
+							c["moves"].append(sig)
+						else:
+							c["moves"][c["moves"].size() - 1] = sig
+					if not res.has("learned"):
+						res["learned"] = []
+					if not (sig in res["learned"]):
+						res["learned"].append(sig)
 				var new_max: int = max_hp_for(evo_to, int(c["level"]))
 				var ratio: float = float(c["hp"]) / float(max(c["max_hp"], 1))
 				c["max_hp"] = new_max

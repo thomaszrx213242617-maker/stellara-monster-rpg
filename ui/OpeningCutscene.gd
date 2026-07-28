@@ -28,7 +28,7 @@ func _ready() -> void:
 	_build_ui()
 	# 苏醒即由伙伴·凛开口交代背景(代替旁白)
 	if _dialogue and _dialogue.has_method("start"):
-		var lines := _rin.lines.duplicate()
+		var lines: Array = _rin.lines.duplicate()
 		if GameState.chosen_starter != "":
 			var sd: Dictionary = DataBus.get_creature(GameState.chosen_starter)
 			if not sd.is_empty():

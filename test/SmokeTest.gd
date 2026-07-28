@@ -74,6 +74,17 @@ func _ready() -> void:
 	var r3 := GameState.grant_exp(mon3, 5000)
 	_check("hypno" in mon3["moves"], "升级学招: lumiadeer 习得 hypno")
 
+	# ---- 御三家进化 + 专属招式(进化时必定习得招牌技) ----
+	GameState.reset_new_game()
+	for _mid in ["flarehowl", "tidalcrash", "vinegrip"]:
+		_check(not DataBus.get_move(_mid).is_empty(), "专属招式存在: " + _mid)
+	var ff := DataBus.get_creature("flarefox")
+	var mon4 := {"id": "flarefox", "level": 15, "exp": 0, "moves": ff.get("moves", []).duplicate(), "max_hp": 10, "hp": 10}
+	var r4 := GameState.grant_exp(mon4, GameState.exp_needed(15))
+	_check(r4["evolved"] and mon4["id"] == "flarewolf", "进化: 焰狐15→16 进化为炎狼")
+	_check("flarehowl" in mon4["moves"], "进化: 炎狼习得专属招式 炎狼啸")
+	_check(r4.has("learned") and "flarehowl" in r4["learned"], "进化: res.learned 含 炎狼啸")
+
 	# ---- UI 场景 _ready 实例化(捕捉运行时错误) ----
 	for _sc in ["res://ui/PartyBag.gd", "res://ui/SettingsMenu.gd", "res://ui/EndingCutscene.gd", "res://ui/Pokedex.gd", "res://ui/NarrationBox.gd", "res://ui/OpeningCollapse.gd", "res://ui/StarterSelect.gd", "res://ui/EvolutionSequence.gd"]:
 		var _inst = load(_sc).new()
