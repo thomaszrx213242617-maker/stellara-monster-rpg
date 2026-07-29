@@ -226,6 +226,19 @@ func _ready() -> void:
 	GameState.ending_done = true
 	_check(GameState.current_objective_target() == Vector3.ZERO, "罗盘目标: 主线完结→隐藏(零向量)")
 
+	# ---- 进化形态视觉区分(Combatant 读取 visual 字段) ----
+	var evo: Combatant = load("res://battle/Combatant.gd").new()
+	evo.setup("flarewolf", 20, true)
+	_check(abs(evo.scale.x - 1.18) < 0.01, "进化视觉: 炎狼体型放大(scale=%s)" % str(evo.scale.x))
+	_check(evo._evolved == true, "进化视觉: 炎狼标记为进化形态(用强调色+辉光)")
+	_check(evo._accent != Color(0, 0, 0), "进化视觉: 炎狼强调色已设置")
+	var base: Combatant = load("res://battle/Combatant.gd").new()
+	base.setup("flarefox", 5, true)
+	_check(base.scale == Vector3.ONE, "进化视觉: 焰狐(初始)体型不变")
+	_check(base._evolved == false, "进化视觉: 焰狐非进化形态")
+	evo.queue_free()
+	base.queue_free()
+
 	# ---- 世界场景运行(捕捉大地图运行时崩溃) ----
 	GameState.reset_new_game()
 	var world := load("res://world/World.tscn").instantiate() as World

@@ -36,6 +36,8 @@ var dmg_mult: float = 1.0
 
 var mesh: MeshInstance3D
 var _head: MeshInstance3D
+var _accent: Color = Color()      # 进化形态强调色(空=用属性色)
+var _evolved: bool = false        # 是否为进化形态(放大+辉光)
 
 func _ready() -> void:
 	var body := MeshInstance3D.new()
@@ -116,6 +118,15 @@ func setup(creature_id_: String, level_: int, is_player_: bool, current_hp_: int
 		hp = max_hp
 	moves = data.get("moves", [])
 	active_move_index = 0
+	# 进化形态视觉: 放大体型 + 独立强调色(数据驱动, creatures.json 的 visual 字段)
+	var vis: Dictionary = data.get("visual", {})
+	var vs: float = float(vis.get("scale", 1.0))
+	if vs > 0.0 and vs != 1.0:
+		scale = Vector3(vs, vs, vs)
+	var acc: Array = vis.get("accent", [])
+	if acc.size() >= 3:
+		_accent = Color(float(acc[0]), float(acc[1]), float(acc[2]))
+		_evolved = true
 	_apply_color()
 	hp_changed.emit(hp, max_hp)
 
@@ -133,18 +144,27 @@ func _apply_color() -> void:
 		"金": Color(0.72, 0.75, 0.82),
 		"冰": Color(0.6, 0.85, 0.95)
 	}
-	var c: Color = colors.get(type, Color(0.8, 0.8, 0.8))
+	# 进化形态用强调色(与初始形态区分); 否则用属性色
+	var c: Color = _accent if _evolved else colors.get(type, Color(0.8, 0.8, 0.8))
 	if mesh:
 		var mat := StandardMaterial3D.new()
 		mat.albedo_color = c
-		mat.roughness = 0.5
-		mat.metallic = 0.12
+		mat.roughness = 0.45
+		mat.metallic = 0.2
+		if _evolved:   # 进化形态: 金属感更强 + 自发光辉光, 读作"蓄能完成"
+			mat.metallic = 0.35
+			mat.emissive_enabled = true
+			mat.emissive = c * 0.28
 		mesh.material_override = mat
 	if _head:
 		var hmat := StandardMaterial3D.new()
 		hmat.albedo_color = c
-		hmat.roughness = 0.5
-		hmat.metallic = 0.12
+		hmat.roughness = 0.45
+		hmat.metallic = 0.2
+		if _evolved:
+			hmat.metallic = 0.35
+			hmat.emissive_enabled = true
+			hmat.emissive = c * 0.28
 		_head.material_override = hmat
 
 func _physics_process(delta: float) -> void:
