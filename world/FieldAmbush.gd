@@ -61,7 +61,6 @@ func _build_visual() -> void:
 	var rm := TorusMesh.new()
 	rm.inner_radius = 0.5
 	rm.outer_radius = 0.7
-	rm.height = 0.12
 	ring.mesh = rm
 	ring.position = Vector3(0, 0.2, 0)
 	ring.rotation.x = deg_to_rad(90)
