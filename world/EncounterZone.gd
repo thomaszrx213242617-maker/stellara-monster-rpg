@@ -61,13 +61,13 @@ func _on_body_entered(b: Node) -> void:
 		# 进入草丛不立即遇敌: 给予一段缓冲时间
 		_grace = 2.2
 		# 进入草丛: 播放沙沙音效 + 计入草丛计数(供脚步声切换)
-		GameState.grass_zones += 1
-		SoundBus.play_sfx("grass")
+		Game.grass_zones += 1
+		SFX.play_sfx("grass")
 
 func _on_body_exited(b: Node) -> void:
 	if b is PlayerScript:
 		_inside = false
-		GameState.grass_zones = max(0, GameState.grass_zones - 1)
+		Game.grass_zones = max(0, Game.grass_zones - 1)
 
 func _physics_process(delta: float) -> void:
 	_t += delta

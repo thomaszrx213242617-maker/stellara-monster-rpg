@@ -105,12 +105,12 @@ func setup(creature_id_: String, level_: int, is_player_: bool, current_hp_: int
 	creature_id = creature_id_
 	level = level_
 	is_player = is_player_
-	var data: Dictionary = DataBus.get_creature(creature_id)
+	var data: Dictionary = Data.get_creature(creature_id)
 	if data.is_empty():
 		return
 	type = data.get("type", "炎")
 	ability = data.get("ability", "")
-	stats = DataBus.compute_stats(data, level)
+	stats = Data.compute_stats(data, level)
 	max_hp = stats["max_hp"]
 	if current_hp_ >= 0:
 		hp = clamp(current_hp_, 0, max_hp)

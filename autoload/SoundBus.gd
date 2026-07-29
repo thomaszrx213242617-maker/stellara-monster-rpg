@@ -1,7 +1,8 @@
 extends Node
+class_name SoundBus
 
 ## 音效自动加载(原创, 程序化合成, 规避任天堂/宝可梦版权)。
-## 与 MusicBus 互补: 这里是一发即止的「音效」(攻击/命中/收服/治疗/升级/濒死/菜单...),
+## 与 BGM 互补: 这里是一发即止的「音效」(攻击/命中/收服/治疗/升级/濒死/菜单...),
 ## 用一次性 AudioStreamWAV 合成 + 4 路播放池(简单复音), 不占用 BGM 的连续 push 循环。
 ## 对外 API: play_sfx(name) / set_sfx_enabled(bool) / set_sfx_volume(0..1)。
 ## 取用策略: 优先 load res://audio/<name>.wav|ogg|mp3(用户可丢入自有音效替换),
@@ -58,26 +59,26 @@ func _ensure_bus() -> void:
 ## ---------- 对外 API ----------
 
 func play_sfx(name: String) -> void:
-	if not GameState.sfx_on:
+	if not Game.sfx_on:
 		return
 	var wav: AudioStream = _get_wav(name)
 	if wav == null:
 		return
 	var p: AudioStreamPlayer = _free_player()
 	p.stream = wav
-	p.volume_db = linear_to_db(max(GameState.sfx_volume, 0.0001))
+	p.volume_db = linear_to_db(max(Game.sfx_volume, 0.0001))
 	p.play()
 
 func set_sfx_enabled(on: bool) -> void:
-	if "sfx_on" in GameState:
-		GameState.sfx_on = on
+	if "sfx_on" in Game:
+		Game.sfx_on = on
 
 func set_sfx_volume(v: float) -> void:
 	v = clamp(v, 0.0, 1.0)
-	if "sfx_volume" in GameState:
-		GameState.sfx_volume = v
+	if "sfx_volume" in Game:
+		Game.sfx_volume = v
 
-## 返回全部音效名(供 MusicBus 扫描用户音乐文件时排除音效, 避免把音效当 BGM)。
+## 返回全部音效名(供 BGM 扫描用户音乐文件时排除音效, 避免把音效当 BGM)。
 func sfx_names() -> Array:
 	return _sounds.keys()
 

@@ -23,10 +23,10 @@ const SettingsMenuScript := preload("res://ui/SettingsMenu.gd")
 
 func _ready() -> void:
 	_build()
-	MusicBus.play_track("title")
+	BGM.play_track("title")
 	# 续玩: 已有存档且记录了上次所在场景 → 直接进入该场景(自动回到退出前位置)
-	if SaveManager.has_save() and GameState.current_scene != "":
-		get_tree().change_scene_to_file(GameState.current_scene)
+	if Save.has_save() and Game.current_scene != "":
+		get_tree().change_scene_to_file(Game.current_scene)
 		return
 	_menu.visible = true
 	_setup.visible = false
@@ -81,7 +81,7 @@ func _build() -> void:
 	_menu.add_child(b_new)
 
 	_btn_continue = _make_button("继续游戏")
-	if SaveManager.has_save():
+	if Save.has_save():
 		_btn_continue.pressed.connect(_on_continue)
 	else:
 		_btn_continue.text = "继续游戏 (暂无存档)"
@@ -179,7 +179,7 @@ func _make_button(text: String) -> Button:
 	return b
 
 func _set_gender(g: String) -> void:
-	SoundBus.play_sfx("select")
+	SFX.play_sfx("select")
 	_gender = g
 	_btn_boy.modulate = Color(1, 1, 1) if g == "少年" else Color(0.6, 0.6, 0.6)
 	_btn_girl.modulate = Color(1, 1, 1) if g == "少女" else Color(0.6, 0.6, 0.6)
@@ -196,7 +196,7 @@ func _focus_default() -> void:
 				break
 
 func _on_settings() -> void:
-	SoundBus.play_sfx("select")
+	SFX.play_sfx("select")
 	if _settings == null:
 		_settings = SettingsMenuScript.new()
 		_settings.name = "SettingsMenu"
@@ -220,7 +220,7 @@ func _unhandled_input(e: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 func _on_new() -> void:
-	SoundBus.play_sfx("select")
+	SFX.play_sfx("select")
 	_menu.visible = false
 	_setup.visible = true
 	# 让"创建角色"面板标题与首页大标题处于同一垂直位置(视觉连贯)
@@ -230,22 +230,22 @@ func _on_new() -> void:
 	_name_edit.grab_focus()
 
 func _on_back_to_menu() -> void:
-	SoundBus.play_sfx("select")
+	SFX.play_sfx("select")
 	_setup.visible = false
 	_menu.visible = true
 	_big_title.visible = true
 	_focus_default()
 
 func _on_setup_confirm() -> void:
-	SoundBus.play_sfx("select")
-	GameState.reset_new_game()
-	GameState.set_player_identity(_name_edit.text, _gender)
+	SFX.play_sfx("select")
+	Game.reset_new_game()
+	Game.set_player_identity(_name_edit.text, _gender)
 	get_tree().change_scene_to_file("res://ui/StarterSelect.tscn")
 
 func _on_continue() -> void:
-	SoundBus.play_sfx("select")
+	SFX.play_sfx("select")
 	get_tree().change_scene_to_file(WORLD_SCENE)
 
 func _on_quit() -> void:
-	SoundBus.play_sfx("select")
+	SFX.play_sfx("select")
 	get_tree().quit()

@@ -121,7 +121,7 @@ func _build() -> void:
 	store_scroll.add_child(_storage_list)
 
 	_refresh()
-	if not GameState.team.is_empty():
+	if not Game.team.is_empty():
 		_select(0)
 
 func _refresh() -> void:
@@ -134,11 +134,11 @@ func _refresh() -> void:
 		ch.queue_free()
 	_selected_index = -1
 
-	_info_label.text = "队伍 %d/6 · 存储箱 %d" % [GameState.team.size(), GameState.storage.size()]
+	_info_label.text = "队伍 %d/6 · 存储箱 %d" % [Game.team.size(), Game.storage.size()]
 
-	for i in range(GameState.team.size()):
-		var c: Dictionary = GameState.team[i]
-		var d: Dictionary = DataBus.get_creature(c["id"])
+	for i in range(Game.team.size()):
+		var c: Dictionary = Game.team[i]
+		var d: Dictionary = Data.get_creature(c["id"])
 		var nm: String = d.get("name", c["id"])
 		var hp: int = int(c["hp"])
 		var mhp: int = int(c["max_hp"])
@@ -153,14 +153,14 @@ func _refresh() -> void:
 		var dep := Button.new()
 		dep.text = "存入"
 		dep.custom_minimum_size = Vector2(80, 32)
-		dep.disabled = GameState.team.size() <= 1
+		dep.disabled = Game.team.size() <= 1
 		dep.pressed.connect(_on_deposit.bind(i))
 		hb.add_child(dep)
 		_team_list.add_child(hb)
 
-	for i in range(GameState.storage.size()):
-		var c: Dictionary = GameState.storage[i]
-		var d: Dictionary = DataBus.get_creature(c["id"])
+	for i in range(Game.storage.size()):
+		var c: Dictionary = Game.storage[i]
+		var d: Dictionary = Data.get_creature(c["id"])
 		var nm: String = d.get("name", c["id"])
 		var hp: int = int(c["hp"])
 		var mhp: int = int(c["max_hp"])
@@ -173,15 +173,15 @@ func _refresh() -> void:
 		var wd := Button.new()
 		wd.text = "取出"
 		wd.custom_minimum_size = Vector2(80, 32)
-		wd.disabled = GameState.team.size() >= 6
+		wd.disabled = Game.team.size() >= 6
 		wd.pressed.connect(_on_withdraw.bind(i))
 		hb.add_child(wd)
 		_storage_list.add_child(hb)
 
 	# 背包
-	for id in GameState.inventory.keys():
-		var it: Dictionary = DataBus.get_item(id)
-		var n: int = int(GameState.inventory[id])
+	for id in Game.inventory.keys():
+		var it: Dictionary = Data.get_item(id)
+		var n: int = int(Game.inventory[id])
 		var nm: String = it.get("name", id) if not it.is_empty() else id
 		var hb := HBoxContainer.new()
 		hb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -197,14 +197,14 @@ func _refresh() -> void:
 			hb.add_child(use_btn)
 		_bag_list.add_child(hb)
 
-	if not GameState.team.is_empty():
+	if not Game.team.is_empty():
 		_select(0)
 
 func _on_row_pressed(i: int) -> void:
 	_select(i)
 
 func _select(i: int) -> void:
-	if i < 0 or i >= GameState.team.size():
+	if i < 0 or i >= Game.team.size():
 		return
 	_selected_index = i
 	_draw_detail(i)
@@ -212,8 +212,8 @@ func _select(i: int) -> void:
 func _draw_detail(i: int) -> void:
 	for ch in _detail.get_children():
 		ch.queue_free()
-	var c: Dictionary = GameState.team[i]
-	var d: Dictionary = DataBus.get_creature(c["id"])
+	var c: Dictionary = Game.team[i]
+	var d: Dictionary = Data.get_creature(c["id"])
 	var nm: String = d.get("name", c["id"])
 	var ty: String = d.get("type", "")
 	var hp: int = int(c["hp"])
@@ -289,24 +289,24 @@ func _draw_detail(i: int) -> void:
 func _move_names(moves: Array) -> Array:
 	var out := []
 	for m in moves:
-		var md: Dictionary = DataBus.get_move(m)
+		var md: Dictionary = Data.get_move(m)
 		out.append(md.get("name", m) if not md.is_empty() else m)
 	return out
 
 func _on_use_item(id: String) -> void:
-	if _selected_index < 0 or _selected_index >= GameState.team.size():
+	if _selected_index < 0 or _selected_index >= Game.team.size():
 		return
-	if int(GameState.inventory.get(id, 0)) <= 0:
+	if int(Game.inventory.get(id, 0)) <= 0:
 		return
-	var c: Dictionary = GameState.team[_selected_index]
+	var c: Dictionary = Game.team[_selected_index]
 	var mhp: int = int(c["max_hp"])
 	var before: int = int(c["hp"])
-	var it: Dictionary = DataBus.get_item(id)
+	var it: Dictionary = Data.get_item(id)
 	var heal: int = int(it.get("power", 20)) if not it.is_empty() else 20
 	var after: int = mini(mhp, before + heal)
 	c["hp"] = after
-	GameState.consume_item(id, 1)
-	GameState.team_changed.emit()
+	Game.consume_item(id, 1)
+	Game.team_changed.emit()
 	_refresh()
 	_select(_selected_index)
 
@@ -314,13 +314,13 @@ func _on_back() -> void:
 	closed.emit()
 
 func _on_deposit(i: int) -> void:
-	if GameState.deposit_to_storage(i):
-		SoundBus.play_sfx("select")
+	if Game.deposit_to_storage(i):
+		SFX.play_sfx("select")
 		_refresh()
-		if not GameState.team.is_empty():
-			_select(min(i, GameState.team.size() - 1))
+		if not Game.team.is_empty():
+			_select(min(i, Game.team.size() - 1))
 
 func _on_withdraw(i: int) -> void:
-	if GameState.withdraw_from_storage(i):
-		SoundBus.play_sfx("select")
+	if Game.withdraw_from_storage(i):
+		SFX.play_sfx("select")
 		_refresh()

@@ -10,7 +10,7 @@ var _step_cd: float = 0.0   # 脚步声间隔计时(原创音效, 规避版权)
 
 func _ready() -> void:
 	# Q版角色: 大头小身(原创卡通形象, 非任何版权素材)
-	var is_girl: bool = (GameState.player_gender == "少女")
+	var is_girl: bool = (Game.player_gender == "少女")
 	var body_color := Color(0.25, 0.55, 1.0) if not is_girl else Color(1.0, 0.5, 0.7)
 	# 身体(小)
 	var body := MeshInstance3D.new()
@@ -98,9 +98,9 @@ func _physics_process(delta: float) -> void:
 		_step_cd -= delta
 		if _step_cd <= 0.0:
 			_step_cd = 0.34
-			if GameState.grass_zones > 0:
-				SoundBus.play_sfx("grass")
+			if Game.grass_zones > 0:
+				SFX.play_sfx("grass")
 			else:
-				SoundBus.play_sfx("step")
+				SFX.play_sfx("step")
 	else:
 		_step_cd = 0.0

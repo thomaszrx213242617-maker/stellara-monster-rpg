@@ -92,15 +92,15 @@ func _ready() -> void:
 	_build_ui()
 	_setup_pause_menu()
 	_setup_shop()
-	GameState.current_scene = "res://world/World.tscn"
+	Game.current_scene = "res://world/World.tscn"
 	# 目标罗盘 HUD: 清除序章遗留的手动目标, 改由 current_objective_target() 驱动
-	GameState.objective_target = Vector3.ZERO
+	Game.objective_target = Vector3.ZERO
 	var CompassScript := preload("res://ui/ObjectiveCompass.gd")
 	var compass = CompassScript.new()
 	add_child(compass)
-	DayNight.time_changed.connect(_on_time)
+	Clock.time_changed.connect(_on_time)
 	_on_time(0.0)
-	MusicBus.play_track("overworld")
+	BGM.play_track("overworld")
 
 func _setup_pause_menu() -> void:
 	var PauseScript := preload("res://ui/PauseMenu.gd")
@@ -134,7 +134,7 @@ func _open_bag() -> void:
 	party.name = "PartyBag"
 	_bag_layer.add_child(party)
 	party.closed.connect(_close_bag)
-	SoundBus.play_sfx("select")
+	SFX.play_sfx("select")
 
 func _close_bag() -> void:
 	if _bag_layer != null:
@@ -219,7 +219,7 @@ func _build_ui() -> void:
 	_player_hp_bar = ProgressBar.new()
 	_player_hp_bar.position = Vector2(12, 90)
 	_player_hp_bar.size = Vector2(220, 18)
-	_player_hp_bar.max_value = float(GameState.player_max_hp)
+	_player_hp_bar.max_value = float(Game.player_max_hp)
 	layer.add_child(_player_hp_bar)
 
 	_coins_label = Label.new()
@@ -308,11 +308,11 @@ func _build_ui() -> void:
 
 func _on_time(_t: float) -> void:
 	if _time_label:
-		var frac: float = DayNight.day_fraction()
+		var frac: float = Clock.day_fraction()
 		var h := int(frac * 24.0)
 		var m := int(fmod(frac * 24.0 * 60.0, 60.0))
 		var clock := "%02d:%02d" % [h, m]
-		_time_label.text = "时间: " + DayNight.phase_label() + " " + clock + (" (禁止收服)" if DayNight.is_night else "")
+		_time_label.text = "时间: " + Clock.phase_label() + " " + clock + (" (禁止收服)" if Clock.is_night else "")
 
 func build_world() -> void:
 	# 对话框(CanvasLayer), 供所有 NPC 共用
@@ -395,7 +395,7 @@ func build_world() -> void:
 
 	# 村内 NPC(向导/村民/劲敌/新伙伴)
 	_add_npc(Vector3(4, 1, -19), "向导·岚", Color(0.3, 0.7, 0.9), [
-		GameState.player_name if GameState.player_name != "" else "旅行者" + "，欢迎回到星澜村。",
+		Game.player_name if Game.player_name != "" else "旅行者" + "，欢迎回到星澜村。",
 		"你从山洞归来后失了记忆，连伙伴『凛』和那两头金属神兽都下落不明……但辉光说，你仍是星辉冠军。",
 		"宝可梦中心(村中北侧)或路旁营地按 E 可治疗并自动存档；受伤时战斗里也能用伤药。",
 		"东边的晨曦镇有道馆与一位强劲的训练家，等你变强再去挑战。北之路的草丛里，野怪会直接扑上来——记得带够伤药！",
@@ -550,7 +550,7 @@ func build_world() -> void:
 	_add_sign("黯潮深渊 · 首领出没", Vector3(0, 0, 50))
 	_alpha = AlphaScript.new()
 	_alpha.position = Vector3(0, 0, 72)
-	_alpha.visible = GameState.midboss_done
+	_alpha.visible = Game.midboss_done
 	add_child(_alpha)
 
 func _add_house(pos: Vector3, size: Vector3, color: Color) -> void:
@@ -854,12 +854,12 @@ func _spawn_ambush(creature_id: String, level: int) -> void:
 	_ambush = a
 	_show_toast("野生灵兽来袭！按 B/E 迎战，或快跑！")
 	# 同时记入图鉴「已见」
-	GameState.note_dex_seen(creature_id)
+	Game.note_dex_seen(creature_id)
 
 func _on_ambush_attack(dmg: int, is_big: bool) -> void:
-	GameState.damage_player(dmg)
+	Game.damage_player(dmg)
 	_show_toast(( "大招！" if is_big else "") + "被野生灵兽攻击，体力 -" + str(dmg))
-	if GameState.is_player_fainted():
+	if Game.is_player_fainted():
 		_on_player_fainted()
 
 func _on_ambush_gone() -> void:
@@ -873,16 +873,16 @@ func _engage_ambush() -> void:
 	var id: String = _ambush.creature_id
 	var lv: int = _ambush.level
 	_on_ambush_gone()
-	GameState.pending_wild = {"id": id, "level": lv}
+	Game.pending_wild = {"id": id, "level": lv}
 	get_tree().change_scene_to_file("res://battle/BattleArena.tscn")
 
 func _on_player_fainted() -> void:
 	_on_ambush_gone()
 	# 复活到最近存档点, 回满体力与队伍
 	_player.global_position = _last_save_point
-	GameState.heal_player()
-	GameState.heal_team()
-	SaveManager.save_game()
+	Game.heal_player()
+	Game.heal_team()
+	Save.save_game()
 	_show_toast("你被野生灵兽击倒了……在最近的营地/中心苏醒，体力已恢复。")
 
 func _show_toast(text: String) -> void:
@@ -971,7 +971,7 @@ func _setup_shop() -> void:
 func _process(delta: float) -> void:
 	# 每帧同步玩家世界坐标给目标罗盘
 	if _player != null:
-		GameState.player_position = _player.position
+		Game.player_position = _player.position
 	# 背包打开时: Esc 关闭, 其余世界处理冻结
 	if _bag_open:
 		if Input.is_action_just_pressed("ui_cancel"):
@@ -995,35 +995,35 @@ func _process(delta: float) -> void:
 
 	if Input.is_action_just_pressed("start_battle") and _ambush == null:
 		var wild_ids := []
-		for cid in DataBus.creatures.keys():
-			var d: Dictionary = DataBus.get_creature(cid)
+		for cid in Data.creatures.keys():
+			var d: Dictionary = Data.get_creature(cid)
 			if d.get("wild", false):
 				wild_ids.append(cid)
 		if wild_ids.is_empty():
 			wild_ids = ["windpip"]
 		var id: String = wild_ids[randi() % wild_ids.size()]
-		var d: Dictionary = DataBus.get_creature(id)
+		var d: Dictionary = Data.get_creature(id)
 		var lv: int = randi_range(int(d.get("min_level", 2)), int(d.get("max_level", 6)))
-		GameState.pending_wild = {"id": id, "level": lv}
+		Game.pending_wild = {"id": id, "level": lv}
 		get_tree().change_scene_to_file("res://battle/BattleArena.tscn")
 
 	if _in_center and Input.is_action_just_pressed("interact"):
-		GameState.heal_team()
-		GameState.heal_player()
+		Game.heal_team()
+		Game.heal_player()
 		_last_save_point = _player.global_position
 		_last_save_name = "星澜村·宝可梦中心"
-		SaveManager.save_game()
-		SoundBus.play_sfx("heal")
+		Save.save_game()
+		SFX.play_sfx("heal")
 		if _dialogue and _dialogue.has_method("start"):
 			_dialogue.start(["宝可梦中心：队伍与体力已完全恢复，进度已保存。"])
 
 	if _in_camp and Input.is_action_just_pressed("interact"):
-		GameState.heal_team()
-		GameState.heal_player()
+		Game.heal_team()
+		Game.heal_player()
 		_last_save_point = _player.global_position
 		_last_save_name = "路旁营地（休整点）"
-		SaveManager.save_game()
-		SoundBus.play_sfx("heal")
+		Save.save_game()
+		SFX.play_sfx("heal")
 		if _dialogue and _dialogue.has_method("start"):
 			_dialogue.start(["你在营地扎营休息，队伍与体力全部恢复，这里已成为新的复活点。"])
 
@@ -1032,14 +1032,14 @@ func _process(delta: float) -> void:
 
 	# 晶变坑: 三人协力讨伐(胜利后可收服/放弃)
 	if _in_tera and Input.is_action_just_pressed("interact"):
-		if GameState.pending_raid.is_empty():
-			if GameState.story_stage < 1:
+		if Game.pending_raid.is_empty():
+			if Game.story_stage < 1:
 				if _dialogue and _dialogue.has_method("start"):
 					_dialogue.start(["晶变坑寂静无声……等你真正踏入星澜大地后，守护兽才会苏醒。"])
-			elif GameState.team.is_empty():
+			elif Game.team.is_empty():
 				_show_toast("你还没有任何灵兽，无法挑战晶变坑。")
 			else:
-				GameState.pending_raid = {
+				Game.pending_raid = {
 					"boss_id": "crystal_guardian",
 					"boss_level": 28,
 					"allies": ["劲敌·岩", "伙伴·小岚", "伙伴·阿砂"]
@@ -1048,23 +1048,23 @@ func _process(delta: float) -> void:
 
 	# 可探索点: 辉光晶簇(一次性奖励)
 	if _in_crystal and Input.is_action_just_pressed("interact"):
-		if not GameState.flags.get("crystal_north", false):
-			GameState.flags["crystal_north"] = true
-			GameState.add_item("ancient_ball", 1)
-			SoundBus.play_sfx("capture_success")
-			SaveManager.save_game()
+		if not Game.flags.get("crystal_north", false):
+			Game.flags["crystal_north"] = true
+			Game.add_item("ancient_ball", 1)
+			SFX.play_sfx("capture_success")
+			Save.save_game()
 			_show_toast("你采得一枚辉光晶簇，获赠 远古球 ×1！")
 		else:
 			_show_toast("这枚辉光晶簇已被你采走了。")
 
 	# 小谜题: 古老封印(需收服≥3种灵兽方能唤醒)
 	if _in_seal and Input.is_action_just_pressed("interact"):
-		if not GameState.flags.get("seal_opened", false):
-			if GameState.dex_caught_count() >= 3:
-				GameState.flags["seal_opened"] = true
-				GameState.add_item("super_potion", 2)
-				SoundBus.play_sfx("levelup")
-				SaveManager.save_game()
+		if not Game.flags.get("seal_opened", false):
+			if Game.dex_caught_count() >= 3:
+				Game.flags["seal_opened"] = true
+				Game.add_item("super_potion", 2)
+				SFX.play_sfx("levelup")
+				Save.save_game()
 				if _dialogue and _dialogue.has_method("start"):
 					_dialogue.start(["封印低语：『当三相之灵归于你手，深渊之门将为你而开。』",
 						"你领悟了封印之力，获得 好伤药 ×2！"])
@@ -1078,7 +1078,7 @@ func _process(delta: float) -> void:
 		_center_label.text = "宝可梦中心(按 E 治疗)" if _in_center else ""
 
 	if _in_gym and Input.is_action_just_pressed("interact"):
-		GameState.pending_trainer = {
+		Game.pending_trainer = {
 			"enemy_id": "lumiadeer",
 			"enemy_level": 12,
 			"trainer_name": "馆主·岩心",
@@ -1090,7 +1090,7 @@ func _process(delta: float) -> void:
 		_gym_label.text = "道馆·岩心 (按 E 挑战)" if _in_gym else ""
 
 	if _in_gym2 and Input.is_action_just_pressed("interact"):
-		GameState.pending_trainer = {
+		Game.pending_trainer = {
 			"enemy_id": "windpip",
 			"enemy_level": 10,
 			"trainer_name": "馆主·清",
@@ -1102,7 +1102,7 @@ func _process(delta: float) -> void:
 		_gym2_label.text = "清风道馆·清 (按 E 挑战)" if _in_gym2 else ""
 
 	if _in_gym3 and Input.is_action_just_pressed("interact"):
-		GameState.pending_trainer = {
+		Game.pending_trainer = {
 			"enemy_id": "magmaw",
 			"enemy_level": 15,
 			"trainer_name": "馆主·炎心",
@@ -1114,7 +1114,7 @@ func _process(delta: float) -> void:
 		_gym3_label.text = "烈焰道馆·炎心 (按 E 挑战)" if _in_gym3 else ""
 
 	if _in_gym4 and Input.is_action_just_pressed("interact"):
-		GameState.pending_trainer = {
+		Game.pending_trainer = {
 			"enemy_id": "frostpard",
 			"enemy_level": 15,
 			"trainer_name": "馆主·霜音",
@@ -1127,7 +1127,7 @@ func _process(delta: float) -> void:
 
 	# 中期小Boss(暗潮使·玄): 需集齐四枚徽章; 战后可再次对话获取剧情指引
 	if _in_midboss and Input.is_action_just_pressed("interact"):
-		if GameState.midboss_done:
+		if Game.midboss_done:
 			if _dialogue and _dialogue.has_method("start"):
 				_dialogue.start([
 					"暗潮使·玄：「四徽章已齐，封印之钥已在你手。」",
@@ -1135,12 +1135,12 @@ func _process(delta: float) -> void:
 					"「救回你的伙伴凛，让星澜大陆重归平衡。去吧。」"
 				])
 		else:
-			var ready: bool = GameState.story_stage >= 1 and GameState.has_badge("badge_stone") and GameState.has_badge("badge_wave") and GameState.has_badge("badge_flame") and GameState.has_badge("badge_frost")
+			var ready: bool = Game.story_stage >= 1 and Game.has_badge("badge_stone") and Game.has_badge("badge_wave") and Game.has_badge("badge_flame") and Game.has_badge("badge_frost")
 			if not ready:
 				if _dialogue and _dialogue.has_method("start"):
 					_dialogue.start(["暗潮使·玄：「集齐四枚道馆徽章，再来寻我。岩石、清风、烈焰、寒冰，皆需你亲手赢下。」"])
 			else:
-				GameState.pending_trainer = {
+				Game.pending_trainer = {
 					"enemy_id": "shadepup",
 					"enemy_level": 18,
 					"trainer_name": "暗潮使·玄",
@@ -1149,7 +1149,7 @@ func _process(delta: float) -> void:
 				get_tree().change_scene_to_file("res://battle/BattleArena.tscn")
 
 	if _midboss_label:
-		if not GameState.midboss_done:
+		if not Game.midboss_done:
 			_midboss_label.text = "暗潮使·玄 (按 E 挑战, 需四枚徽章)" if _in_midboss else ""
 		else:
 			_midboss_label.text = ""
@@ -1161,7 +1161,7 @@ func _process(delta: float) -> void:
 			if _alpha_label:
 				_alpha_label.text = "黯潮之主·凛 出没! 按 E 挑战 (可收服→终局)"
 			if Input.is_action_just_pressed("interact"):
-				GameState.pending_wild = {"id": "steeljaw_king", "level": 22, "alpha": true, "finale": true}
+				Game.pending_wild = {"id": "steeljaw_king", "level": 22, "alpha": true, "finale": true}
 				get_tree().change_scene_to_file("res://battle/BattleArena.tscn")
 		else:
 			if _alpha_label:
@@ -1173,13 +1173,13 @@ func _process(delta: float) -> void:
 	if _rift and is_instance_valid(_rift) and _rift.is_active and _rift.cooldown <= 0.0:
 		var dr: float = _player.global_position.distance_to(_rift.global_position)
 		if dr < _rift.radius:
-			GameState.pending_wild = {"id": "ironhide", "level": 12, "rift": true}
+			Game.pending_wild = {"id": "ironhide", "level": 12, "rift": true}
 			_rift.consume()
 			get_tree().change_scene_to_file("res://battle/BattleArena.tscn")
 
 	# 昼夜光照反馈
 	if _env:
-		if DayNight.is_night:
+		if Clock.is_night:
 			_env.background_color = Color(0.05, 0.05, 0.12)
 			if _light:
 				_light.light_energy = 0.3
@@ -1197,9 +1197,9 @@ func _process(delta: float) -> void:
 
 func _update_player_hud() -> void:
 	if _player_hp_bar:
-		_player_hp_bar.value = float(GameState.player_hp) / float(max(GameState.player_max_hp, 1))
+		_player_hp_bar.value = float(Game.player_hp) / float(max(Game.player_max_hp, 1))
 	if _coins_label:
-		_coins_label.text = "星辉币: " + str(GameState.coins)
+		_coins_label.text = "星辉币: " + str(Game.coins)
 	if _shop_label:
 		_shop_label.text = "星辉商栈 (按 E 购买)" if _in_shop else ""
 	if _camp_label:
@@ -1215,8 +1215,8 @@ func _update_team_label() -> void:
 	if not _team_label:
 		return
 	var s := "队伍:\n"
-	for c in GameState.team:
-		var d: Dictionary = DataBus.get_creature(c["id"])
+	for c in Game.team:
+		var d: Dictionary = Data.get_creature(c["id"])
 		var nm: String = d.get("name", c["id"])
 		var st: String = (" [" + String(c.get("status", {}).get("name", "")) + "]") if (c.get("status") != null) else ""
 		s += "  " + nm + " Lv" + str(c["level"]) + " HP " + str(c["hp"]) + "/" + str(c["max_hp"]) + st + "\n"
@@ -1225,7 +1225,7 @@ func _update_team_label() -> void:
 func _update_research_label() -> void:
 	if not _research_label:
 		return
-	var r: Dictionary = GameState.research
+	var r: Dictionary = Game.research
 	if r.get("done", false):
 		_research_label.text = "图鉴研究(金属性): 已完成! 获得远古球"
 	else:
@@ -1235,18 +1235,18 @@ func _update_research_label() -> void:
 func _update_objective() -> void:
 	if not _objective:
 		return
-	_objective.text = "▶ 当前目标：" + GameState.current_objective()
+	_objective.text = "▶ 当前目标：" + Game.current_objective()
 
 ## 常驻 HUD: 首发灵兽(队伍首位) 名称/等级/状态/HP
 func _update_lead_panel() -> void:
 	if not _lead_label or not _lead_hp_bar:
 		return
-	if GameState.team.is_empty():
+	if Game.team.is_empty():
 		_lead_label.text = "（暂无灵兽）"
 		_lead_hp_bar.value = 0.0
 		return
-	var c: Dictionary = GameState.team[0]
-	var d: Dictionary = DataBus.get_creature(c["id"])
+	var c: Dictionary = Game.team[0]
+	var d: Dictionary = Data.get_creature(c["id"])
 	var nm: String = d.get("name", c["id"])
 	var st: String = ("  [" + str(c.get("status", {}).get("name", "")) + "]") if (c.get("status") != null) else ""
 	_lead_label.text = nm + "  Lv" + str(c["level"]) + st

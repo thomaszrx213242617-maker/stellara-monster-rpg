@@ -68,8 +68,8 @@ func _build() -> void:
 	t2.tween_property(title, "modulate:a", 1.0, 0.6)
 
 func _creature_card(id: String, glow: bool) -> Panel:
-	var data: Dictionary = DataBus.get_creature(id)
-	var tcolor: Color = DataBus.type_color(data.get("type", ""))
+	var data: Dictionary = Data.get_creature(id)
+	var tcolor: Color = Data.type_color(data.get("type", ""))
 	var name: String = data.get("name", id)
 	var ctype: String = data.get("type", "")
 

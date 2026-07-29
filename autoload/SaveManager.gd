@@ -1,4 +1,5 @@
 extends Node
+class_name SaveManager
 
 ## 存档管理 (autoload)。保存到 user://save.json。覆盖队伍/存储/背包/徽章/图鉴/时间。
 
@@ -9,40 +10,40 @@ func _ready() -> void:
 
 func save_game() -> void:
 	var data := {
-		"team": GameState.team,
-		"storage": GameState.storage,
-		"inventory": GameState.inventory,
-		"badges": GameState.badges,
-		"caught_count": GameState.caught_count,
-		"dex_seen": GameState.dex_seen,
-		"dex_caught": GameState.dex_caught,
-		"research": GameState.research,
-		"time": DayNight.time,
-		"player_name": GameState.player_name,
-		"player_gender": GameState.player_gender,
-		"story_stage": GameState.story_stage,
-		"opening_done": GameState.opening_done,
-		"prologue_done": GameState.prologue_done,
-		"midboss_done": GameState.midboss_done,
-		"ending_done": GameState.ending_done,
-		"coins": GameState.coins,
-		"player_hp": GameState.player_hp,
-		"finale_stage": GameState.finale_stage,
-		"current_scene": GameState.current_scene,
-		"music_on": GameState.music_on,
-		"music_volume": GameState.music_volume,
-		"sfx_on": GameState.sfx_on,
-		"sfx_volume": GameState.sfx_volume,
-		"text_speed": GameState.text_speed,
-		"story_log": GameState.story_log,
-		"custom_music": GameState.custom_music,
-		"flags": GameState.flags
+		"team": Game.team,
+		"storage": Game.storage,
+		"inventory": Game.inventory,
+		"badges": Game.badges,
+		"caught_count": Game.caught_count,
+		"dex_seen": Game.dex_seen,
+		"dex_caught": Game.dex_caught,
+		"research": Game.research,
+		"time": Clock.time,
+		"player_name": Game.player_name,
+		"player_gender": Game.player_gender,
+		"story_stage": Game.story_stage,
+		"opening_done": Game.opening_done,
+		"prologue_done": Game.prologue_done,
+		"midboss_done": Game.midboss_done,
+		"ending_done": Game.ending_done,
+		"coins": Game.coins,
+		"player_hp": Game.player_hp,
+		"finale_stage": Game.finale_stage,
+		"current_scene": Game.current_scene,
+		"music_on": Game.music_on,
+		"music_volume": Game.music_volume,
+		"sfx_on": Game.sfx_on,
+		"sfx_volume": Game.sfx_volume,
+		"text_speed": Game.text_speed,
+		"story_log": Game.story_log,
+		"custom_music": Game.custom_music,
+		"flags": Game.flags
 	}
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if f:
 		f.store_string(JSON.stringify(data))
 		f.close()
-		print("SaveManager: 已保存")
+		print("Save: 已保存")
 
 func load_game() -> bool:
 	if not FileAccess.file_exists(SAVE_PATH):
@@ -52,62 +53,62 @@ func load_game() -> bool:
 	if data == null or typeof(data) != TYPE_DICTIONARY:
 		return false
 	if data.has("team"):
-		GameState.team = data["team"]
+		Game.team = data["team"]
 	if data.has("storage"):
-		GameState.storage = data["storage"]
+		Game.storage = data["storage"]
 	if data.has("inventory"):
-		GameState.inventory = data["inventory"]
+		Game.inventory = data["inventory"]
 	if data.has("badges"):
-		GameState.badges = data["badges"]
+		Game.badges = data["badges"]
 	if data.has("caught_count"):
-		GameState.caught_count = int(data["caught_count"])
+		Game.caught_count = int(data["caught_count"])
 	if data.has("dex_seen"):
-		GameState.dex_seen = data["dex_seen"]
+		Game.dex_seen = data["dex_seen"]
 	if data.has("dex_caught"):
-		GameState.dex_caught = data["dex_caught"]
+		Game.dex_caught = data["dex_caught"]
 	if data.has("time"):
-		DayNight.time = float(data["time"])
+		Clock.time = float(data["time"])
 	if data.has("research"):
-		GameState.research = data["research"]
+		Game.research = data["research"]
 	if data.has("player_name"):
-		GameState.player_name = str(data["player_name"])
+		Game.player_name = str(data["player_name"])
 	if data.has("player_gender"):
-		GameState.player_gender = str(data["player_gender"])
+		Game.player_gender = str(data["player_gender"])
 	if data.has("story_stage"):
-		GameState.story_stage = int(data["story_stage"])
+		Game.story_stage = int(data["story_stage"])
 	if data.has("opening_done"):
-		GameState.opening_done = bool(data["opening_done"])
+		Game.opening_done = bool(data["opening_done"])
 	if data.has("midboss_done"):
-		GameState.midboss_done = bool(data["midboss_done"])
+		Game.midboss_done = bool(data["midboss_done"])
 	if data.has("ending_done"):
-		GameState.ending_done = bool(data["ending_done"])
+		Game.ending_done = bool(data["ending_done"])
 	if data.has("prologue_done"):
-		GameState.prologue_done = bool(data["prologue_done"])
+		Game.prologue_done = bool(data["prologue_done"])
 	if data.has("coins"):
-		GameState.coins = int(data["coins"])
+		Game.coins = int(data["coins"])
 	if data.has("player_hp"):
-		GameState.player_hp = int(data["player_hp"])
+		Game.player_hp = int(data["player_hp"])
 	if data.has("finale_stage"):
-		GameState.finale_stage = int(data["finale_stage"])
+		Game.finale_stage = int(data["finale_stage"])
 	if data.has("current_scene"):
-		GameState.current_scene = str(data["current_scene"])
+		Game.current_scene = str(data["current_scene"])
 	if data.has("music_on"):
-		GameState.music_on = bool(data["music_on"])
+		Game.music_on = bool(data["music_on"])
 	if data.has("music_volume"):
-		GameState.music_volume = float(data["music_volume"])
+		Game.music_volume = float(data["music_volume"])
 	if data.has("sfx_on"):
-		GameState.sfx_on = bool(data["sfx_on"])
+		Game.sfx_on = bool(data["sfx_on"])
 	if data.has("sfx_volume"):
-		GameState.sfx_volume = float(data["sfx_volume"])
+		Game.sfx_volume = float(data["sfx_volume"])
 	if data.has("text_speed"):
-		GameState.text_speed = int(data["text_speed"])
+		Game.text_speed = int(data["text_speed"])
 	if data.has("story_log"):
-		GameState.story_log = data["story_log"]
+		Game.story_log = data["story_log"]
 	if data.has("custom_music"):
-		GameState.custom_music = str(data["custom_music"])
+		Game.custom_music = str(data["custom_music"])
 	if data.has("flags"):
-		GameState.flags = data["flags"]
-	print("SaveManager: 已读取存档")
+		Game.flags = data["flags"]
+	print("Save: 已读取存档")
 	return true
 
 func has_save() -> bool:
@@ -119,4 +120,4 @@ func delete_save() -> void:
 		var d := DirAccess.open("user://")
 		if d != null:
 			d.remove("save.json")
-		print("SaveManager: 已删除存档")
+		print("Save: 已删除存档")

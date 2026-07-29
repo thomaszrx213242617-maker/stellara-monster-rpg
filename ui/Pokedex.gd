@@ -86,10 +86,10 @@ func _build() -> void:
 		_select(_entries[0]["id"])
 
 func _build_list() -> void:
-	for cid in DataBus.creatures.keys():
-		var d: Dictionary = DataBus.creatures[cid]
-		var seen: bool = GameState.dex_seen.has(cid)
-		var caught: bool = GameState.dex_caught.has(cid)
+	for cid in Data.creatures.keys():
+		var d: Dictionary = Data.creatures[cid]
+		var seen: bool = Game.dex_seen.has(cid)
+		var caught: bool = Game.dex_caught.has(cid)
 		var row := Button.new()
 		row.custom_minimum_size = Vector2(0, 44)
 		row.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -112,9 +112,9 @@ func _select(id: String) -> void:
 func _draw_detail(id: String) -> void:
 	for ch in _detail.get_children():
 		ch.queue_free()
-	var d: Dictionary = DataBus.creatures.get(id, {})
-	var seen: bool = GameState.dex_seen.has(id)
-	var caught: bool = GameState.dex_caught.has(id)
+	var d: Dictionary = Data.creatures.get(id, {})
+	var seen: bool = Game.dex_seen.has(id)
+	var caught: bool = Game.dex_caught.has(id)
 
 	# 头像(按属性上色; 未知为暗剪影)
 	var portrait := ColorRect.new()
@@ -204,8 +204,8 @@ func _stat_row(key: String, val: int, pos: Vector2) -> void:
 func _refresh_progress() -> void:
 	if _prog_label:
 		_prog_label.text = "已捕 %d/%d  ·  已见 %d/%d" % [
-			GameState.dex_caught_count(), GameState.dex_total(),
-			GameState.dex_seen_count(), GameState.dex_total()
+			Game.dex_caught_count(), Game.dex_total(),
+			Game.dex_seen_count(), Game.dex_total()
 		]
 
 func _on_back() -> void:

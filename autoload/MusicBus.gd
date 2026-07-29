@@ -1,4 +1,5 @@
 extends Node
+class_name MusicBus
 
 ## 背景音乐自动加载(原创, 程序化合成, 规避任天堂/宝可梦版权)。
 ## 用 AudioStreamGenerator 实时合成「旋律 + 低音」简单循环, 按场景切换曲目。
@@ -58,6 +59,7 @@ var _tracks: Dictionary = {
 	},
 }
 
+
 var _mix_rate: float = 44100.0
 var _melody := Voice.new()
 var _harmony := Voice.new()   # pad/和声铺底(正弦, 低增益)
@@ -91,10 +93,10 @@ func _ensure_bus() -> void:
 
 func play_track(name: String) -> void:
 	# 自定义音乐优先: 一旦玩家在设置里指定了背景音乐文件, 全场景统一播放该文件
-	if GameState.custom_music != "":
+	if Game.custom_music != "":
 		current_track = name
 		_last_track = name
-		_play_file(GameState.custom_music)
+		_play_file(Game.custom_music)
 		return
 	if name == current_track and is_playing and mode == "procedural":
 		return
@@ -108,8 +110,8 @@ func play_track(name: String) -> void:
 
 ## 设置/取消自定义背景音乐。path="" 表示恢复内置原创合成。
 func set_custom_music(path: String) -> void:
-	if "custom_music" in GameState:
-		GameState.custom_music = path
+	if "custom_music" in Game:
+		Game.custom_music = path
 	current_track = ""
 	if path == "":
 		play_track(_last_track)
@@ -119,7 +121,7 @@ func set_custom_music(path: String) -> void:
 ## 扫描 res://audio/ 下可作为 BGM 的用户文件(排除音效名), 返回 [{name, path}]。
 func list_music_files() -> Array:
 	var out: Array = []
-	var names: Array = SoundBus.sfx_names()
+	var names: Array = SFX.sfx_names()
 	var dir := DirAccess.open("res://audio/")
 	if dir == null:
 		return out
@@ -141,14 +143,14 @@ func stop() -> void:
 		player.stop()
 
 func set_music_enabled(on: bool) -> void:
-	if "music_on" in GameState:
-		GameState.music_on = on
+	if "music_on" in Game:
+		Game.music_on = on
 	_apply_volume()
 
 func set_music_volume(v: float) -> void:
 	v = clamp(v, 0.0, 1.0)
-	if "music_volume" in GameState:
-		GameState.music_volume = v
+	if "music_volume" in Game:
+		Game.music_volume = v
 	_apply_volume()
 
 ## ---------- 内部 ----------
@@ -201,10 +203,10 @@ func _apply_volume() -> void:
 		return
 	var on := true
 	var vol := 0.6
-	if "music_on" in GameState:
-		on = GameState.music_on
-	if "music_volume" in GameState:
-		vol = GameState.music_volume
+	if "music_on" in Game:
+		on = Game.music_on
+	if "music_volume" in Game:
+		vol = Game.music_volume
 	player.volume_db = (linear_to_db(max(vol, 0.0001)) if on else -80.0)
 
 func _process(_delta: float) -> void:

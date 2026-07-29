@@ -1,4 +1,5 @@
 extends Node
+class_name DataBus
 
 ## 全局数据总线 (autoload)。负责加载 data/*.json 并对外提供查询。
 ## 同时提供静态 load_json 供其他脚本使用。
@@ -23,7 +24,7 @@ func _ready() -> void:
 ## 静态 JSON 加载器 (供任意脚本调用, 无需实例)
 static func load_json(path: String) -> Variant:
 	if not FileAccess.file_exists(path):
-		push_error("DataBus: 找不到数据文件 " + path)
+		push_error("Data: 找不到数据文件 " + path)
 		return null
 	var text := FileAccess.get_file_as_string(path)
 	return JSON.parse_string(text)

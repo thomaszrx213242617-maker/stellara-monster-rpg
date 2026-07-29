@@ -1,4 +1,5 @@
 extends Node
+class_name InputSetup
 
 ## 启动时用代码注册输入动作, 避免手工编辑 project.godot 的 [input] 格式。
 ## 这样即使未在编辑器里配过按键, 游戏也能直接跑。

@@ -1,4 +1,5 @@
 extends Node
+class_name DayNight
 
 ## 全局昼夜循环 (autoload)。驱动光照变化并在夜晚强制禁用"对战收集点数/收服"。
 

@@ -1,4 +1,5 @@
 extends Node
+class_name GameState
 
 ## 全局游戏状态 (autoload): 玩家队伍、存储箱、背包、徽章、图鉴进度。
 ## 队伍每只灵兽为可序列化字典: {id, level, exp, hp, max_hp, status, moves}
@@ -93,7 +94,7 @@ func note_dex_caught(id: String) -> void:
 		dex_seen[id] = true
 
 func dex_total() -> int:
-	return DataBus.creatures.size()
+	return Data.creatures.size()
 
 func dex_seen_count() -> int:
 	return dex_seen.size()
@@ -119,13 +120,13 @@ func wild_exp(level: int) -> int:
 	return floor(level * 8) + 8
 
 func max_hp_for(id: String, level: int) -> int:
-	var data: Dictionary = DataBus.get_creature(id)
+	var data: Dictionary = Data.get_creature(id)
 	if data.is_empty():
 		return 1
-	return DataBus.compute_stats(data, level)["max_hp"]
+	return Data.compute_stats(data, level)["max_hp"]
 
 func add_to_team(id: String, level: int) -> void:
-	var data: Dictionary = DataBus.get_creature(id)
+	var data: Dictionary = Data.get_creature(id)
 	if data.is_empty():
 		return
 	var mhp: int = max_hp_for(id, level)
@@ -144,7 +145,7 @@ func add_to_team(id: String, level: int) -> void:
 func choose_starter(id: String) -> bool:
 	if chosen_starter != "":
 		return false
-	var data: Dictionary = DataBus.get_creature(id)
+	var data: Dictionary = Data.get_creature(id)
 	if data.is_empty() or not data.get("starter", false):
 		return false
 	chosen_starter = id
@@ -209,12 +210,12 @@ func grant_exp(c: Dictionary, amount: int) -> Dictionary:
 		_on_level_up(c)
 		leveled_up.emit(c, int(c["level"]))
 		# 进化
-		var data: Dictionary = DataBus.get_creature(c["id"])
+		var data: Dictionary = Data.get_creature(c["id"])
 		var evo_to: String = data.get("evolve_to", "")
 		var evo_lv: int = int(data.get("evolve_level", 999))
 		if evo_to != "" and int(c["level"]) >= evo_lv:
 			var from_name: String = data["name"]
-			var to_data: Dictionary = DataBus.get_creature(evo_to)
+			var to_data: Dictionary = Data.get_creature(evo_to)
 			if not to_data.is_empty():
 				c["id"] = evo_to
 				c["moves"] = to_data.get("moves", []).duplicate()
@@ -306,9 +307,9 @@ func reset_new_game() -> void:
 	coins = 300
 	player_hp = player_max_hp
 	selected_ball = "ball"
-	if "time" in DayNight:
-		DayNight.time = 0.0
-	SaveManager.delete_save()
+	if "time" in Clock:
+		Clock.time = 0.0
+	Save.delete_save()
 	chosen_starter = ""
 	inventory = {"ball": 5, "potion": 3}
 	team_changed.emit()
@@ -317,7 +318,7 @@ func reset_new_game() -> void:
 
 ## 夜间规则: 不可进行"对战收集点数 / 收服"
 func can_collect() -> bool:
-	return DayNight.can_battle_collect_points()
+	return Clock.can_battle_collect_points()
 
 ## 记录一次「收服/击败」事件, 推进图鉴研究任务; 完成时发放奖励道具。
 func note_research(creature_type: String) -> void:
@@ -415,26 +416,26 @@ func consume_item(id: String, n: int) -> bool:
 ## 取背包中第一个球类道具
 func first_ball() -> String:
 	for id in inventory.keys():
-		var it: Dictionary = DataBus.get_item(id)
+		var it: Dictionary = Data.get_item(id)
 		if not it.is_empty() and it.get("type") == "ball":
 			return id
 	return ""
 
 func ball_mod(id: String) -> float:
-	var it: Dictionary = DataBus.get_item(id)
+	var it: Dictionary = Data.get_item(id)
 	if it.is_empty():
 		return 1.0
 	return float(it.get("catch_mod", 1.0))
 
 ## ---- 货币 / 商店 ----
 func price_of(id: String) -> int:
-	var it: Dictionary = DataBus.get_item(id)
+	var it: Dictionary = Data.get_item(id)
 	if it.is_empty():
 		return 0
 	return int(it.get("price", 0))
 
 func can_buy(id: String) -> bool:
-	var it: Dictionary = DataBus.get_item(id)
+	var it: Dictionary = Data.get_item(id)
 	if it.is_empty():
 		return false
 	return bool(it.get("buyable", false))
@@ -453,7 +454,7 @@ func buy_item(id: String, n: int = 1) -> bool:
 ## 可购买的道具列表(球类在前)
 func shop_items() -> Array:
 	var out := []
-	for iid in DataBus.items.keys():
+	for iid in Data.items.keys():
 		if can_buy(iid):
 			out.append(iid)
 	return out
@@ -472,7 +473,7 @@ func is_player_fainted() -> bool:
 func owned_balls() -> Array:
 	var out := []
 	for id in inventory.keys():
-		var it: Dictionary = DataBus.get_item(id)
+		var it: Dictionary = Data.get_item(id)
 		if not it.is_empty() and it.get("type") == "ball":
 			out.append(id)
 	return out

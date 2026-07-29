@@ -23,18 +23,18 @@ var _inscription_done: bool = false
 var _exiting: bool = false
 
 func _ready() -> void:
-	GameState.current_scene = "res://ui/OpeningCutscene.tscn"
+	Game.current_scene = "res://ui/OpeningCutscene.tscn"
 	_build_world()
 	_build_ui()
 	# 苏醒即由伙伴·凛开口交代背景(代替旁白)
 	if _dialogue and _dialogue.has_method("start"):
 		var lines: Array = _rin.lines.duplicate()
-		if GameState.chosen_starter != "":
-			var sd: Dictionary = DataBus.get_creature(GameState.chosen_starter)
+		if Game.chosen_starter != "":
+			var sd: Dictionary = Data.get_creature(Game.chosen_starter)
 			if not sd.is_empty():
 				lines.insert(0, "凛：「对了——你从那三只里挑的『" + sd.get("name", "") + "』，可得用心培养。它日后会进化成更强的姿态。」")
 		_dialogue.start(lines)
-	MusicBus.play_track("overworld")
+	BGM.play_track("overworld")
 
 func _build_world() -> void:
 	var env_node := WorldEnvironment.new()
@@ -225,7 +225,7 @@ func _process(delta: float) -> void:
 	if _player.global_position.z < -8.0:
 		_exiting = true
 		_show_toast("你步入沉眠之洞……")
-		GameState.opening_done = true
-		SaveManager.save_game()
+		Game.opening_done = true
+		Save.save_game()
 		await get_tree().create_timer(0.7).timeout
 		get_tree().change_scene_to_file("res://world/PrologueExplore.tscn")

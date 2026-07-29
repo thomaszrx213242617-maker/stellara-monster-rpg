@@ -14,7 +14,7 @@ var _shown: int = 0
 var _typing: bool = false
 var _char_acc: float = 0.0
 
-## 文字速度 → 每字间隔秒(0=瞬间显示); 对应 GameState.text_speed 0/1/2
+## 文字速度 → 每字间隔秒(0=瞬间显示); 对应 Game.text_speed 0/1/2
 const _SPEED_DELAY := [0.05, 0.022, 0.0]
 
 func _ready() -> void:
@@ -53,7 +53,7 @@ func _process(delta: float) -> void:
 	if not active:
 		return
 	if _typing:
-		var spd := GameState.text_speed
+		var spd := Game.text_speed
 		if spd < 0 or spd > 2:
 			spd = 1
 		var delay: float = _SPEED_DELAY[spd]
@@ -75,7 +75,7 @@ func _process(delta: float) -> void:
 			_label.text = _full_text
 		else:
 			idx += 1
-			SoundBus.play_sfx("select")
+			SFX.play_sfx("select")
 			_show()
 
 func _end() -> void:

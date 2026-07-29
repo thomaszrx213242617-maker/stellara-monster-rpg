@@ -43,11 +43,11 @@ func _build() -> void:
 	vb.add_theme_constant_override("separation", 6)
 	_panel.add_child(vb)
 
-	for iid in GameState.shop_items():
-		var it: Dictionary = DataBus.get_item(iid)
+	for iid in Game.shop_items():
+		var it: Dictionary = Data.get_item(iid)
 		var row := HBoxContainer.new()
 		var name_l := Label.new()
-		name_l.text = it["name"] + "  ×" + str(GameState.inventory.get(iid, 0))
+		name_l.text = it["name"] + "  ×" + str(Game.inventory.get(iid, 0))
 		name_l.custom_minimum_size = Vector2(220, 0)
 		name_l.add_theme_font_size_override("font_size", 16)
 		row.add_child(name_l)
@@ -61,7 +61,7 @@ func _build() -> void:
 		buy.custom_minimum_size = Vector2(100, 34)
 		var captured: String = iid
 		buy.pressed.connect(func():
-			SoundBus.play_sfx("select")
+			SFX.play_sfx("select")
 			_buy(captured))
 		row.add_child(buy)
 		vb.add_child(row)
@@ -71,20 +71,20 @@ func _build() -> void:
 	close.custom_minimum_size = Vector2(200, 44)
 	close.position = Vector2(180, 410)
 	close.pressed.connect(func():
-		SoundBus.play_sfx("select")
+		SFX.play_sfx("select")
 		close_shop())
 	_panel.add_child(close)
 
 func _buy(id: String) -> void:
-	if GameState.buy_item(id, 1):
+	if Game.buy_item(id, 1):
 		_pop_coins()
 		# 刷新列表中的持有数
 		_rebuild_rows()
 	else:
-		_coins_label.text = "星辉币: " + str(GameState.coins) + "  (钱不够或无法购买)"
+		_coins_label.text = "星辉币: " + str(Game.coins) + "  (钱不够或无法购买)"
 
 func _pop_coins() -> void:
-	_coins_label.text = "星辉币: " + str(GameState.coins)
+	_coins_label.text = "星辉币: " + str(Game.coins)
 
 func _rebuild_rows() -> void:
 	# 简单重建: 关闭再开以刷新持有数

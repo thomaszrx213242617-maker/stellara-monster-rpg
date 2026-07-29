@@ -25,18 +25,18 @@ var _page_flags: Array = ["page_1", "page_2", "page_3"]
 var _t: float = 0.0
 
 func _ready() -> void:
-	GameState.current_scene = "res://world/PrologueExplore.tscn"
-	GameState.set_objective_target(Vector3(0, 0, -150))   # 序章目标: 洞穴深处封印之地
+	Game.current_scene = "res://world/PrologueExplore.tscn"
+	Game.set_objective_target(Vector3(0, 0, -150))   # 序章目标: 洞穴深处封印之地
 	_build_world()
 	_build_ui()
-	if GameState.prologue_scout_done:
+	if Game.prologue_scout_done:
 		_show_toast("侦查战已结束。沿着发光晶壁，向洞穴深处前进。")
 		if _dialogue and _dialogue.has_method("start"):
 			_dialogue.start(["凛：「就是这里了……前面有股不祥的气息。我们进去吧。」"])
 	else:
 		if _dialogue and _dialogue.has_method("start"):
 			_dialogue.start(["凛：「这洞里似乎有野灵兽游荡，小心些。派你的灵兽迎战！」"])
-	MusicBus.play_track("overworld")
+	BGM.play_track("overworld")
 
 func _build_world() -> void:
 	var env_node := WorldEnvironment.new()
@@ -355,13 +355,13 @@ func _add_page(pos: Vector3, flag: String) -> void:
 func _collect_pickup(pk: Dictionary) -> void:
 	if pk["node"] != null:
 		pk["node"].visible = false
-	GameState.flags[pk["flag"]] = true
+	Game.flags[pk["flag"]] = true
 	if pk["kind"] == "crystal":
-		GameState.add_item(pk["item"], pk["qty"])
+		Game.add_item(pk["item"], pk["qty"])
 		_show_toast("获得 " + pk["hint"] + " ×" + str(pk["qty"]))
 	else:
 		_show_toast("拾得 " + pk["hint"])
-	SoundBus.play_sfx("levelup")
+	SFX.play_sfx("levelup")
 	if pk["kind"] == "page":
 		_check_page_puzzle()
 
@@ -369,11 +369,11 @@ func _collect_pickup(pk: Dictionary) -> void:
 func _check_page_puzzle() -> void:
 	var got: int = 0
 	for f in _page_flags:
-		if GameState.flags.get(f, false):
+		if Game.flags.get(f, false):
 			got += 1
-	if got >= 2 and not GameState.flags.get("page_reward", false):
-		GameState.flags["page_reward"] = true
-		GameState.add_item("super_potion", 2)
+	if got >= 2 and not Game.flags.get("page_reward", false):
+		Game.flags["page_reward"] = true
+		Game.add_item("super_potion", 2)
 		_show_toast("集齐封印残页！凛解读线索，获好伤药 ×2")
 		if _dialogue and _dialogue.has_method("start"):
 			_dialogue.start([
@@ -415,7 +415,7 @@ func _process(delta: float) -> void:
 			_toast.text = ""
 	if _player == null:
 		return
-	GameState.player_position = _player.global_position
+	Game.player_position = _player.global_position
 	# 拾取物: 晶簇 / 封印残页(靠近按 E)
 	for pk in _pickups:
 		if pk["node"] == null or not pk["node"].visible:
@@ -426,13 +426,13 @@ func _process(delta: float) -> void:
 				_collect_pickup(pk)
 			return
 	# 洞厅野怪侦查战(走入 z < -15 触发, 给一点热身距离)
-	if not GameState.prologue_scout_done and not _scout_triggered:
+	if not Game.prologue_scout_done and not _scout_triggered:
 		if _player.global_position.z < -15.0:
 			_scout_triggered = true
 			_start_scout_battle()
 			return
 	# 已完成侦查战: 接近封印之地(z < -150) 按 E 进入神兽战
-	if GameState.prologue_scout_done:
+	if Game.prologue_scout_done:
 		if _player.global_position.z < -150.0:
 			_in_depth = true
 			_hint.text = "按 E 进入双生神兽的封印之地……"
@@ -445,18 +445,18 @@ func _process(delta: float) -> void:
 func _start_scout_battle() -> void:
 	_show_toast("洞中有异动——野灵兽袭来！迎战！")
 	# 确保首发灵兽以满血迎战(避免上一场残留低血)
-	if not GameState.team.is_empty() and GameState.team[0].has("max_hp"):
-		GameState.team[0]["hp"] = int(GameState.team[0]["max_hp"])
-	GameState.prologue_scout_done = true
-	GameState.battle_return_scene = "res://world/PrologueExplore.tscn"
-	GameState.pending_wild = {"id": "shadepup", "level": 6}
+	if not Game.team.is_empty() and Game.team[0].has("max_hp"):
+		Game.team[0]["hp"] = int(Game.team[0]["max_hp"])
+	Game.prologue_scout_done = true
+	Game.battle_return_scene = "res://world/PrologueExplore.tscn"
+	Game.pending_wild = {"id": "shadepup", "level": 6}
 	get_tree().change_scene_to_file("res://battle/BattleArena.tscn")
 
 ## 双生神兽战: 真实对战(凛/小岚/阿砂 协同), 战败后才播旁白。
 func _enter_depth() -> void:
 	_show_toast("封印之地的气流将你掀翻——双生神兽，就在眼前！")
-	GameState.prologue_beast_mode = true
-	GameState.pending_raid = {
+	Game.prologue_beast_mode = true
+	Game.pending_raid = {
 		"boss_id": "hui_jin_long",
 		"boss_level": 42,
 		"allies": ["伙伴·凛", "伙伴·小岚", "伙伴·阿砂"]

@@ -19,7 +19,7 @@ var _hint: Label
 func _ready() -> void:
 	_build_world()
 	_build_ui()
-	MusicBus.play_track("title")
+	BGM.play_track("title")
 	_camera.make_current()
 
 func _build_world() -> void:

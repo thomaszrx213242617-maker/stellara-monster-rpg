@@ -80,7 +80,7 @@ func _build() -> void:
 	add_child(hint)
 
 func _assemble_lines() -> void:
-	var nm: String = GameState.player_name if GameState.player_name != "" else "旅人"
+	var nm: String = Game.player_name if Game.player_name != "" else "旅人"
 	_lines = [
 		"小岚：「你终于醒了！我是小岚，村里的巡林人。」",
 		"小岚：「你被冲上岸时，怀里还抱着那只炎尾狐。可你的伙伴凛……还有那两头金属神兽，都不见了。」",
@@ -111,9 +111,9 @@ func _finish() -> void:
 		return
 	_finished = true
 	_active = false
-	GameState.prologue_done = true
-	GameState.story_stage = 1
-	GameState.complete_milestone("落地星澜，开启旅途")
-	SaveManager.save_game()
+	Game.prologue_done = true
+	Game.story_stage = 1
+	Game.complete_milestone("落地星澜，开启旅途")
+	Save.save_game()
 	await get_tree().create_timer(0.6).timeout
 	get_tree().change_scene_to_file("res://world/World.tscn")

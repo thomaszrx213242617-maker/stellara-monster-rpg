@@ -16,7 +16,7 @@ func _ready() -> void:
 	_build()
 	_assemble_lines()
 	_show()
-	MusicBus.play_track("ending")
+	BGM.play_track("ending")
 
 func _build() -> void:
 	var bg := ColorRect.new()
@@ -80,7 +80,7 @@ func _build() -> void:
 	add_child(hint)
 
 func _assemble_lines() -> void:
-	var nm: String = GameState.player_name if GameState.player_name != "" else "旅人"
+	var nm: String = Game.player_name if Game.player_name != "" else "旅人"
 	_lines = [
 		"黯潮之主·凛轰然倒下。你伸手按住他胸口的暗痕：「回来吧，凛。这不是你。」",
 		"金光自他体内渗出——被吞没的伙伴，终于挣脱黯潮的枷锁。",
@@ -112,8 +112,8 @@ func _finish() -> void:
 		return
 	_finished = true
 	_active = false
-	GameState.ending_done = true
-	GameState.story_stage = 3
-	SaveManager.save_game()
+	Game.ending_done = true
+	Game.story_stage = 3
+	Save.save_game()
 	await get_tree().create_timer(0.8).timeout
 	get_tree().change_scene_to_file("res://ui/TitleScreen.tscn")

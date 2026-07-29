@@ -9,7 +9,7 @@ const NarrationScript := preload("res://ui/NarrationBox.gd")
 func _ready() -> void:
 	var n := NarrationScript.new()
 	add_child(n)
-	var nm: String = GameState.player_name if GameState.player_name != "" else "旅人"
+	var nm: String = Game.player_name if Game.player_name != "" else "旅人"
 	n.present([
 		"凛（望向洞窟深处）：「是辉金龙……还有黯钢兽。两头金属神兽，同时苏醒了。」",
 		"凛：「不好，它们被黯潮污染了！」",
@@ -24,7 +24,7 @@ func _ready() -> void:
 	n.finished.connect(_finish)
 
 func _finish() -> void:
-	GameState.prologue_scout_done = false  # 新周目重置探险标记
-	SaveManager.save_game()
+	Game.prologue_scout_done = false  # 新周目重置探险标记
+	Save.save_game()
 	await get_tree().create_timer(0.6).timeout
 	get_tree().change_scene_to_file("res://ui/PrologueCutscene.tscn")

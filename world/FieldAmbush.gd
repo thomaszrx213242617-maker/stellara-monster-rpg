@@ -23,7 +23,7 @@ func _ready() -> void:
 	_build_visual()
 
 func _build_visual() -> void:
-	var data: Dictionary = DataBus.get_creature(creature_id)
+	var data: Dictionary = Data.get_creature(creature_id)
 	var tc: String = data.get("type", "无")
 	var col := Color(0.7, 0.7, 0.7)
 	var TYPE_COLORS := {

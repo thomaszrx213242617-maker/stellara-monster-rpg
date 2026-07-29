@@ -2,7 +2,7 @@ extends CanvasLayer
 
 ## 目标方向罗盘(原创IP《星澜物语》): 北向上方, 箭头指向当前目标相对玩家位置,
 ## 并显示直线距离。目标无效(零向量)时自动隐藏。不拦截鼠标输入。
-## 优先级: GameState.objective_target(手动覆盖, 如序章) 非零则用; 否则按 current_objective_target() 推导。
+## 优先级: Game.objective_target(手动覆盖, 如序章) 非零则用; 否则按 current_objective_target() 推导。
 
 var _arrow: Control
 var _dist_label: Label
@@ -69,9 +69,9 @@ func _process(_dt: float) -> void:
 
 ## 实际目标坐标: 手动覆盖优先, 否则按当前主线阶段推导
 func target_pos() -> Vector3:
-	if GameState.objective_target != Vector3.ZERO:
-		return GameState.objective_target
-	return GameState.current_objective_target()
+	if Game.objective_target != Vector3.ZERO:
+		return Game.objective_target
+	return Game.current_objective_target()
 
 func objective_target_invalid() -> bool:
 	return target_pos() == Vector3.ZERO
@@ -79,12 +79,12 @@ func objective_target_invalid() -> bool:
 ## 北向上方位角(度, 顺时针): 0=正北(-Z), 90=正东(+X)
 func get_bearing_deg() -> float:
 	var t: Vector3 = target_pos()
-	var dx: float = t.x - GameState.player_position.x
-	var dz: float = t.z - GameState.player_position.z
+	var dx: float = t.x - Game.player_position.x
+	var dz: float = t.z - Game.player_position.z
 	return rad_to_deg(atan2(dx, -dz))
 
 func distance_to_target() -> float:
 	var t: Vector3 = target_pos()
-	var dx: float = t.x - GameState.player_position.x
-	var dz: float = t.z - GameState.player_position.z
+	var dx: float = t.x - Game.player_position.x
+	var dz: float = t.z - Game.player_position.z
 	return sqrt(dx * dx + dz * dz)

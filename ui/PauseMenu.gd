@@ -111,7 +111,7 @@ func close() -> void:
 	_panel.visible = true
 
 func _open_dex() -> void:
-	SoundBus.play_sfx("select")
+	SFX.play_sfx("select")
 	if _dex == null:
 		_dex = PokedexScript.new()
 		_dex.name = "Pokedex"
@@ -129,7 +129,7 @@ func _on_dex_closed() -> void:
 	_resume_btn.grab_focus()
 
 func _open_party() -> void:
-	SoundBus.play_sfx("select")
+	SFX.play_sfx("select")
 	if _party == null:
 		_party = PartyScript.new()
 		_party.name = "PartyBag"
@@ -163,15 +163,15 @@ func _unhandled_input(e: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 func _resume() -> void:
-	SoundBus.play_sfx("select")
+	SFX.play_sfx("select")
 	_world.resume_from_pause()
 
 func _save() -> void:
-	SoundBus.play_sfx("select")
-	SaveManager.save_game()
+	SFX.play_sfx("select")
+	Save.save_game()
 
 func _open_settings() -> void:
-	SoundBus.play_sfx("select")
+	SFX.play_sfx("select")
 	if _settings == null:
 		_settings = SettingsMenuScript.new()
 		_settings.name = "SettingsMenu"
@@ -190,7 +190,7 @@ func _on_settings_closed() -> void:
 	_resume_btn.grab_focus()
 
 func _open_story() -> void:
-	SoundBus.play_sfx("select")
+	SFX.play_sfx("select")
 	if _story == null:
 		_story = _build_story_panel()
 		add_child(_story)
@@ -254,19 +254,19 @@ func _build_story_panel() -> Control:
 func _refresh_story_panel(c: Control) -> void:
 	var obj: Label = c.get_node("Objective")
 	if obj:
-		obj.text = "▶ 当前目标: " + GameState.current_objective()
+		obj.text = "▶ 当前目标: " + Game.current_objective()
 	var log: ScrollContainer = c.get_node("Log")
 	if log == null:
 		return
 	var list: VBoxContainer = log.get_child(0)
 	for ch in list.get_children():
 		ch.queue_free()
-	if GameState.story_log.is_empty():
+	if Game.story_log.is_empty():
 		var hint := Label.new()
 		hint.text = "（暂无已完成的大事记，继续冒险吧！）"
 		hint.modulate = Color(0.7, 0.7, 0.8)
 		list.add_child(hint)
-	for e in GameState.story_log:
+	for e in Game.story_log:
 		var l := Label.new()
 		var done: bool = bool(e["done"])
 		l.text = ("✔ " if done else "○ ") + str(e["text"])
@@ -275,6 +275,6 @@ func _refresh_story_panel(c: Control) -> void:
 		list.add_child(l)
 
 func _to_title() -> void:
-	SoundBus.play_sfx("select")
-	SaveManager.save_game()
+	SFX.play_sfx("select")
+	Save.save_game()
 	get_tree().change_scene_to_file("res://ui/TitleScreen.tscn")

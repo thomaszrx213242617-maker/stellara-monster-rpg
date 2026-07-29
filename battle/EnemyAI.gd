@@ -36,10 +36,10 @@ func _enemy_attack() -> void:
 	if enemy.moves.is_empty():
 		return
 	var move_id: String = enemy.moves[randi() % enemy.moves.size()]
-	var mv: Dictionary = DataBus.get_move(move_id)
+	var mv: Dictionary = Data.get_move(move_id)
 	if mv.is_empty():
 		return
-	var mult: float = DataBus.multiplier(mv["type"], player.type)
+	var mult: float = Data.multiplier(mv["type"], player.type)
 	# 特性: 猛火/蓄水 低血量增伤
 	if (enemy.ability == "猛火" and mv["type"] == "炎") or (enemy.ability == "蓄水" and mv["type"] == "水"):
 		if enemy.hp < enemy.max_hp / 3.0:
@@ -57,7 +57,7 @@ func _enemy_attack() -> void:
 		dodged.emit()
 		return
 	var cat: String = mv.get("category", "物理")
-	SoundBus.play_sfx("attack")
+	SFX.play_sfx("attack")
 	player.take_damage(dmg, enemy, cat)
 	if mv.has("status") and randf() < float(mv.get("status_chance", 0.0)):
 		player.apply_status(mv["status"], 4.0)

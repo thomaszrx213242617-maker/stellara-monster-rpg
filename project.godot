@@ -17,13 +17,13 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-DataBus="*res://autoload/DataBus.gd"
-InputSetup="*res://autoload/InputSetup.gd"
-DayNight="*res://autoload/DayNight.gd"
-GameState="*res://autoload/GameState.gd"
-SaveManager="*res://autoload/SaveManager.gd"
-MusicBus="*res://autoload/audio/MusicBus.gd"
-SoundBus="*res://autoload/audio/SoundBus.gd"
+Data="*res://autoload/DataBus.gd"
+Keys="*res://autoload/InputSetup.gd"
+Clock="*res://autoload/DayNight.gd"
+Game="*res://autoload/GameState.gd"
+Save="*res://autoload/SaveManager.gd"
+BGM="*res://autoload/MusicBus.gd"
+SFX="*res://autoload/SoundBus.gd"
 
 [display]
 

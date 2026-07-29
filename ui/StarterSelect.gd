@@ -1,7 +1,7 @@
 extends Control
 
 ## 御三家选择画面(原创IP《星澜物语》): 玩家从 焰狐(炎)/碧蛙(水)/藤兔(木) 中择一。
-## 选中后调用 GameState.choose_starter(id) 入队, 并进入开场动画 IntroCinematic。
+## 选中后调用 Game.choose_starter(id) 入队, 并进入开场动画 IntroCinematic。
 ## 操作: ← → 选择(也支持 A/D 与鼠标点击), 空格/回车/E 确定。
 
 const INTRO_SCENE := "res://ui/IntroCinematic.tscn"
@@ -15,7 +15,7 @@ var _confirming: bool = false
 func _ready() -> void:
 	_build()
 	_select(0)
-	SoundBus.play_sfx("select")
+	SFX.play_sfx("select")
 
 func _build() -> void:
 	# 背景
@@ -86,8 +86,8 @@ func _build() -> void:
 	add_child(btn)
 
 func _make_card(id: String) -> Panel:
-	var data: Dictionary = DataBus.get_creature(id)
-	var tcolor: Color = DataBus.type_color(data.get("type", ""))
+	var data: Dictionary = Data.get_creature(id)
+	var tcolor: Color = Data.type_color(data.get("type", ""))
 	var name: String = data.get("name", id)
 	var ctype: String = data.get("type", "")
 	var ability: String = data.get("ability", "—")
@@ -145,7 +145,7 @@ func _make_card(id: String) -> Panel:
 	var evo_to: String = data.get("evolve_to", "")
 	var evo_lv: int = int(data.get("evolve_level", 0))
 	if evo_to != "":
-		var ed: Dictionary = DataBus.get_creature(evo_to)
+		var ed: Dictionary = Data.get_creature(evo_to)
 		var evo_l := Label.new()
 		evo_l.text = "进化 · Lv%d → %s" % [evo_lv, ed.get("name", evo_to)]
 		evo_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -215,8 +215,8 @@ func _select(i: int) -> void:
 	_idx = posmod(i, _cards.size())
 	for k in range(_cards.size()):
 		var panel: Panel = _cards[k]
-		var data: Dictionary = DataBus.get_creature(_card_meta[k])
-		var tcolor: Color = DataBus.type_color(data.get("type", ""))
+		var data: Dictionary = Data.get_creature(_card_meta[k])
+		var tcolor: Color = Data.type_color(data.get("type", ""))
 		var sb: StyleBoxFlat = panel.get_theme_stylebox("panel").duplicate()
 		if k == _idx:
 			sb.border_color = tcolor
@@ -230,7 +230,7 @@ func _select(i: int) -> void:
 			panel.scale = Vector2(1.0, 1.0)
 		panel.add_theme_stylebox_override("panel", sb)
 	if _idx != i and not _confirming:
-		SoundBus.play_sfx("select")
+		SFX.play_sfx("select")
 
 func _on_confirm_pressed() -> void:
 	_confirm()
@@ -253,9 +253,9 @@ func _confirm() -> void:
 		return
 	_confirming = true
 	var id: String = _card_meta[_idx]
-	var ok: bool = GameState.choose_starter(id)
-	SoundBus.play_sfx("levelup")
-	var sd: Dictionary = DataBus.get_creature(id)
+	var ok: bool = Game.choose_starter(id)
+	SFX.play_sfx("levelup")
+	var sd: Dictionary = Data.get_creature(id)
 	var name: String = sd.get("name", id)
 	# 短暂提示后进入开场动画
 	var toast := Label.new()
