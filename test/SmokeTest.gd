@@ -239,17 +239,43 @@ func _ready() -> void:
 	evo.queue_free()
 	base.queue_free()
 
+	# ---- 玩家朝向: 眼睛建在 -Z(Godot 前进方向), 走路真正面朝前方 ----
+	var pc: PlayerController = load("res://world/PlayerController.gd").new()
+	add_child(pc)
+	await get_tree().process_frame
+	var eye_forward := false
+	for _c in pc.get_children():
+		if _c is MeshInstance3D and (_c as MeshInstance3D).position.z < -0.1:
+			eye_forward = true
+			break
+	_check(eye_forward, "玩家朝向: 眼睛位于 -Z(面朝前进方向, 非倒走)")
+	pc.queue_free()
+
 	# ---- 世界场景运行(捕捉大地图运行时崩溃) ----
 	GameState.reset_new_game()
 	var world := load("res://world/World.tscn").instantiate() as World
 	add_child(world)
 	await get_tree().create_timer(1.2).timeout
 	_check(world != null, "世界场景: 加载并运行 1.2s 无崩溃")
+	var tree_col := _count_tree_colliders(world)
+	_check(tree_col >= 11, "世界: 树木带碰撞体(不可穿过) count=%d" % tree_col)
 	world.queue_free()
 	await get_tree().process_frame
 
 	print("Smoke: 全部检查完成")
 	get_tree().quit()
+
+func _count_tree_colliders(node) -> int:
+	var n := 0
+	for c in node.get_children():
+		if c is StaticBody3D:
+			for sc in c.get_children():
+				if sc is CollisionShape3D and sc.shape is CylinderShape3D:
+					var r := (sc.shape as CylinderShape3D).radius
+					if abs(r - 0.45) < 0.05:
+						n += 1
+		n += _count_tree_colliders(c)
+	return n
 
 func _defeat(battle) -> void:
 	var guard: int = 0

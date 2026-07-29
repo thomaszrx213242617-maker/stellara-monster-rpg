@@ -819,6 +819,16 @@ func _add_tree(pos: Vector3) -> void:
 	fmat.roughness = 0.8
 	foliage.material_override = fmat
 	t.add_child(foliage)
+	# 碰撞: 树干实体, 玩家(CharacterBody3D)不可穿过
+	var tsb := StaticBody3D.new()
+	var tcol := CollisionShape3D.new()
+	var tsh := CylinderShape3D.new()
+	tsh.radius = 0.45
+	tsh.height = 2.4
+	tcol.shape = tsh
+	tcol.position = Vector3(0, 1.2, 0)
+	tsb.add_child(tcol)
+	t.add_child(tsb)
 	t.position = pos
 	add_child(t)
 
