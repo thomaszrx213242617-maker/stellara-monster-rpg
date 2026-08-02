@@ -29,3 +29,5 @@
 ## 2026-07-25 15:00 — P10 大版本III(T049-T052): 分辨率1920x1080; 三秘环系统(巨灵环/晶变环/超衍环, 原创命名规避版权, 每场战斗各一次, BattleArena按钮+Combatant.dmg_mult); 序章补充『三秘环说明』与『被神兽打败后灵兽全数消失』台词; 新增可探索序章 PrologueExplore(行走+与凛真实对话+洞中野怪真实战斗)衔接 OpeningCollapse(崩塌)→PrologueCutscene。GameState 增 transformation_bands/battle_return_scene/prologue_scout_done。编译通过, 7场景冒烟无崩溃。
 
 ## 2026-07-25 15:34 — P11 大版本IV(T053-T058): 标题屏幕正中央(大标题居中+菜单下移); 序章删除'连金属性的神兽都听你号令'台词; 远古球改为可购买(price1200), 商店现已列出全部灵球; 退出重进自动回到上次场景(GameState.current_scene 持久化+TitleScreen启动跳转); 晶变坑(太晶坑原创命名)三人协力讨伐(劲敌·岩/小岚/阿砂协助自动攻击, 胜利后可选收服或放弃); 3D视觉增强(世界雾+补光+树木, 战斗灵兽/人物头眼细节与材质)。新增 creatures.json 晶甲兽(raid boss) 与 world/TeraPit.gd。编译通过, 8场景冒烟+晶变坑讨伐运行时测试无崩溃。
+
+## 2026-08-02 18:25 — 增强 harness 框架: 新增 verify(编译+冒烟验收门槛) 与 sync 命令, 编写 docs/FRAMEWORK.md

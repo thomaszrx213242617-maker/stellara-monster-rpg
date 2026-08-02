@@ -17,6 +17,8 @@ harness.py —— 宝可梦-like 游戏 开发框架控制脚本
   python harness/harness.py devlog add "<一句话进展>"
   python harness/harness.py report              # 输出阶段完成度报告
   python harness/harness.py plan                # 输出按阶段的路线图
+  python harness/harness.py verify             # 验收门槛: 编译检查 + 冒烟测试(0 FAIL 才 PASS)
+  python harness/harness.py sync               # 重新生成 docs/TASKS.md 与 DEVLOG.md
 
 约定:
   - 状态: todo -> in_progress -> done | blocked | deferred
@@ -26,6 +28,8 @@ harness.py —— 宝可梦-like 游戏 开发框架控制脚本
 """
 import json
 import sys
+import os
+import subprocess
 import datetime
 from pathlib import Path
 
@@ -269,6 +273,57 @@ def cmd_plan():
             print(f"  {STATUS_ICON[t['status']]} {t['id']} {t['title']}")
 
 
+def _godot_bin():
+    # Godot 可执行文件路径: 优先环境变量, 否则回退到本机桌面二进制(本项目环境)。
+    return os.environ.get("GODOT_BIN") or r"C:/Users/Administrator/Desktop/Godot_v4.7.1-stable_win64.exe"
+
+
+def cmd_sync():
+    tasks = load_tasks()
+    gen_tasks_md(tasks)
+    ensure_devlog()
+    print(f"已重新生成 {TASKS_MD.relative_to(ROOT)} 与 {DEVLOG_MD.relative_to(ROOT)}")
+
+
+def cmd_verify():
+    """验收门槛: 编译检查 + 冒烟测试。两者皆 PASS(0 FAIL) 才整体 PASS。"""
+    godot = _godot_bin()
+    print("=== 验收门槛 (harness verify) ===\n")
+
+    # 1) 编译检查: headless 导入/编译全部脚本
+    print("[1/2] 编译检查: godot --headless --editor --quit")
+    rc = "?"
+    try:
+        r1 = subprocess.run([godot, "--headless", "--editor", "--quit"],
+                            cwd=str(ROOT), capture_output=True, text=True, timeout=240)
+        out1 = (r1.stdout or "") + (r1.stderr or "")
+        rc = r1.returncode
+        compile_ok = (rc == 0) and ("SCRIPT ERROR" not in out1) and ("Parse Error" not in out1)
+    except Exception as e:  # noqa: BLE001
+        out1 = str(e)
+        compile_ok = False
+    print("      -> %s (rc=%s)" % ("PASS" if compile_ok else "FAIL", rc))
+
+    # 2) 冒烟测试: 经 tools/run_smoke.py 看门狗运行
+    print("[2/2] 冒烟测试: tools/run_smoke.py")
+    ok = fails = 0
+    try:
+        r2 = subprocess.run([sys.executable, str(ROOT / "tools" / "run_smoke.py")],
+                            cwd=str(ROOT), capture_output=True, text=True, timeout=240)
+        out2 = (r2.stdout or "") + (r2.stderr or "")
+    except Exception as e:  # noqa: BLE001
+        out2 = str(e)
+        r2 = None
+    ok = out2.count("[OK]")
+    fails = out2.count("[FAIL]")
+    smoke_ok = ("EXIT_CODE=0" in out2) and (fails == 0)
+    print("      -> %s (%d OK / %d FAIL)" % ("PASS" if smoke_ok else "FAIL", ok, fails))
+
+    overall = compile_ok and smoke_ok
+    print("\n=== 验收结果: %s ===" % ("PASS ✅" if overall else "FAIL ❌"))
+    sys.exit(0 if overall else 1)
+
+
 def main():
     args = sys.argv[1:]
     if not args:
@@ -311,6 +366,10 @@ def main():
         cmd_report()
     elif cmd == "plan":
         cmd_plan()
+    elif cmd == "verify":
+        cmd_verify()
+    elif cmd == "sync":
+        cmd_sync()
     else:
         print(f"未知命令: {cmd}")
 

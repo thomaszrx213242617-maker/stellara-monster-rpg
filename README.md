@@ -50,7 +50,7 @@ harness/  harness.py 任务与日志管理
 
 ## 开发框架 (harness)
 
-所有任务与进度由 `harness/harness.py` 管理：
+所有任务与进度由 `harness/harness.py` 管理（任务事实来源 `harness/tasks.json`，`docs/TASKS.md` 由其自动生成）。完整工作流与文档角色见 `docs/FRAMEWORK.md`：
 
 ```bash
 python harness/harness.py init        # 首次初始化任务库
@@ -59,7 +59,11 @@ python harness/harness.py task list   # 列出任务
 python harness/harness.py task set T006 status in_progress
 python harness/harness.py devlog add "完成玩家控制器"
 python harness/harness.py report      # 完成度报告
+python harness/harness.py sync        # 重新生成 docs/TASKS.md
+python harness/harness.py verify      # 验收门槛: 编译检查 + 冒烟测试(0 FAIL 才 PASS)
 ```
+
+> `verify` 是验收闸门：先 `godot --headless --editor --quit` 全量编译检查，再经 `tools/run_smoke.py` 跑冒烟测试；两者皆通过才输出 `PASS ✅`。Godot 路径可用 `GODOT_BIN` 环境变量覆盖。
 
 ## 已引入的开源工具
 
