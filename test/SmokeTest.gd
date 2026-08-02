@@ -249,6 +249,42 @@ func _ready() -> void:
 	world.queue_free()
 	await get_tree().process_frame
 
+	# ---- 主场景 TitleScreen(游戏入口)运行时校验 ----
+	# 清空 current_scene 避免"有存档直接跳世界", 停在菜单构建, 捕捉 _ready 崩溃
+	Game.current_scene = ""
+	Game.reset_new_game()
+	var title = load("res://ui/TitleScreen.tscn").instantiate()
+	add_child(title)
+	await get_tree().create_timer(0.3).timeout
+	_check(title != null, "主场景: TitleScreen 加载并构建菜单无崩溃")
+	title.queue_free()
+	await get_tree().process_frame
+
+	# ---- 真实玩家移动 + 相机 FOV/bob: 隔离 PlayerController + CameraRig(避免大世界 ambush 切场景侧效) ----
+	Game.reset_new_game()
+	var pc2: PlayerController = load("res://world/PlayerController.gd").new()
+	pc2.position = Vector3(0, 1, 0)
+	add_child(pc2)
+	var cam2: CameraRig = load("res://world/CameraRig.gd").new()
+	add_child(cam2)
+	cam2.follow_target = cam2.get_path_to(pc2)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	var _active_cam: Camera3D = get_viewport().get_camera_3d()
+	_check(_active_cam != null, "移动测试: 存在当前相机(CameraRig 已 current=true)")
+	var z0b: float = pc2.global_position.z
+	Input.action_press("move_forward")
+	for _i in range(60):
+		await get_tree().physics_frame
+	Input.action_release("move_forward")
+	var z1b: float = pc2.global_position.z
+	_check(z1b < z0b - 0.3, "移动测试: 按W玩家向 -Z 前进 (z %.2f -> %.2f)" % [z0b, z1b])
+	if _active_cam != null:
+		_check(_active_cam.fov >= 70.0 and _active_cam.fov <= 90.0, "移动测试: 相机 FOV 在合理区间 (%.1f)" % _active_cam.fov)
+	pc2.queue_free()
+	cam2.queue_free()
+	await get_tree().process_frame
+
 	print("Smoke: 全部检查完成")
 	get_tree().quit()
 
