@@ -5,6 +5,7 @@ class_name PlayerController
 
 @export var speed: float = 7.0
 @export var jump_velocity: float = 7.0
+@export var velocity_lerp: float = 10.0   ## 水平加速度平滑(越大越跟手, 越小越有惯性)
 var gravity: float = 22.0
 var _step_cd: float = 0.0   # 脚步声间隔计时(原创音效, 规避版权)
 
@@ -87,8 +88,8 @@ func _physics_process(delta: float) -> void:
 		right = right.normalized()
 		dir = (fwd * -input_dir.z + right * input_dir.x).normalized()
 
-	velocity.x = dir.x * speed
-	velocity.z = dir.z * speed
+	velocity.x = lerpf(velocity.x, dir.x * speed, clamp(velocity_lerp * delta, 0.0, 1.0))
+	velocity.z = lerpf(velocity.z, dir.z * speed, clamp(velocity_lerp * delta, 0.0, 1.0))
 	if dir != Vector3.ZERO:
 		look_at(global_position + dir, Vector3.UP)
 	move_and_slide()
