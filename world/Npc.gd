@@ -43,14 +43,14 @@ func _ready() -> void:
 	hmat.roughness = 0.55
 	head.material_override = hmat
 	add_child(head)
-	# 眼睛(朝向 +Z, 更生动)
+	# 眼睛(朝向 -Z = Godot 前进方向, 与 look_at(global_position+dir) 对齐, 跟随/行走时真正面朝前方)
 	for sx in [-0.15, 0.15]:
 		var eye := MeshInstance3D.new()
 		var em := SphereMesh.new()
 		em.radius = 0.07
 		em.height = 0.14
 		eye.mesh = em
-		eye.position = Vector3(sx, 1.2, 0.36)
+		eye.position = Vector3(sx, 1.2, -0.36)
 		var emat := StandardMaterial3D.new()
 		emat.albedo_color = Color(0.12, 0.12, 0.16)
 		eye.material_override = emat
