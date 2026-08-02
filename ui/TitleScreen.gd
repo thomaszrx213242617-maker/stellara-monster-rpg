@@ -23,7 +23,6 @@ const SettingsMenuScript := preload("res://ui/SettingsMenu.gd")
 
 func _ready() -> void:
 	_build()
-	BGM.play_track("title")
 	# 续玩: 已有存档且记录了上次所在场景 → 直接进入该场景(自动回到退出前位置)
 	if Save.has_save() and Game.current_scene != "":
 		get_tree().change_scene_to_file(Game.current_scene)

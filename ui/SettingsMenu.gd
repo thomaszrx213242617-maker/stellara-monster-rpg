@@ -1,24 +1,18 @@
 extends Control
 
 ## 通用设置菜单(覆盖层)。标题画面与暂停菜单共用。
-## 提供: 音乐 开/关 + 音量滑条, 音效 开/关 + 音量滑条, 文字速度(慢/中/快), 全屏 开/关, 返回。
+## 提供: 音效 开/关 + 音量滑条, 文字速度(慢/中/快), 全屏 开/关, 返回。
 ## 改动即时生效并自动存档(Game + Save); 暴露 closed 信号供调用方收回焦点。
 ## 不自行处理 Esc: 由调用方在 _unhandled_input 中优先关闭本菜单(避免与暂停菜单的 Esc 冲突)。
 
 signal closed
 
-var _b_music: Button
 var _b_sfx: Button
 var _b_speed: Button
 var _b_full: Button
-var _b_musicfile: Button
-var _s_music: HSlider
 var _s_sfx: HSlider
-var _v_music: Label
 var _v_sfx: Label
 var _first: Button
-var _music_options: Array = []
-var _music_idx: int = 0
 
 const _SPEED_LABEL := ["慢", "中", "快"]
 
@@ -50,42 +44,11 @@ func _build() -> void:
 	sp.custom_minimum_size = Vector2(0, 14)
 	vb.add_child(sp)
 
-	# 音乐 开/关
-	_b_music = _btn("音乐: " + ("开" if Game.music_on else "关"))
-	_b_music.pressed.connect(_toggle_music)
-	vb.add_child(_b_music)
-	_first = _b_music
-
-	# 音乐音量
-	var hm := HBoxContainer.new()
-	hm.alignment = BoxContainer.ALIGNMENT_CENTER
-	var lm := Label.new(); lm.text = "音乐音量"; lm.add_theme_font_size_override("font_size", 18); lm.modulate = Color(0.85, 0.88, 0.95)
-	_s_music = HSlider.new(); _s_music.min_value = 0; _s_music.max_value = 100; _s_music.step = 1
-	_s_music.custom_minimum_size = Vector2(220, 24)
-	_s_music.value = int(Game.music_volume * 100)
-	_v_music = Label.new(); _v_music.text = _pct(Game.music_volume); _v_music.custom_minimum_size = Vector2(48, 0); _v_music.add_theme_font_size_override("font_size", 16)
-	hm.add_child(lm); hm.add_child(_s_music); hm.add_child(_v_music)
-	vb.add_child(hm)
-	_s_music.value_changed.connect(_on_music_vol)
-
-	# 背景音乐文件(自定义 BGM): 在「原创合成」与用户放入 res://audio/ 的文件间循环
-	var opts: Array = [{"name": "原创合成", "path": ""}]
-	for m in BGM.list_music_files():
-		opts.append(m)
-	_music_options = opts
-	_music_idx = 0
-	for i in opts.size():
-		if opts[i]["path"] == Game.custom_music:
-			_music_idx = i
-			break
-	_b_musicfile = _btn("背景音乐: " + opts[_music_idx]["name"])
-	_b_musicfile.pressed.connect(_cycle_music_file)
-	vb.add_child(_b_musicfile)
-
 	# 音效 开/关
 	_b_sfx = _btn("音效: " + ("开" if Game.sfx_on else "关"))
 	_b_sfx.pressed.connect(_toggle_sfx)
 	vb.add_child(_b_sfx)
+	_first = _b_sfx
 
 	# 音效音量
 	var hs := HBoxContainer.new()
@@ -141,30 +104,6 @@ func focus_first() -> void:
 func close() -> void:
 	visible = false
 	closed.emit()
-
-func _toggle_music() -> void:
-	var on := not Game.music_on
-	BGM.set_music_enabled(on)
-	_b_music.text = "音乐: " + ("开" if on else "关")
-	Save.save_game()
-	SFX.play_sfx("select")
-
-## 循环切换背景音乐: 原创合成 ↔ 用户放入 res://audio/ 的音乐文件, 即时试听并保存。
-func _cycle_music_file() -> void:
-	if _music_options.is_empty():
-		return
-	_music_idx = (_music_idx + 1) % _music_options.size()
-	var opt: Dictionary = _music_options[_music_idx]
-	Game.custom_music = opt["path"]
-	BGM.set_custom_music(opt["path"])
-	_b_musicfile.text = "背景音乐: " + opt["name"]
-	SFX.play_sfx("select")
-	Save.save_game()
-
-func _on_music_vol(v: float) -> void:
-	BGM.set_music_volume(v / 100.0)
-	_v_music.text = _pct(v / 100.0)
-	Save.save_game()
 
 func _toggle_sfx() -> void:
 	var on := not Game.sfx_on

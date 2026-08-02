@@ -29,18 +29,6 @@ func _ready() -> void:
 	SFX.set_sfx_enabled(true)
 	_check(SFX.sfx_names().size() == 13, "SFX: sfx_names() 返回 13 个名称")
 
-	# ---- 音乐系统(BGM): 自定义音乐接口 + 原创曲目存在 ----
-	_check(BGM != null, "BGM 自动加载存在")
-	Game.custom_music = ""
-	var _files := BGM.list_music_files()
-	_check(typeof(_files) == TYPE_ARRAY, "BGM.list_music_files 返回数组")
-	_check("title" in BGM._tracks and "overworld" in BGM._tracks and "battle" in BGM._tracks, "BGM: 原创曲目(title/overworld/battle)已重编")
-	BGM.set_custom_music("res://audio/__nonexistent_test__.wav")  # 不存在文件应安全回退
-	_check(BGM.mode == "procedural", "set_custom_music 异常文件安全回退为程序化")
-	Game.custom_music = ""
-	BGM.play_track("overworld")
-	_check(BGM.current_track == "overworld", "play_track(overworld) 生效")
-
 	# ---- 存储箱(盒子): 存取逻辑 ----
 	Game.team = []
 	Game.storage = []

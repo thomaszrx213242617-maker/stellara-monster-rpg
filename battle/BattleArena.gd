@@ -64,12 +64,6 @@ func _ready() -> void:
 	build_arena()
 	_build_hud()
 	start_battle()
-	if _enemy_is_finale:
-		BGM.play_track("finale")
-	elif _raid_mode:
-		BGM.play_track("raid")
-	else:
-		BGM.play_track("battle")
 
 func build_arena() -> void:
 	var env_node := WorldEnvironment.new()

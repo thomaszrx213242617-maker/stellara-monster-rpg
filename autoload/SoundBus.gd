@@ -2,8 +2,8 @@ extends Node
 class_name SoundBus
 
 ## 音效自动加载(原创, 程序化合成, 规避任天堂/宝可梦版权)。
-## 与 BGM 互补: 这里是一发即止的「音效」(攻击/命中/收服/治疗/升级/濒死/菜单...),
-## 用一次性 AudioStreamWAV 合成 + 4 路播放池(简单复音), 不占用 BGM 的连续 push 循环。
+## 这里是一发即止的「音效」(攻击/命中/收服/治疗/升级/濒死/菜单...),
+## 用一次性 AudioStreamWAV 合成 + 4 路播放池(简单复音)。
 ## 对外 API: play_sfx(name) / set_sfx_enabled(bool) / set_sfx_volume(0..1)。
 ## 取用策略: 优先 load res://audio/<name>.wav|ogg|mp3(用户可丢入自有音效替换),
 ## 找不到才用下方 _sounds 程序化合成(兜底)。全部音高/波形为原创, 无任何外部版权素材。
@@ -78,7 +78,7 @@ func set_sfx_volume(v: float) -> void:
 	if "sfx_volume" in Game:
 		Game.sfx_volume = v
 
-## 返回全部音效名(供 BGM 扫描用户音乐文件时排除音效, 避免把音效当 BGM)。
+## 返回全部音效名。
 func sfx_names() -> Array:
 	return _sounds.keys()
 

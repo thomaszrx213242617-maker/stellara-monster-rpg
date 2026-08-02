@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """
-重命名 7 个 autoload singleton(让 class_name 与单例名解耦, 避免 Godot 4 解析器冲突)。
+重命名 6 个 autoload singleton(让 class_name 与单例名解耦, 避免 Godot 4 解析器冲突)。
 - GameState -> Game
 - DataBus   -> Data
 - DayNight  -> Clock
 - SaveManager -> Save
 - InputSetup  -> Keys
 - SoundBus  -> SFX
-- MusicBus  -> BGM
 
 class_name 行在脚本里另行恢复(本脚本不处理 class_name, 只动单例引用)。
 限定项目目录(排除 addons/), 用 \\b 单词边界避免误伤。
@@ -21,7 +20,6 @@ mappings = [
     (r'\bSaveManager\b', 'Save'),
     (r'\bInputSetup\b', 'Keys'),
     (r'\bSoundBus\b', 'SFX'),
-    (r'\bMusicBus\b', 'BGM'),
 ]
 allowed = {'autoload', 'battle', 'core', 'data', 'harness', 'test', 'ui', 'world'}
 

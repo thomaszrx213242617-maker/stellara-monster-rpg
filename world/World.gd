@@ -100,7 +100,6 @@ func _ready() -> void:
 	add_child(compass)
 	Clock.time_changed.connect(_on_time)
 	_on_time(0.0)
-	BGM.play_track("overworld")
 
 func _setup_pause_menu() -> void:
 	var PauseScript := preload("res://ui/PauseMenu.gd")

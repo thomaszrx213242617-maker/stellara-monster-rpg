@@ -34,7 +34,6 @@ func _ready() -> void:
 			if not sd.is_empty():
 				lines.insert(0, "凛：「对了——你从那三只里挑的『" + sd.get("name", "") + "』，可得用心培养。它日后会进化成更强的姿态。」")
 		_dialogue.start(lines)
-	BGM.play_track("overworld")
 
 func _build_world() -> void:
 	var env_node := WorldEnvironment.new()

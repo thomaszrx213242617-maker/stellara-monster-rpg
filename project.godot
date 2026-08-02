@@ -22,7 +22,6 @@ Keys="*res://autoload/InputSetup.gd"
 Clock="*res://autoload/DayNight.gd"
 Game="*res://autoload/GameState.gd"
 Save="*res://autoload/SaveManager.gd"
-BGM="*res://autoload/MusicBus.gd"
 SFX="*res://autoload/SoundBus.gd"
 
 [display]
