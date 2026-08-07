@@ -578,5 +578,225 @@
     "prio": "medium",
     "deps": "",
     "note": ""
+  },
+  {
+    "id": "T059",
+    "phase": "P12 内容扩充与平衡",
+    "title": "扩充灵兽图鉴",
+    "desc": "新增 30+ 原创灵兽, 覆盖 12 属性生态与更多进化链, 完善 data/creatures.json。",
+    "status": "todo",
+    "prio": "high",
+    "deps": "T022",
+    "note": ""
+  },
+  {
+    "id": "T060",
+    "phase": "P12 内容扩充与平衡",
+    "title": "扩充招式池",
+    "desc": "每属性 4-6 招, 含变化/状态招, 平衡威力与冷却, 完善 data/moves.json。",
+    "status": "todo",
+    "prio": "high",
+    "deps": "T007",
+    "note": ""
+  },
+  {
+    "id": "T061",
+    "phase": "P12 内容扩充与平衡",
+    "title": "冰属性生态补全",
+    "desc": "雪原区域与冰系灵兽/招式分布, 强化 冰 属性在探索中的存在感 (GAME_DESIGN §4.1/§7.3)。",
+    "status": "todo",
+    "prio": "medium",
+    "deps": "T010,T022",
+    "note": ""
+  },
+  {
+    "id": "T062",
+    "phase": "P12 内容扩充与平衡",
+    "title": "金系平衡调整",
+    "desc": "金系当前过强(强4弱2)且传说/Alpha/首领多为金系; 经 type_chart.json 加弱点或加机制约束, 见 GAME_DESIGN §7.2 平衡观察。",
+    "status": "todo",
+    "prio": "high",
+    "deps": "T026,T064",
+    "note": ""
+  },
+  {
+    "id": "T063",
+    "phase": "P12 内容扩充与平衡",
+    "title": "暗/灵互克与光系分布平衡",
+    "desc": "暗↔灵互克 2× 且皆弱光 → 光系天然 counter; 调整互克倍率或光系稀缺度, 见 GAME_DESIGN §7.2。",
+    "status": "todo",
+    "prio": "medium",
+    "deps": "T064",
+    "note": ""
+  },
+  {
+    "id": "T064",
+    "phase": "P12 内容扩充与平衡",
+    "title": "数值平衡与平衡表",
+    "desc": "种族值/公式调参, 用 GDUnit4 单测覆盖数值与克制, 产出可调平衡表。",
+    "status": "todo",
+    "prio": "high",
+    "deps": "T023",
+    "note": ""
+  },
+  {
+    "id": "T065",
+    "phase": "P13 系统补全",
+    "title": "任务系统",
+    "desc": "主线/支线任务追踪与奖励, 候选 Quest System/Manager, 接入 GameState。",
+    "status": "todo",
+    "prio": "high",
+    "deps": "T011",
+    "note": ""
+  },
+  {
+    "id": "T066",
+    "phase": "P13 系统补全",
+    "title": "设置面板完整",
+    "desc": "显示/音频/语言/键位自定义, 候选 Godot Game Settings, 持久化到存档。",
+    "status": "todo",
+    "prio": "medium",
+    "deps": "T024,T029",
+    "note": ""
+  },
+  {
+    "id": "T067",
+    "phase": "P13 系统补全",
+    "title": "本地化框架",
+    "desc": "多语言文本管理, 候选 Localization Editor, 至少支持 中文/英文。",
+    "status": "todo",
+    "prio": "medium",
+    "deps": "",
+    "note": ""
+  },
+  {
+    "id": "T068",
+    "phase": "P13 系统补全",
+    "title": "灵兽 AI 行为树",
+    "desc": "敌方/伙伴用 Beehave 行为树决策, 增强/替代现有 EnemyAI, 纯 GDScript。",
+    "status": "todo",
+    "prio": "high",
+    "deps": "T008,T014",
+    "note": ""
+  },
+  {
+    "id": "T069",
+    "phase": "P13 系统补全",
+    "title": "统一存档强化",
+    "desc": "Addon Save 接入或自研, 解决存档版本迁移/兼容, 降低多系统并存风险。",
+    "status": "todo",
+    "prio": "medium",
+    "deps": "T012,T031",
+    "note": ""
+  },
+  {
+    "id": "T070",
+    "phase": "P14 道馆与主线完整体验",
+    "title": "八大道馆完整内容",
+    "desc": "8 馆主/阵容/徽章/属性倾向, 朱紫式连续对战, 见 GAME_DESIGN §10。",
+    "status": "todo",
+    "prio": "high",
+    "deps": "T020,T068",
+    "note": ""
+  },
+  {
+    "id": "T071",
+    "phase": "P14 道馆与主线完整体验",
+    "title": "主线剧情任务串联",
+    "desc": "冠军之路 + 黯潮谜团, 由任务系统(T065)驱动, 衔接序章/结局。",
+    "status": "todo",
+    "prio": "high",
+    "deps": "T065,T035,T040,T048",
+    "note": ""
+  },
+  {
+    "id": "T072",
+    "phase": "P14 道馆与主线完整体验",
+    "title": "伙伴凛 AI 与剧情演出",
+    "desc": "序章/终战协作叙事, 凛 作为终boss化身与可协作伙伴的 AI 与演出。",
+    "status": "todo",
+    "prio": "medium",
+    "deps": "T035,T048,T068",
+    "note": ""
+  },
+  {
+    "id": "T073",
+    "phase": "P14 道馆与主线完整体验",
+    "title": "传说/Alpha/Raid 副本内容",
+    "desc": "晶甲兽 raid、双神兽(辉金龙/黯钢兽)收服线完整体验与奖励。",
+    "status": "todo",
+    "prio": "medium",
+    "deps": "T028,T045,T057",
+    "note": ""
+  },
+  {
+    "id": "T074",
+    "phase": "P15 音频与美术升级",
+    "title": "原创 BGM 与音频管线",
+    "desc": "程序化/CC0 原创音乐替代当前静音(用户曾移除BGM), 接入 SoundBus。",
+    "status": "todo",
+    "prio": "medium",
+    "deps": "T004",
+    "note": ""
+  },
+  {
+    "id": "T075",
+    "phase": "P15 音频与美术升级",
+    "title": "占位美术替换",
+    "desc": "原创/CC0 灵兽/角色/环境模型与材质, 替换程序生成占位, 保持版权红线。",
+    "status": "todo",
+    "prio": "high",
+    "deps": "T036,T058",
+    "note": ""
+  },
+  {
+    "id": "T076",
+    "phase": "P15 音频与美术升级",
+    "title": "视觉与特效增强",
+    "desc": "技能特效/收服演出/昼夜氛围特效, 提升实时战斗与探索表现力。",
+    "status": "todo",
+    "prio": "medium",
+    "deps": "T014,T058",
+    "note": ""
+  },
+  {
+    "id": "T077",
+    "phase": "P16 发布与运营准备",
+    "title": "性能优化",
+    "desc": "大世界剔除/LOD/实例化, 目标稳定 60fps(Windows 单机), 见 NFR-02。",
+    "status": "todo",
+    "prio": "high",
+    "deps": "T010,T025",
+    "note": ""
+  },
+  {
+    "id": "T078",
+    "phase": "P16 发布与运营准备",
+    "title": "新手引导与教程",
+    "desc": "操作/机制 onboarding, 降低实时战斗与收服系统上手门槛。",
+    "status": "todo",
+    "prio": "medium",
+    "deps": "T006,T017",
+    "note": ""
+  },
+  {
+    "id": "T079",
+    "phase": "P16 发布与运营准备",
+    "title": "Windows 构建与分发",
+    "desc": "导出/版本号/itch 或直发, 完成 v1 发布包。",
+    "status": "todo",
+    "prio": "high",
+    "deps": "T025,T077",
+    "note": ""
+  },
+  {
+    "id": "T080",
+    "phase": "P16 发布与运营准备",
+    "title": "多语言与无障碍",
+    "desc": "localize 全文(配合 T067), 字幕/色盲等可访问性选项。",
+    "status": "todo",
+    "prio": "low",
+    "deps": "T067",
+    "note": ""
   }
 ]
