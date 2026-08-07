@@ -285,6 +285,33 @@ func _ready() -> void:
 	cam2.queue_free()
 	await get_tree().process_frame
 
+	# ---- MVP 探索场景: 3D 移动 + 第三人称相机 真实运行 ----
+	# 独立于大世界(无 ambush/战斗/UI), 直接验证「打开即玩」的最小可玩闭环
+	Game.reset_new_game()
+	var mvp = load("res://world/MvpExplore.tscn").instantiate()
+	add_child(mvp)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	await get_tree().process_frame
+	var _mvp_player: Node = null
+	for _ch in mvp.get_children():
+		if _ch is PlayerController:
+			_mvp_player = _ch
+			break
+	_check(_mvp_player != null, "MVP: 场景含 PlayerController")
+	var _mvp_cam: Camera3D = get_viewport().get_camera_3d()
+	_check(_mvp_cam != null and _mvp_cam.current, "MVP: 第三人称相机已激活(current=true)")
+	if _mvp_player != null:
+		var z0m: float = (_mvp_player as Node3D).global_position.z
+		Input.action_press("move_forward")
+		for _i in range(60):
+			await get_tree().physics_frame
+		Input.action_release("move_forward")
+		var z1m: float = (_mvp_player as Node3D).global_position.z
+		_check(z1m < z0m - 0.5, "MVP: 按W玩家向 -Z 探索前进 (z %.2f -> %.2f)" % [z0m, z1m])
+	mvp.queue_free()
+	await get_tree().process_frame
+
 	print("Smoke: 全部检查完成")
 	get_tree().quit()
 

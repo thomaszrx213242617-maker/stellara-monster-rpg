@@ -3,7 +3,7 @@
 > 本文档由 `harness/harness.py` 从 `harness/tasks.json` 自动生成, 请勿手改。
 > 修改任务请用 `python harness/harness.py task set <id> status <x>`。
 
-**总进度**: 58/80 完成
+**总进度**: 59/81 完成
 
 ## 任务总览
 
@@ -89,6 +89,7 @@
 | T078 | P16 发布与运营准备 | 新手引导与教程 | [ ] todo | medium | T006,T017 |
 | T079 | P16 发布与运营准备 | Windows 构建与分发 | [ ] todo | high | T025,T077 |
 | T080 | P16 发布与运营准备 | 多语言与无障碍 | [ ] todo | low | T067 |
+| T081 | P1 MVP 垂直切片 | MVP 探索场景 MvpExplore(打开即玩) | [x] done | high | T006 |
 
 ## P0 基础框架与工具  (5/5)
 
@@ -129,15 +130,15 @@
 - **描述**: git init、完善 .gitignore、引导用户建 GitHub 仓库并首次提交。
 - **进度**: ✅ 已完成: 远程仓库 thomaszrx213242617-maker/stellara-monster-rpg(公开)由沙箱用 PAT 经 GitHub API 创建; 全部 11 个 commit 已由沙箱直连推送成功(master=f62b1a2)。真因: 卡死并非网络/代理, 而是 PortableGit 的 git-credential-helper-selector 在无界面环境弹编辑器挂死(每次67s); 修法=推送时加 GIT_TERMINAL_PROMPT=0 + -c credential.helper= -c credential.helperselector.selected=store 并彻底清掉代理env。origin 现为干净HTTPS URL。用户PAT用后建议撤销。
 
-## P1 MVP 垂直切片  (4/4)
+## P1 MVP 垂直切片  (5/5)
 
 ### [x] T006 — 3D 探索移动与跟随相机
 
 - **状态**: done
 - **优先级**: high
 - **依赖**: T004
-- **描述**: CharacterBody3D 玩家控制器、phantom-camera 第三人称跟随、输入映射、小测试场地。
-- **进度**: 玩家控制器+跟随相机+世界场景完成, 待F5验证
+- **描述**: CharacterBody3D 玩家控制器、自研 CameraRig 第三人称跟随(右键转视角/FOV/bob)、输入映射、MvpExplore 探索场景。
+- **进度**: 玩家控制器(PlayerController)+自研 CameraRig 已实现; 新增 world/MvpExplore.tscn 为打开即玩的 MVP 场景, 冒烟 96 OK/0 FAIL
 
 ### [x] T007 — 属性/数值/技能数据层
 
@@ -162,6 +163,14 @@
 - **依赖**: T007
 - **描述**: 昼夜循环(光照/天空)、'夜间不可对战收集点数'规则与提示。
 - **进度**: DayNight昼夜循环+夜间禁用收服规则完成
+
+### [x] T081 — MVP 探索场景 MvpExplore(打开即玩)
+
+- **状态**: done
+- **优先级**: high
+- **依赖**: T006
+- **描述**: 独立 world/MvpExplore.tscn: 环境光/天空色+地面碰撞+树木石柱地标+PlayerController+CameraRig(follow_target 绑定), 不引入剧情/战斗/UI, F6 即体验 3D 探索移动+第三人称相机。
+- **进度**: 复用既有 PlayerController/CameraRig; 冒烟新增 3 项 MVP 校验全过
 
 ## P2 探索世界  (5/5)
 

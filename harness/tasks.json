@@ -53,11 +53,11 @@
     "id": "T006",
     "phase": "P1 MVP 垂直切片",
     "title": "3D 探索移动与跟随相机",
-    "desc": "CharacterBody3D 玩家控制器、phantom-camera 第三人称跟随、输入映射、小测试场地。",
+    "desc": "CharacterBody3D 玩家控制器、自研 CameraRig 第三人称跟随(右键转视角/FOV/bob)、输入映射、MvpExplore 探索场景。",
     "status": "done",
     "prio": "high",
     "deps": "T004",
-    "note": "玩家控制器+跟随相机+世界场景完成, 待F5验证"
+    "note": "玩家控制器(PlayerController)+自研 CameraRig 已实现; 新增 world/MvpExplore.tscn 为打开即玩的 MVP 场景, 冒烟 96 OK/0 FAIL"
   },
   {
     "id": "T007",
@@ -798,5 +798,15 @@
     "prio": "low",
     "deps": "T067",
     "note": ""
+  },
+  {
+    "id": "T081",
+    "phase": "P1 MVP 垂直切片",
+    "title": "MVP 探索场景 MvpExplore(打开即玩)",
+    "desc": "独立 world/MvpExplore.tscn: 环境光/天空色+地面碰撞+树木石柱地标+PlayerController+CameraRig(follow_target 绑定), 不引入剧情/战斗/UI, F6 即体验 3D 探索移动+第三人称相机。",
+    "status": "done",
+    "prio": "high",
+    "deps": "T006",
+    "note": "复用既有 PlayerController/CameraRig; 冒烟新增 3 项 MVP 校验全过"
   }
 ]
