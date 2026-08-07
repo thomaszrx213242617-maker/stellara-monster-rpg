@@ -11,14 +11,17 @@ const ITEMS_PATH := "res://data/items.json"
 
 const TypeChartScript := preload("res://core/type_chart.gd")
 const CombatScript := preload("res://core/combat.gd")
+const TypeRegistryScript := preload("res://core/type_registry.gd")
 
 var type_chart: Variant
+var _type_registry: TypeRegistry
 var creatures: Dictionary = {}   # id -> 数据字典
 var moves: Dictionary = {}        # id -> 数据字典
 var items: Dictionary = {}        # id -> 数据字典
 
 func _ready() -> void:
 	type_chart = TypeChartScript.new()
+	_type_registry = TypeRegistryScript.new()
 	_load_data()
 
 ## 静态 JSON 加载器 (供任意脚本调用, 无需实例)
@@ -52,15 +55,17 @@ func get_move(id: String) -> Dictionary:
 func get_item(id: String) -> Dictionary:
 	return items.get(id, {})
 
-## 属性对应的主题色(与 Combatant._apply_color 保持一致), 供 UI(御三家/进化演出)复用
+## 属性对应的主题色(数据驱动, 委托 TypeRegistry 单一来源), 供 UI/Combatant 复用
 func type_color(type: String) -> Color:
-	var colors := {
-		"炎": Color(0.9, 0.3, 0.2), "水": Color(0.2, 0.4, 0.9), "木": Color(0.3, 0.7, 0.3),
-		"雷": Color(0.9, 0.9, 0.2), "岩": Color(0.6, 0.5, 0.4), "风": Color(0.7, 0.9, 0.8),
-		"光": Color(1.0, 0.95, 0.6), "暗": Color(0.3, 0.2, 0.4), "械": Color(0.7, 0.7, 0.75),
-		"灵": Color(0.8, 0.6, 0.9), "金": Color(0.72, 0.75, 0.82), "冰": Color(0.6, 0.85, 0.95)
-	}
-	return colors.get(type, Color(0.8, 0.8, 0.8))
+	return _type_registry.color(type)
+
+## 全部属性(按展示顺序)
+func all_types() -> Array:
+	return _type_registry.all_types()
+
+## 属性说明文字(图鉴/教学用)
+func type_description(type: String) -> String:
+	return _type_registry.description(type)
 
 ## 由灵兽名反查 id(用于进化演出按名定位数据)
 func creature_id_by_name(name: String) -> String:
@@ -81,3 +86,38 @@ func compute_stats(creature_data: Dictionary, level: int) -> Dictionary:
 	for k in ["atk", "def", "spatk", "spdef", "spd"]:
 		s[k] = CombatScript.stat_at_level(int(b[k]), level, false)
 	return s
+
+## ===================== 数据层门面(数值/收服/养成) =====================
+## 经验/等级数值曲线 —— 委托 Growth(数据驱动, 与 GameState.exp_needed 同源)
+func exp_cost(level: int) -> int:
+	return Growth.exp_cost(level)
+
+## 达到某等级所需的「累计经验」(level=1 时为 0)
+func exp_total(level: int) -> int:
+	return Growth.cumulative(level)
+
+## 给定累计经验, 返回当前等级
+func level_from_exp(exp: int) -> int:
+	return Growth.level_from_exp(exp)
+
+## 距下一级还差多少经验
+func exp_to_next(level: int, current_total_exp: int) -> int:
+	return Growth.exp_to_next(level, current_total_exp)
+
+## 击败灵兽获得的经验(野生公式)
+func exp_from_battle(defeated_level: int, defeated_base_hp: int = 0, participants: int = 1) -> int:
+	return Growth.exp_from_battle(defeated_level, defeated_base_hp, participants)
+
+func level_cap() -> int:
+	return Growth.level_cap()
+
+## 收服流水线 —— 委托 Capture(数据驱动单一来源, 与 Combat.capture_chance 公式一致且增加状态修正)
+func capture_chance(creature_data: Dictionary, current_hp: float, max_hp: float, ball_id: String, status_name: String) -> float:
+	return Capture.chance(creature_data, current_hp, max_hp, ball_id, status_name)
+
+func capture_chance_by_id(id: String, current_hp: float, max_hp: float, ball_id: String, status_name: String) -> float:
+	return Capture.chance_by_id(id, current_hp, max_hp, ball_id, status_name)
+
+## 灵兽个体(养成): 创建一只指定物种/等级的满血个体
+func make_instance(species_id: String, level: int, nickname: String = "") -> CreatureInstance:
+	return CreatureInstance.create(species_id, level, nickname)

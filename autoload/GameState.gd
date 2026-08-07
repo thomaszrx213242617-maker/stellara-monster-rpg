@@ -105,13 +105,13 @@ func _ready() -> void:
 	player_hp = player_max_hp
 	selected_ball = "ball"
 
-## 升到某级所需经验(中速曲线)
+## 升到某级所需经验(委托数值层 Data.exp_cost, 单一来源)
 func exp_needed(level: int) -> int:
-	return level * level
+	return Data.exp_cost(level)
 
-## 击败野生灵兽获得的经验
+## 击败野生灵兽获得的经验(委托数值层 Data.exp_from_battle, 单一来源)
 func wild_exp(level: int) -> int:
-	return floor(level * 8) + 8
+	return Data.exp_from_battle(level)
 
 func max_hp_for(id: String, level: int) -> int:
 	var data: Dictionary = Data.get_creature(id)

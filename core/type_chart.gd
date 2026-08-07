@@ -2,7 +2,7 @@ class_name TypeChart
 extends RefCounted
 
 ## 属性克制表封装。从 data/type_chart.json 加载。
-## 原创 10 属性: 炎/水/木/雷/岩/风/光/暗/械/灵
+## 原创 12 属性: 炎/水/木/雷/岩/风/光/暗/械/灵/金/冰
 
 var _types: Array = []
 var _chart: Dictionary = {}

@@ -559,8 +559,7 @@ func _try_capture() -> void:
 	_refresh_ball_btn()
 	SFX.play_sfx("capture")
 	var ename: String = Data.get_creature(enemy_combatant.creature_id).get("name", "敌方")
-	var base: float = Data.get_creature(enemy_combatant.creature_id).get("catch_rate", 0.4)
-	var chance: float = CombatScript.capture_chance(enemy_combatant.hp, enemy_combatant.max_hp, base, Game.ball_mod(ball), 1.0)
+	var chance: float = Data.capture_chance(Data.get_creature(enemy_combatant.creature_id), enemy_combatant.hp, enemy_combatant.max_hp, ball, enemy_combatant.status_name)
 	_throw_ball(ball, ename, chance)
 
 ## 投球动画: 灵球从玩家位置抛物线飞向敌方, 落地后判定收服

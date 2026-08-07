@@ -16,6 +16,52 @@ func _ready() -> void:
 	_check(Data.multiplier("炎", "炎") == 1.0, "炎->炎 = 1x")
 	_check(Data.multiplier("水", "金") == 0.5, "水->金 = 0.5x")
 
+	# ---- 数据层: 属性注册表 / 数值曲线 / 收服流水线 / 灵兽个体 ----
+	# 属性注册表(数据驱动单一来源, 取代硬编码色字典)
+	_check(Data.all_types().size() == 12, "数据层: 属性注册表共 12 种(实际 %d)" % Data.all_types().size())
+	_check(abs(Data.type_color("炎").r - 0.9) < 0.001, "数据层: 炎属性色(单一来源)与 types.json 一致")
+	_check(Data.type_color("冰") == Color(0.6, 0.85, 0.95), "数据层: 冰属性色与 types.json 一致")
+	_check(Data.type_description("水").length() > 0, "数据层: 属性描述非空")
+	_check(Data.type_color("未知属性XYZ") == Color(0.8, 0.8, 0.8), "数据层: 未知属性返回中性灰")
+
+	# 数值曲线(Growth): 成本/累计/反查/距下一级
+	_check(Data.exp_cost(5) == 25, "数据层: exp_cost(5)=25 (=5^2)")
+	_check(Data.exp_cost(1) == 1, "数据层: exp_cost(1)=1")
+	_check(Data.exp_total(6) == 55, "数据层: exp_total(6)=55 (sum 1..5 l^2)")
+	_check(Data.level_from_exp(55) == 6, "数据层: level_from_exp(55)=6")
+	_check(Data.level_from_exp(54) == 5, "数据层: level_from_exp(54)=5")
+	_check(Data.exp_to_next(5, 30) == 25, "数据层: 5级距下一级还差 25 经验")
+	_check(Data.exp_from_battle(5) == Game.wild_exp(5), "数据层: 战斗经验公式与 Game.wild_exp 一致")
+	_check(Data.level_cap() == 100, "数据层: 等级上限=100")
+
+	# 收服流水线(Capture): 低血易捕 / 残血公式核对 / 至尊球封顶 / 状态加成 / rng 判定
+	var fl: Dictionary = Data.get_creature("flarefox")   # catch_rate 0.45
+	var full_hp: float = Data.capture_chance(fl, 100.0, 100.0, "ball", "")
+	var weak_hp: float = Data.capture_chance(fl, 5.0, 100.0, "ball", "")
+	_check(weak_hp > full_hp, "数据层: 残血收服率高于满血 (%.3f > %.3f)" % [weak_hp, full_hp])
+	_check(abs(weak_hp - 0.45 * 1.0 * 1.0 * (0.4 + (1.0 - 0.05 * 0.8) * 1.0)) < 0.0001, "数据层: 残血基础公式核对")
+	var master: float = Data.capture_chance(fl, 100.0, 100.0, "master_ball", "")
+	_check(master <= 0.99, "数据层: 至尊球收服率封顶 0.99 (实际 %.3f)" % master)
+	var sleep_c: float = Data.capture_chance(fl, 50.0, 100.0, "ball", "睡眠")
+	var normal_c: float = Data.capture_chance(fl, 50.0, 100.0, "ball", "")
+	_check(sleep_c > normal_c, "数据层: 睡眠状态提升收服率 (%.3f > %.3f)" % [sleep_c, normal_c])
+	_check(Capture.roll(0.5, 0.3) == true, "数据层: roll(0.5,0.3) 判定成功")
+	_check(Capture.roll(0.5, 0.7) == false, "数据层: roll(0.5,0.7) 判定失败")
+
+	# 灵兽个体(CreatureInstance): 创建/满血/加经验进化+学招/序列化往返/兼容 GameState 字段
+	var ci := Data.make_instance("flarefox", 5)
+	_check(ci.current_hp == ci.max_hp, "数据层: 新个体满血")
+	_check(ci.max_hp > 0, "数据层: 个体派生最大HP>0")
+	var ci_res := ci.gain_exp(Data.exp_total(16) - ci.exp)
+	_check(ci_res["evolved"] and ci.species_id == "flarewolf", "数据层: 大量经验→焰狐进化炎狼")
+	_check("flarehowl" in ci.moves, "数据层: 进化习得招牌招式 炎狼啸")
+	_check(int(ci_res["levels"]) >= 11, "数据层: 一次性跨越多等级(>=11)")
+	var d := ci.to_dict()
+	_check(d.has("id") and d.has("exp") and d.has("hp") and d.has("max_hp") and d.has("moves"), "数据层: to_dict 含存档字段")
+	var ci2 := CreatureInstance.from_dict(d)
+	_check(ci2.species_id == ci.species_id and ci2.level == ci.level and ci2.moves == ci.moves, "数据层: from_dict 重建等价")
+	_check(ci2.current_hp == ci.current_hp, "数据层: from_dict 血量一致")
+
 	# ---- 音效系统(SFX): 13 个音效全覆盖(程序化合成 + 真实 wav 兜底) ----
 	_check(SFX != null, "SFX 自动加载存在")
 	var _all := SFX._sounds.keys()

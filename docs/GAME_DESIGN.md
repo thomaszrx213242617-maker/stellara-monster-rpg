@@ -240,6 +240,7 @@
 ### 11.2 支线与收集
 - 灵兽图鉴 completion、隐藏 Alpha、Raid 副本（晶甲兽）、NPC 小任务。
 - 对话系统候选 Dialogue Manager；任务系统候选 Quest System/Manager。
+- **暗线剧情「星澜暗涌」(GTA5 式叙事结构借鉴)**：见独立文档 [`STORY_UNDERBELLY.md`](./STORY_UNDERBELLY.md) —— 主线之下的地下经济犯罪支线（三主角切换 + 渐升级"行动" + 黑色幽默讽刺 + 最终大突袭），全部角色/事件原创，不沿用任何第三方 IP。
 
 ---
 

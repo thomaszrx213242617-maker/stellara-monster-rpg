@@ -136,16 +136,8 @@ func set_move_index(i: int) -> void:
 	active_move_index = posmod(i, moves.size())
 
 func _apply_color() -> void:
-	var colors := {
-		"炎": Color(0.9, 0.3, 0.2), "水": Color(0.2, 0.4, 0.9), "木": Color(0.3, 0.7, 0.3),
-		"雷": Color(0.9, 0.9, 0.2), "岩": Color(0.6, 0.5, 0.4), "风": Color(0.7, 0.9, 0.8),
-		"光": Color(1.0, 0.95, 0.6), "暗": Color(0.3, 0.2, 0.4), "械": Color(0.7, 0.7, 0.75),
-		"灵": Color(0.8, 0.6, 0.9),
-		"金": Color(0.72, 0.75, 0.82),
-		"冰": Color(0.6, 0.85, 0.95)
-	}
-	# 进化形态用强调色(与初始形态区分); 否则用属性色
-	var c: Color = _accent if _evolved else colors.get(type, Color(0.8, 0.8, 0.8))
+	# 进化形态用强调色(与初始形态区分); 否则用属性色(数据驱动, 单一来源 Data.type_color)
+	var c: Color = _accent if _evolved else Data.type_color(type)
 	if mesh:
 		var mat := StandardMaterial3D.new()
 		mat.albedo_color = c

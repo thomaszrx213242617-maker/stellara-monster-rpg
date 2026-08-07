@@ -1,0 +1,24 @@
+{
+  "level_cap": 100,
+  "exp": {
+    "cost": "square",
+    "base": 1
+  },
+  "wild_exp": {
+    "per_level": 8,
+    "flat": 8
+  },
+  "capture": {
+    "hp_base": 0.4,
+    "hp_weight": 1.0,
+    "min": 0.01,
+    "max": 0.99,
+    "status_mods": {
+      "睡眠": 2.0,
+      "冰冻": 2.0,
+      "麻痹": 1.5,
+      "中毒": 1.5,
+      "灼烧": 1.5
+    }
+  }
+}
