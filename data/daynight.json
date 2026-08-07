@@ -1,0 +1,22 @@
+{
+  "day_length": 480.0,
+  "phases": {
+    "dawn":  { "start": 0.00, "end": 0.08 },
+    "day":   { "start": 0.08, "end": 0.72 },
+    "dusk":  { "start": 0.72, "end": 0.80 },
+    "night": { "start": 0.80, "end": 1.00 }
+  },
+  "lighting": {
+    "dawn":  { "sky": [0.95, 0.78, 0.62], "light": 0.85, "fog": [0.88, 0.72, 0.60], "fog_density": 0.010 },
+    "day":   { "sky": [0.60, 0.75, 0.95], "light": 1.25, "fog": [0.72, 0.83, 0.95], "fog_density": 0.006 },
+    "dusk":  { "sky": [0.95, 0.55, 0.40], "light": 0.70, "fog": [0.82, 0.50, 0.45], "fog_density": 0.014 },
+    "night": { "sky": [0.05, 0.05, 0.12], "light": 0.30, "fog": [0.10, 0.08, 0.20], "fog_density": 0.022 }
+  },
+  "night_rules": {
+    "capture_banned": true,
+    "berserk_chance": 0.6,
+    "berserk_atk_mult": 1.4,
+    "berserk_def_mult": 1.4,
+    "berserk_hp_mult": 1.25
+  }
+}

@@ -23,6 +23,7 @@ var _trainer_name: String = ""
 var _badge_id: String = ""
 var _enemy_is_alpha: bool = false
 var _enemy_is_finale: bool = false
+var _enemy_is_berserk: bool = false
 
 var hud_layer: CanvasLayer
 var player_hp_bar: ProgressBar
@@ -282,6 +283,7 @@ func start_battle() -> void:
 		enemy_level = int(Game.pending_wild.get("level", 5))
 		_enemy_is_alpha = Game.pending_wild.get("alpha", false)
 		_enemy_is_finale = Game.pending_wild.get("finale", false)
+		_enemy_is_berserk = Game.pending_wild.get("berserk", false)
 		Game.pending_wild = {}
 
 	# ---- 晶变坑讨伐(三人协力): 独立分支, 覆盖默认敌人 ----
@@ -291,7 +293,7 @@ func start_battle() -> void:
 
 	enemy_combatant = CombatantScript.new()
 	enemy_combatant.position = Vector3(6, 1, 0)
-	enemy_combatant.setup(enemy_id, enemy_level, false)
+	enemy_combatant.setup(enemy_id, enemy_level, false, -1, _enemy_is_berserk)
 	if _enemy_is_alpha:
 		enemy_combatant.scale = Vector3(1.7, 1.7, 1.7)
 		if Game.pending_wild.get("finale", false):
@@ -545,6 +547,9 @@ func _try_capture() -> void:
 		return
 	if not enemy_is_wild:
 		_pop("无法收服" + _trainer_name + "的灵兽!")
+		return
+	if enemy_combatant.berserk:
+		_pop("狂暴化的灵兽无法被收服!")
 		return
 	if not Game.can_collect():
 		_pop("夜晚黯潮汹涌，无法收服灵兽!")

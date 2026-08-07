@@ -30,6 +30,7 @@ var status_tick: float = 0.0      # 中毒/灼烧每跳计时
 var ability: String = ""
 var active_move_index: int = 0
 var sturdy_used: bool = false
+var berserk: bool = false        # 夜间黯潮狂暴化: 攻防/血提升且不可收服
 
 ## 秘环增益: 玩家出招伤害倍率(晶变环/超衍环会提升, 默认1.0)
 var dmg_mult: float = 1.0
@@ -101,7 +102,7 @@ func _ready() -> void:
 	if type != "":
 		_apply_color()
 
-func setup(creature_id_: String, level_: int, is_player_: bool, current_hp_: int = -1) -> void:
+func setup(creature_id_: String, level_: int, is_player_: bool, current_hp_: int = -1, berserk_: bool = false) -> void:
 	creature_id = creature_id_
 	level = level_
 	is_player = is_player_
@@ -112,6 +113,9 @@ func setup(creature_id_: String, level_: int, is_player_: bool, current_hp_: int
 	ability = data.get("ability", "")
 	stats = Data.compute_stats(data, level)
 	max_hp = stats["max_hp"]
+	berserk = berserk_
+	if berserk:
+		_apply_berserk_stats()
 	if current_hp_ >= 0:
 		hp = clamp(current_hp_, 0, max_hp)
 	else:
@@ -129,6 +133,13 @@ func setup(creature_id_: String, level_: int, is_player_: bool, current_hp_: int
 		_evolved = true
 	_apply_color()
 	hp_changed.emit(hp, max_hp)
+
+## 狂暴化: 用全局夜间规则倍率放大攻防/最大HP(血量按比例保留由 setup 决定)
+func _apply_berserk_stats() -> void:
+	var mods: Dictionary = Clock.berserk_mods()
+	stats["atk"] = int(float(stats["atk"]) * float(mods.get("atk", 1.0)))
+	stats["def"] = int(float(stats["def"]) * float(mods.get("def", 1.0)))
+	max_hp = int(float(max_hp) * float(mods.get("hp", 1.0)))
 
 func set_move_index(i: int) -> void:
 	if moves.is_empty():
@@ -158,6 +169,12 @@ func _apply_color() -> void:
 			hmat.emissive_enabled = true
 			hmat.emissive = c * 0.28
 		_head.material_override = hmat
+	# 狂暴化辉光(黯潮污染): 红黑自发光, 读作"失控"
+	if berserk and mesh and mesh.material_override is StandardMaterial3D:
+		var bmat := mesh.material_override as StandardMaterial3D
+		bmat.emissive_enabled = true
+		bmat.emissive = Color(0.9, 0.15, 0.10)
+		bmat.emissive_energy_multiplier = 1.2
 
 func _physics_process(delta: float) -> void:
 	invulnerable = max(0.0, invulnerable - delta)

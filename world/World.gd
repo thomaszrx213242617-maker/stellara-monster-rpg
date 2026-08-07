@@ -307,11 +307,7 @@ func _build_ui() -> void:
 
 func _on_time(_t: float) -> void:
 	if _time_label:
-		var frac: float = Clock.day_fraction()
-		var h := int(frac * 24.0)
-		var m := int(fmod(frac * 24.0 * 60.0, 60.0))
-		var clock := "%02d:%02d" % [h, m]
-		_time_label.text = "时间: " + Clock.phase_label() + " " + clock + (" (禁止收服)" if Clock.is_night else "")
+		_time_label.text = "时间: " + Clock.phase_label() + " " + Clock.clock_string() + (" (禁止收服)" if Clock.is_night else "")
 
 func build_world() -> void:
 	# 对话框(CanvasLayer), 供所有 NPC 共用
@@ -872,7 +868,11 @@ func _engage_ambush() -> void:
 	var id: String = _ambush.creature_id
 	var lv: int = _ambush.level
 	_on_ambush_gone()
-	Game.pending_wild = {"id": id, "level": lv}
+	var pw: Dictionary = {"id": id, "level": lv}
+	# 夜间黯潮: 野生灵兽按概率狂暴化(攻防/血提升且不可收服)
+	if Clock.is_night:
+		pw["berserk"] = Clock.should_berserk()
+	Game.pending_wild = pw
 	get_tree().change_scene_to_file("res://battle/BattleArena.tscn")
 
 func _on_player_fainted() -> void:
@@ -1176,16 +1176,14 @@ func _process(delta: float) -> void:
 			_rift.consume()
 			get_tree().change_scene_to_file("res://battle/BattleArena.tscn")
 
-	# 昼夜光照反馈
+	# 昼夜光照反馈(平滑插值, 由 Clock.lighting() 驱动)
 	if _env:
-		if Clock.is_night:
-			_env.background_color = Color(0.05, 0.05, 0.12)
-			if _light:
-				_light.light_energy = 0.3
-		else:
-			_env.background_color = Color(0.6, 0.75, 0.95)
-			if _light:
-				_light.light_energy = 1.2
+		var lit: Dictionary = Clock.lighting()
+		_env.background_color = lit["sky"]
+		_env.fog_light_color = lit["fog"]
+		_env.fog_density = float(lit["fog_density"])
+		if _light:
+			_light.light_energy = float(lit["light"])
 
 	_update_team_label()
 	_update_research_label()

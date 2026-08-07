@@ -16,6 +16,63 @@ func _ready() -> void:
 	_check(Data.multiplier("炎", "炎") == 1.0, "炎->炎 = 1x")
 	_check(Data.multiplier("水", "金") == 0.5, "水->金 = 0.5x")
 
+	# ---- 昼夜循环与夜间规则 ----
+	_check(Clock != null, "昼夜: Clock 自动加载存在")
+	var dl := Clock.day_length
+	# 相位边界(按 data/daynight.json: dawn[0,.08) day[.08,.72) dusk[.72,.8) night[.8,1))
+	Clock.time = 0.0
+	_check(Clock.phase() == DayNight.Phase.DAWN, "昼夜: time=0 -> 黎明")
+	_check(Clock.phase_label() == "黎明", "昼夜: 黎明标签")
+	_check(not Clock.is_night, "昼夜: 黎明非夜晚")
+	Clock.time = dl * 0.4
+	_check(Clock.phase() == DayNight.Phase.DAY, "昼夜: time=0.4L -> 白昼")
+	_check(not Clock.is_night, "昼夜: 白昼非夜晚")
+	Clock.time = dl * 0.76
+	_check(Clock.phase() == DayNight.Phase.DUSK, "昼夜: time=0.76L -> 黄昏")
+	Clock.time = dl * 0.9
+	_check(Clock.phase() == DayNight.Phase.NIGHT, "昼夜: time=0.9L -> 夜晚")
+	_check(Clock.is_night, "昼夜: 夜晚判定为真")
+	_check(Clock.day_fraction() > 0.8, "昼夜: 夜晚 day_fraction>0.8")
+	# 时刻字符串
+	Clock.time = dl * 0.5
+	_check(Clock.clock_string() == "12:00", "昼夜: 正午 clock_string=12:00 (实际 %s)" % Clock.clock_string())
+	# 收服规则: 夜晚禁收服 / 白昼开放
+	Clock.time = dl * 0.9
+	_check(Clock.is_capture_banned(), "昼夜: 夜晚收服被禁")
+	_check(not Clock.can_capture(), "昼夜: 夜晚 can_capture=false")
+	Clock.time = dl * 0.4
+	_check(not Clock.is_capture_banned(), "昼夜: 白昼收服开放")
+	_check(Clock.can_capture(), "昼夜: 白昼 can_capture=true")
+	_check(Clock.can_battle_collect_points(), "昼夜: can_battle_collect_points 与 can_capture 一致")
+	# 光照: 夜晚比白昼暗, 含 sky/light/fog/fog_density
+	Clock.time = dl * 0.4
+	var lit_day: Dictionary = Clock.lighting()
+	Clock.time = dl * 0.9
+	var lit_night: Dictionary = Clock.lighting()
+	_check(lit_day.has("sky") and lit_day.has("light") and lit_day.has("fog") and lit_day.has("fog_density"), "昼夜: lighting 含 sky/light/fog/fog_density")
+	_check(float(lit_night["light"]) < float(lit_day["light"]), "昼夜: 夜晚光照更暗 (%.2f < %.2f)" % [float(lit_night["light"]), float(lit_day["light"])])
+	# 狂暴化参数与判定
+	_check(float(Clock.berserk_mods().get("atk", 1.0)) > 1.0, "昼夜: 狂暴化攻倍率>1")
+	_check(float(Clock.berserk_mods().get("def", 1.0)) > 1.0, "昼夜: 狂暴化防倍率>1")
+	_check(float(Clock.berserk_mods().get("hp", 1.0)) > 1.0, "昼夜: 狂暴化血倍率>1")
+	Clock.time = dl * 0.4
+	_check(not Clock.roll_berserk(0.0), "昼夜: 白昼 roll_berserk 恒为 false")
+	Clock.time = dl * 0.9
+	_check(Clock.roll_berserk(0.0) == true, "昼夜: 夜晚 rng=0 -> 狂暴化")
+	_check(Clock.roll_berserk(1.0) == false, "昼夜: 夜晚 rng=1 -> 不狂暴")
+	# 灵兽个体狂暴化: setup(berserk=true) 放大攻防/血
+	var _base_stats: Dictionary = Data.compute_stats(Data.get_creature("aqualeap"), 10)
+	var _base_atk: int = int(_base_stats["atk"])
+	var _base_hp: int = int(_base_stats["max_hp"])
+	var _cm: Combatant = Combatant.new()
+	_cm.setup("aqualeap", 10, false, -1, true)
+	_check(_cm.berserk == true, "昼夜: 狂暴化 setup 置位 berserk 标记")
+	_check(int(_cm.stats["atk"]) >= _base_atk, "昼夜: 狂暴化 atk 不低于基础 (实际 %d vs %d)" % [int(_cm.stats["atk"]), _base_atk])
+	_check(int(_cm.max_hp) > _base_hp, "昼夜: 狂暴化 max_hp 提升 (%d > %d)" % [int(_cm.max_hp), _base_hp])
+	_cm.queue_free()
+	# 收尾: 复原到白昼, 避免影响后续战斗测试
+	Clock.time = dl * 0.4
+
 	# ---- 数据层: 属性注册表 / 数值曲线 / 收服流水线 / 灵兽个体 ----
 	# 属性注册表(数据驱动单一来源, 取代硬编码色字典)
 	_check(Data.all_types().size() == 12, "数据层: 属性注册表共 12 种(实际 %d)" % Data.all_types().size())
