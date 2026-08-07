@@ -57,7 +57,7 @@
     "status": "done",
     "prio": "high",
     "deps": "T004",
-    "note": "玩家控制器(PlayerController)+自研 CameraRig 已实现; 新增 world/MvpExplore.tscn 为打开即玩的 MVP 场景, 冒烟 96 OK/0 FAIL"
+    "note": "玩家控制器(PlayerController)+自研 CameraRig 已实现; 实时战斗由 battle/BattleArena + 本 MVP 探索/战斗原型承载(T081/T082)"
   },
   {
     "id": "T007",
@@ -808,5 +808,15 @@
     "prio": "high",
     "deps": "T006",
     "note": "复用既有 PlayerController/CameraRig; 冒烟新增 3 项 MVP 校验全过"
+  },
+  {
+    "id": "T082",
+    "phase": "P1 MVP 垂直切片",
+    "title": "Z-A 式实时战斗原型 BattlePrototype",
+    "desc": "独立 world/BattlePrototype.tscn: 复用 Combatant/core.combat.gd/EnemyAI/CameraRig, 实现 Z-A 标志三件套——自动攻击(进射程定时触发, 无需按键)、战技 Art(空格, 长CD大伤)、位置加成(背击×1.5/侧击×1.25); HUD 双血条+冷却+胜负; F6 即玩。",
+    "status": "done",
+    "prio": "high",
+    "deps": "T006",
+    "note": "玩家 flarefox(炎) vs vinelop(木, 2x克制); 冒烟新增 2 项校验全过(98 OK/0 FAIL)"
   }
 ]

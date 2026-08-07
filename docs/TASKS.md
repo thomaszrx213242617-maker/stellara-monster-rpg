@@ -3,7 +3,7 @@
 > 本文档由 `harness/harness.py` 从 `harness/tasks.json` 自动生成, 请勿手改。
 > 修改任务请用 `python harness/harness.py task set <id> status <x>`。
 
-**总进度**: 59/81 完成
+**总进度**: 60/82 完成
 
 ## 任务总览
 
@@ -90,6 +90,7 @@
 | T079 | P16 发布与运营准备 | Windows 构建与分发 | [ ] todo | high | T025,T077 |
 | T080 | P16 发布与运营准备 | 多语言与无障碍 | [ ] todo | low | T067 |
 | T081 | P1 MVP 垂直切片 | MVP 探索场景 MvpExplore(打开即玩) | [x] done | high | T006 |
+| T082 | P1 MVP 垂直切片 | Z-A 式实时战斗原型 BattlePrototype | [x] done | high | T006 |
 
 ## P0 基础框架与工具  (5/5)
 
@@ -130,7 +131,7 @@
 - **描述**: git init、完善 .gitignore、引导用户建 GitHub 仓库并首次提交。
 - **进度**: ✅ 已完成: 远程仓库 thomaszrx213242617-maker/stellara-monster-rpg(公开)由沙箱用 PAT 经 GitHub API 创建; 全部 11 个 commit 已由沙箱直连推送成功(master=f62b1a2)。真因: 卡死并非网络/代理, 而是 PortableGit 的 git-credential-helper-selector 在无界面环境弹编辑器挂死(每次67s); 修法=推送时加 GIT_TERMINAL_PROMPT=0 + -c credential.helper= -c credential.helperselector.selected=store 并彻底清掉代理env。origin 现为干净HTTPS URL。用户PAT用后建议撤销。
 
-## P1 MVP 垂直切片  (5/5)
+## P1 MVP 垂直切片  (6/6)
 
 ### [x] T006 — 3D 探索移动与跟随相机
 
@@ -138,7 +139,7 @@
 - **优先级**: high
 - **依赖**: T004
 - **描述**: CharacterBody3D 玩家控制器、自研 CameraRig 第三人称跟随(右键转视角/FOV/bob)、输入映射、MvpExplore 探索场景。
-- **进度**: 玩家控制器(PlayerController)+自研 CameraRig 已实现; 新增 world/MvpExplore.tscn 为打开即玩的 MVP 场景, 冒烟 96 OK/0 FAIL
+- **进度**: 玩家控制器(PlayerController)+自研 CameraRig 已实现; 实时战斗由 battle/BattleArena + 本 MVP 探索/战斗原型承载(T081/T082)
 
 ### [x] T007 — 属性/数值/技能数据层
 
@@ -171,6 +172,14 @@
 - **依赖**: T006
 - **描述**: 独立 world/MvpExplore.tscn: 环境光/天空色+地面碰撞+树木石柱地标+PlayerController+CameraRig(follow_target 绑定), 不引入剧情/战斗/UI, F6 即体验 3D 探索移动+第三人称相机。
 - **进度**: 复用既有 PlayerController/CameraRig; 冒烟新增 3 项 MVP 校验全过
+
+### [x] T082 — Z-A 式实时战斗原型 BattlePrototype
+
+- **状态**: done
+- **优先级**: high
+- **依赖**: T006
+- **描述**: 独立 world/BattlePrototype.tscn: 复用 Combatant/core.combat.gd/EnemyAI/CameraRig, 实现 Z-A 标志三件套——自动攻击(进射程定时触发, 无需按键)、战技 Art(空格, 长CD大伤)、位置加成(背击×1.5/侧击×1.25); HUD 双血条+冷却+胜负; F6 即玩。
+- **进度**: 玩家 flarefox(炎) vs vinelop(木, 2x克制); 冒烟新增 2 项校验全过(98 OK/0 FAIL)
 
 ## P2 探索世界  (5/5)
 

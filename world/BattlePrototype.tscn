@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bbattleproto01"]
+
+[ext_resource type="Script" path="res://world/BattlePrototype.gd" id="1"]
+
+[node name="BattlePrototype" type="Node3D"]
+script = ExtResource("1")

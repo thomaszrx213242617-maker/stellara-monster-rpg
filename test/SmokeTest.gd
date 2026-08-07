@@ -312,6 +312,34 @@ func _ready() -> void:
 	mvp.queue_free()
 	await get_tree().process_frame
 
+	# ---- Z-A 实时战斗原型: 自动攻击循环 + 战技 + 敌方血量实时下降 ----
+	Game.reset_new_game()
+	var bt = load("res://world/BattlePrototype.tscn").instantiate()
+	add_child(bt)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	await get_tree().process_frame
+	var _bt_player: Node = null
+	var _bt_enemy: Node = null
+	for _ch in bt.get_children():
+		if _ch is Combatant and _ch.is_player:
+			_bt_player = _ch
+		elif _ch is Combatant and not _ch.is_player:
+			_bt_enemy = _ch
+	_check(_bt_player != null and _bt_enemy != null, "战斗原型: 生成玩家与敌方 Combatant")
+	if _bt_enemy != null:
+		var ehp0: int = _bt_enemy.hp
+		# 触发一次战技(Art), 顺带覆盖 _do_art 路径
+		Input.action_press("attack")
+		await get_tree().physics_frame
+		Input.action_release("attack")
+		await get_tree().physics_frame
+		# 等待实时自动攻击(~3s)持续削减敌方血量
+		await get_tree().create_timer(3.0).timeout
+		_check(_bt_enemy.hp < ehp0, "战斗原型: 实时自动攻击+战技使敌方血量下降 (%d -> %d)" % [ehp0, _bt_enemy.hp])
+	bt.queue_free()
+	await get_tree().process_frame
+
 	print("Smoke: 全部检查完成")
 	get_tree().quit()
 
